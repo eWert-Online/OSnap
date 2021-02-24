@@ -1,0 +1,14 @@
+(library
+  (name OSnap)
+  (flags (:standard -w +A-42-48 -warn-error +A-3-44))
+  (libraries
+    str
+    odiff
+    lwt
+    lwt.unix
+    yojson
+  )
+  (preprocess (pps
+    lwt_ppx
+  ))
+)

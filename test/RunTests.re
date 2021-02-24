@@ -1,0 +1,1 @@
+OSnapTests.TestFramework.cli();

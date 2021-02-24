@@ -1,0 +1,24 @@
+[
+  {
+    "name": "component",
+    "url": "http://localhost:3000/test",
+    "sizes": [
+      { "width": 1920, "height": 1080 },
+      { "width": 992, "height": 1080 },
+      { "width": 320, "height": 768 }
+    ],
+    "actions": [
+      { "action": "click", "selector": "#id" },
+      { "action": "click", "selector": ".className[0]" },
+      { "action": "type", "selector": "#id2", "text": "something" }
+    ]
+  },
+  {
+    "name": "component~active",
+    "url": "http://localhost:3000/test"
+  },
+  {
+    "name": "component~open",
+    "url": "http://localhost:3000/test"
+  }
+]
