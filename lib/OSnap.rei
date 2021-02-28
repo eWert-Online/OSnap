@@ -1,5 +1,6 @@
 module Config = OSnap_Config;
 module Browser = OSnap_Browser;
+module Websocket = OSnap_Websocket;
 
 type action =
   | Click(string)

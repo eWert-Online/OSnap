@@ -3,5 +3,9 @@
   (public_name osnap)
   (libraries
     OSnap
+    uri
   )
+  (preprocess (pps
+    lwt_ppx
+  ))
 )

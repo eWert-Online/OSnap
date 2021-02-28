@@ -1,14 +1,19 @@
 (library
   (name OSnap)
-  (flags (:standard -w +A-42-48 -warn-error +A-3-44))
+  (flags (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
   (libraries
     str
+    uri
     odiff
     lwt
     lwt.unix
     yojson
+    websocketaf
+    websocketaf-lwt
+    websocketaf-lwt-unix
   )
   (preprocess (pps
     lwt_ppx
+    ppx_yojson_conv
   ))
 )
