@@ -48,3 +48,46 @@ let parse = config =>
   }) {
   | Yojson.Basic.Util.Type_error(msg, _) => Result.error(msg)
   };
+
+let find = (~base_path="", ~config_name="osnap.config.json", ()) => {
+  let path_of_segments = paths =>
+    paths
+    |> List.rev
+    |> List.fold_left(
+         (acc, curr) =>
+           switch (acc) {
+           | "" => curr
+           | path => path ++ "/" ++ curr
+           },
+         "",
+       );
+
+  let base_path =
+    switch (base_path) {
+    | "" => Sys.getcwd()
+    | path => Sys.getcwd() ++ "/" ++ path
+    };
+
+  let rec scan_dir = segments => {
+    let elements =
+      segments |> path_of_segments |> Sys.readdir |> Array.to_list;
+    let (dirs, files) =
+      elements
+      |> List.partition(el => {
+           let path = path_of_segments([el, ...segments]);
+           path |> Sys.is_directory;
+         });
+    let exists = files |> List.exists(file => file == config_name);
+    if (exists) {
+      Some(segments);
+    } else {
+      dirs |> List.find_map(dir => scan_dir([dir, ...segments]));
+    };
+  };
+
+  let config_path = scan_dir([base_path]);
+  switch (config_path) {
+  | None => Result.error("No config file found")
+  | Some(paths) => paths |> path_of_segments |> Result.ok
+  };
+};

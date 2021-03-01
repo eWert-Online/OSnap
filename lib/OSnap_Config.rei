@@ -7,4 +7,8 @@ type t = {
   snapshotDirectory: string,
 };
 
-let parse: string => result(t, string);
+let parse: string => Result.t(t, string);
+
+let find:
+  (~base_path: string=?, ~config_name: string=?, unit) =>
+  Result.t(string, string);

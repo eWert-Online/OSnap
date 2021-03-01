@@ -1,0 +1,10 @@
+[
+  {
+    "name": "component",
+    "url": "http://localhost:3000/test"
+  },
+  {
+    "name": "component~variant",
+    "url": "http://localhost:3000/test-2"
+  }
+]
