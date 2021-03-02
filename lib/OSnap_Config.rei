@@ -1,14 +1,13 @@
 type size = (int, int);
 
 type t = {
-  baseUrl: string,
-  fullScreen: bool,
-  defaultSizes: list(size),
-  snapshotDirectory: string,
+  root_path: string,
+  base_url: string,
+  fullscreen: bool,
+  default_sizes: list(size),
+  snapshot_directory: string,
 };
 
 let parse: string => Result.t(t, string);
 
-let find:
-  (~base_path: string=?, ~config_name: string=?, unit) =>
-  Result.t(string, string);
+let find: unit => Result.t(string, string);

@@ -11,6 +11,7 @@
     websocketaf
     websocketaf-lwt
     websocketaf-lwt-unix
+    camlimages.png
   )
   (preprocess (pps
     lwt_ppx

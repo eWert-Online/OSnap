@@ -1,5 +1,5 @@
 {
-  "checksum": "101454e1cbe7a3e87b54e3b519d95bcd",
+  "checksum": "10b5009b81ec218ad4bef57c294a9362",
   "root": "osnap@link-dev:./package.json",
   "node": {
     "refmterr@3.3.2@d41d8cd9": {
@@ -18,7 +18,7 @@
         "@reason-native/console@0.1.0@d41d8cd9",
         "@opam/re@opam:1.9.0@d4d5e13d", "@opam/dune@opam:2.7.1@baccb77f",
         "@opam/atdgen@opam:2.2.1@d73fda11",
-        "@esy-ocaml/reason@3.6.2@d41d8cd9"
+        "@esy-ocaml/reason@3.7.0@d41d8cd9"
       ],
       "devDependencies": []
     },
@@ -42,14 +42,15 @@
         "@opam/yojson@opam:1.7.0@7056d985", "@opam/uri@opam:4.1.0@aebd13aa",
         "@opam/ppx_yojson_conv@opam:v0.14.0@97845f62",
         "@opam/lwt_ppx@opam:2.0.1@e6a764a0", "@opam/lwt@opam:5.3.0@0c09f517",
-        "@opam/cmdliner@opam:1.0.4@93208aac"
+        "@opam/cmdliner@opam:1.0.4@93208aac",
+        "@opam/base64@opam:3.5.0@827395e3"
       ],
       "devDependencies": [
         "refmterr@3.3.2@d41d8cd9", "ocaml@4.10.2000@d41d8cd9",
         "@opam/odoc@opam:1.5.2@94f47c8b",
         "@opam/ocaml-lsp-server@opam:1.4.0@c9583433",
         "@opam/merlin@opam:3.4.2@9a4d1fd4", "@opam/dune@opam:2.7.1@baccb77f",
-        "@esy-ocaml/reason@3.6.2@d41d8cd9"
+        "@esy-ocaml/reason@3.7.0@d41d8cd9"
       ]
     },
     "odiff@github:dmtrKovalenko/odiff#2bc9c67401fd0fe4615d271a8d1cd05e9058bc30@d41d8cd9": {
@@ -74,7 +75,7 @@
         "@opam/dune@opam:2.7.1@baccb77f",
         "@opam/cmdliner@opam:1.0.4@93208aac",
         "@opam/camlimages@opam:5.0.4@b5c11222",
-        "@esy-ocaml/reason@3.6.2@d41d8cd9"
+        "@esy-ocaml/reason@3.7.0@d41d8cd9"
       ],
       "devDependencies": []
     },
@@ -188,7 +189,7 @@
         "@reason-native/file-context-printer@0.0.3@d41d8cd9",
         "@reason-native/cli@0.0.1-alpha@d41d8cd9",
         "@opam/re@opam:1.9.0@d4d5e13d", "@opam/junit@opam:2.0.2@0b7bd730",
-        "@opam/dune@opam:2.7.1@baccb77f", "@esy-ocaml/reason@3.6.2@d41d8cd9"
+        "@opam/dune@opam:2.7.1@baccb77f", "@esy-ocaml/reason@3.7.0@d41d8cd9"
       ],
       "devDependencies": []
     },
@@ -205,7 +206,7 @@
       "overrides": [],
       "dependencies": [
         "ocaml@4.10.2000@d41d8cd9", "@opam/re@opam:1.9.0@d4d5e13d",
-        "@opam/dune@opam:2.7.1@baccb77f", "@esy-ocaml/reason@3.6.2@d41d8cd9"
+        "@opam/dune@opam:2.7.1@baccb77f", "@esy-ocaml/reason@3.7.0@d41d8cd9"
       ],
       "devDependencies": []
     },
@@ -223,7 +224,7 @@
       "dependencies": [
         "ocaml@4.10.2000@d41d8cd9", "@reason-native/pastel@0.3.0@d41d8cd9",
         "@opam/re@opam:1.9.0@d4d5e13d", "@opam/dune@opam:2.7.1@baccb77f",
-        "@esy-ocaml/reason@3.6.2@d41d8cd9"
+        "@esy-ocaml/reason@3.7.0@d41d8cd9"
       ],
       "devDependencies": []
     },
@@ -240,7 +241,7 @@
       "overrides": [],
       "dependencies": [
         "ocaml@4.10.2000@d41d8cd9", "@opam/dune@opam:2.7.1@baccb77f",
-        "@esy-ocaml/reason@3.6.2@d41d8cd9"
+        "@esy-ocaml/reason@3.7.0@d41d8cd9"
       ],
       "devDependencies": []
     },
@@ -258,7 +259,7 @@
       "dependencies": [
         "ocaml@4.10.2000@d41d8cd9", "@reason-native/pastel@0.3.0@d41d8cd9",
         "@opam/re@opam:1.9.0@d4d5e13d", "@opam/dune@opam:2.7.1@baccb77f",
-        "@esy-ocaml/reason@3.6.2@d41d8cd9"
+        "@esy-ocaml/reason@3.7.0@d41d8cd9"
       ],
       "devDependencies": []
     },
@@ -2370,14 +2371,14 @@
       "dependencies": [],
       "devDependencies": []
     },
-    "@esy-ocaml/reason@3.6.2@d41d8cd9": {
-      "id": "@esy-ocaml/reason@3.6.2@d41d8cd9",
+    "@esy-ocaml/reason@3.7.0@d41d8cd9": {
+      "id": "@esy-ocaml/reason@3.7.0@d41d8cd9",
       "name": "@esy-ocaml/reason",
-      "version": "3.6.2",
+      "version": "3.7.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://registry.npmjs.org/@esy-ocaml/reason/-/reason-3.6.2.tgz#sha1:49bd53c75dd241eb14f46277a85af353908f7e81"
+          "archive:https://registry.npmjs.org/@esy-ocaml/reason/-/reason-3.7.0.tgz#sha1:36f92c1c854477c4da37e4769a045ffe60e4fb10"
         ]
       },
       "overrides": [],

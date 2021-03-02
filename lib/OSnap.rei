@@ -1,3 +1,4 @@
+module Io = OSnap_Io;
 module Config = OSnap_Config;
 module Browser = OSnap_Browser;
 module Websocket = OSnap_Websocket;

@@ -4,6 +4,8 @@
   (libraries
     OSnap
     uri
+    odiff
+    base64
   )
   (preprocess (pps
     lwt_ppx

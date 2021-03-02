@@ -5,17 +5,23 @@
   "license": "MIT",
   "esy": {
     "build": "dune build -p #{self.name}",
-    "buildDev":
-      "refmterr dune build --promote-install-files --root . --only-package #{self.name}",
-    "release": { "rewritePrefix": true, "bin": { "osnap": "OSnap" } },
-    "buildEnv": { "ODOC_SYNTAX": "re" }
+    "buildDev": "refmterr dune build --promote-install-files --root . --only-package #{self.name}",
+    "release": {
+      "rewritePrefix": true,
+      "bin": {
+        "osnap": "OSnap"
+      }
+    },
+    "buildEnv": {
+      "ODOC_SYNTAX": "re"
+    }
   },
   "scripts": {
     "run": "esy x OSnap",
-    "test": "esy x RunTests.exe",
     "doc": "esy dune build @doc"
   },
   "dependencies": {
+    "@opam/base64": "3.5.0",
     "@opam/cmdliner": "1.0.4",
     "@opam/lwt": "5.3.0",
     "@opam/lwt_ppx": "2.0.1",

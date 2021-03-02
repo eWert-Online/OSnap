@@ -1,28 +1,34 @@
 type size = (int, int);
 
 type t = {
-  baseUrl: string,
-  fullScreen: bool,
-  defaultSizes: list(size),
-  snapshotDirectory: string,
+  root_path: string,
+  base_url: string,
+  fullscreen: bool,
+  default_sizes: list(size),
+  snapshot_directory: string,
 };
 
-let parse = config =>
+let parse = path => {
+  let ic = open_in(path);
+  let file_length = in_channel_length(ic);
+  let config = really_input_string(ic, file_length);
+  close_in(ic);
+
   try({
     let json = config |> Yojson.Basic.from_string;
 
-    let baseUrl =
+    let base_url =
       json
       |> Yojson.Basic.Util.member("baseUrl")
       |> Yojson.Basic.Util.to_string;
 
-    let fullScreen =
+    let fullscreen =
       json
       |> Yojson.Basic.Util.member("fullScreen")
       |> Yojson.Basic.Util.to_bool_option
       |> Option.value(~default=false);
 
-    let defaultSizes =
+    let default_sizes =
       json
       |> Yojson.Basic.Util.member("defaultSizes")
       |> Yojson.Basic.Util.to_list
@@ -38,18 +44,34 @@ let parse = config =>
            (width, height);
          });
 
-    let snapshotDirectory =
+    let snapshot_directory =
       json
       |> Yojson.Basic.Util.member("snapshotDirectory")
       |> Yojson.Basic.Util.to_string_option
       |> Option.value(~default="__snapshots__");
 
-    Result.ok({baseUrl, fullScreen, defaultSizes, snapshotDirectory});
+    let root_path =
+      String.sub(
+        path,
+        0,
+        String.length(path) - String.length("osnap.config.json"),
+      );
+
+    Result.ok({
+      root_path,
+      base_url,
+      fullscreen,
+      default_sizes,
+      snapshot_directory,
+    });
   }) {
   | Yojson.Basic.Util.Type_error(msg, _) => Result.error(msg)
   };
+};
 
-let find = (~base_path="", ~config_name="osnap.config.json", ()) => {
+let find = () => {
+  let config_name = "osnap.config.json";
+
   let path_of_segments = paths =>
     paths
     |> List.rev
@@ -62,32 +84,41 @@ let find = (~base_path="", ~config_name="osnap.config.json", ()) => {
          "",
        );
 
-  let base_path =
-    switch (base_path) {
-    | "" => Sys.getcwd()
-    | path => Sys.getcwd() ++ "/" ++ path
-    };
+  let base_path = Sys.getcwd();
 
   let rec scan_dir = segments => {
     let elements =
       segments |> path_of_segments |> Sys.readdir |> Array.to_list;
-    let (dirs, files) =
+
+    let files =
       elements
-      |> List.partition(el => {
+      |> List.find_all(el => {
            let path = path_of_segments([el, ...segments]);
-           path |> Sys.is_directory;
+           let is_direcoty = path |> Sys.is_directory;
+           !is_direcoty;
          });
     let exists = files |> List.exists(file => file == config_name);
     if (exists) {
       Some(segments);
     } else {
-      dirs |> List.find_map(dir => scan_dir([dir, ...segments]));
+      let parent_dir_segments = ["..", ...segments];
+      let parent_dir = parent_dir_segments |> path_of_segments;
+
+      try(
+        if (parent_dir |> Sys.is_directory) {
+          scan_dir(parent_dir_segments);
+        } else {
+          None;
+        }
+      ) {
+      | Sys_error(_) => None
+      };
     };
   };
 
   let config_path = scan_dir([base_path]);
   switch (config_path) {
   | None => Result.error("No config file found")
-  | Some(paths) => paths |> path_of_segments |> Result.ok
+  | Some(paths) => [config_name, ...paths] |> path_of_segments |> Result.ok
   };
 };

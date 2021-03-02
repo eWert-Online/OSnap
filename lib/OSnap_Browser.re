@@ -146,8 +146,8 @@ let screenshot = (~full_size as _=false, browser) => {
   let%lwt _ =
     Emulation.SetDeviceMetricsOverride.make(
       ~sessionId=browser.sessionId,
-      ~width=200,
-      ~height=200,
+      ~width=100,
+      ~height=100,
       ~scale=1,
       ~deviceScaleFactor=0,
       ~mobile=false,
@@ -160,8 +160,7 @@ let screenshot = (~full_size as _=false, browser) => {
 
   let%lwt response =
     Page.CaptureScreenshot.make(
-      ~format="jpeg",
-      ~quality=1,
+      ~format="png",
       ~sessionId=browser.sessionId,
       (),
     )
