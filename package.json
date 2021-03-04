@@ -26,6 +26,7 @@
     "@opam/lwt": "5.3.0",
     "@opam/lwt_ppx": "2.0.1",
     "@opam/ppx_yojson_conv": "v0.14.0",
+    "@opam/re": "*",
     "@opam/uri": "4.1.0",
     "@opam/yojson": "1.7.0",
     "@reason-native-web/websocketaf": "1.2.0",
@@ -45,6 +46,7 @@
     "refmterr": "*"
   },
   "resolutions": {
+    "@opam/re": "ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017",
     "odiff": "dmtrKovalenko/odiff#2bc9c67401fd0fe4615d271a8d1cd05e9058bc30"
   }
 }

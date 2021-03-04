@@ -1,7 +1,7 @@
 {
   "baseUrl": "",
   "fullScreen": true,
-  "testPattern": "**/*.osnap.json",
+  "testPattern": "test/**/*.osnap.json",
   "ignorePatterns": ["node_modules", "_esy", "esy.lock"],
   "defaultSizes": [
     { "width": 1920, "height": 1080 },
