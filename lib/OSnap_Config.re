@@ -2,6 +2,8 @@ type size = (int, int);
 
 type t = {
   root_path: string,
+  ignore_patterns: list(string),
+  test_pattern: string,
   base_url: string,
   fullscreen: bool,
   default_sizes: list(size),
@@ -57,8 +59,25 @@ let parse = path => {
         String.length(path) - String.length("osnap.config.json"),
       );
 
+    let ignore_patterns =
+      json
+      |> Yojson.Basic.Util.member("ignorePatterns")
+      |> (
+        fun
+        | `List(list) => list |> List.map(Yojson.Basic.Util.to_string)
+        | _ => ["**/node_modules/**"]
+      );
+
+    let test_pattern =
+      json
+      |> Yojson.Basic.Util.member("testPattern")
+      |> Yojson.Basic.Util.to_string_option
+      |> Option.value(~default="**/*.osnap.json");
+
     Result.ok({
       root_path,
+      test_pattern,
+      ignore_patterns,
       base_url,
       fullscreen,
       default_sizes,
