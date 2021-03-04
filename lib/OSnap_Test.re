@@ -19,11 +19,17 @@ let find =
     ignore_patterns
     |> List.map(pattern => pattern |> Re.Glob.glob |> Re.compile);
 
+  let is_not_ignored = path => {
+    ignore_res |> List.for_all(re => !Re.execp(re, path));
+  };
+
   let select = path => {
     let matches = path |> Re.execp(re);
-    let not_ignored = ignore_res |> List.for_all(re => !Re.execp(re, path));
-
-    matches && not_ignored;
+    if (matches) {
+      path |> is_not_ignored;
+    } else {
+      false;
+    };
   };
 
   let rec walk = (acc, dirs) => {
@@ -34,9 +40,10 @@ let find =
       let contents = contents |> List.rev_map(Filename.concat(dir));
       let (dirs, files) = contents |> List.partition(Sys.is_directory);
 
-      let matched = List.filter(select, files);
+      let matched = files |> List.filter(select);
+      let non_ignored_dirs = dirs |> List.filter(is_not_ignored);
       let acc = List.append(acc, matched);
-      let dirs = List.append(dirs, tail);
+      let dirs = List.append(non_ignored_dirs, tail);
 
       walk(acc, dirs);
     };
