@@ -1,5 +1,6 @@
 module Io = OSnap_Io;
 module Test = OSnap_Test;
+module Utils = OSnap_Utils;
 module Config = OSnap_Config;
 module Browser = OSnap_Browser;
 module Websocket = OSnap_Websocket;

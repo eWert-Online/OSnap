@@ -1,20 +1,21 @@
 [
   {
-    "name": "component",
+    "name": "component1",
     "url": "http://localhost:3000/test",
     "sizes": [{ "width": 320, "height": 768 }],
     "actions": [
       { "action": "click", "selector": "#id" },
       { "action": "click", "selector": ".className[0]" },
+      { "action": "wait", "timeout": 2000 },
       { "action": "type", "selector": "#id2", "text": "something" }
     ]
   },
   {
-    "name": "component~active",
+    "name": "component1~active",
     "url": "http://localhost:3000/test"
   },
   {
-    "name": "component~open",
+    "name": "component1~open",
     "url": "http://localhost:3000/test"
   }
 ]

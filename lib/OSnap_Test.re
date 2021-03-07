@@ -1,5 +1,7 @@
 type size = (int, int);
 
+exception Invalid_format;
+
 type action =
   | Click(string)
   | Type(string, string)
@@ -8,8 +10,114 @@ type action =
 type t = {
   name: string,
   url: string,
-  sizes: list(size),
-  actions: list(action),
+  sizes: option(list(size)),
+  actions: option(list(action)),
+};
+
+let parse_size = size => {
+  let width =
+    size |> Yojson.Basic.Util.member("width") |> Yojson.Basic.Util.to_int;
+
+  let height =
+    size |> Yojson.Basic.Util.member("height") |> Yojson.Basic.Util.to_int;
+
+  (width, height);
+};
+
+let parse_action = a => {
+  let action =
+    a |> Yojson.Basic.Util.member("action") |> Yojson.Basic.Util.to_string;
+
+  let selector =
+    a
+    |> Yojson.Basic.Util.member("selector")
+    |> Yojson.Basic.Util.to_string_option;
+
+  let text =
+    a
+    |> Yojson.Basic.Util.member("text")
+    |> Yojson.Basic.Util.to_string_option;
+
+  let timeout =
+    a
+    |> Yojson.Basic.Util.member("timeout")
+    |> Yojson.Basic.Util.to_int_option;
+
+  switch (action) {
+  | "click" =>
+    switch (selector) {
+    | None => raise(Invalid_format)
+    | Some(selector) => Click(selector)
+    }
+  | "type" =>
+    switch (selector, text) {
+    | (None, _) => raise(Invalid_format)
+    | (_, None) => raise(Invalid_format)
+    | (Some(selector), Some(text)) => Type(selector, text)
+    }
+  | "wait" =>
+    switch (timeout) {
+    | None => raise(Invalid_format)
+    | Some(timeout) => Wait(timeout)
+    }
+  | _ => raise(Invalid_format)
+  };
+};
+
+let parse_single_test = test =>
+  try({
+    let name =
+      test |> Yojson.Basic.Util.member("name") |> Yojson.Basic.Util.to_string;
+
+    let url =
+      test |> Yojson.Basic.Util.member("url") |> Yojson.Basic.Util.to_string;
+
+    let sizes =
+      test
+      |> Yojson.Basic.Util.member("sizes")
+      |> (
+        fun
+        | `List(list) => Some(List.map(parse_size, list))
+        | _ => None
+      );
+
+    let actions =
+      test
+      |> Yojson.Basic.Util.member("actions")
+      |> (
+        fun
+        | `List(list) => Some(List.map(parse_action, list))
+        | _ => None
+      );
+
+    Result.ok({name, url, sizes, actions});
+  }) {
+  | _ => raise(Invalid_format)
+  };
+
+let parse = path => {
+  let ic = open_in(path);
+  let file_length = in_channel_length(ic);
+  let config = really_input_string(ic, file_length);
+  close_in(ic);
+
+  try({
+    let json = config |> Yojson.Basic.from_string;
+
+    let (tests, failed) =
+      json
+      |> Yojson.Basic.Util.to_list
+      |> List.map(parse_single_test)
+      |> List.partition(Result.is_ok);
+
+    if (List.length(failed) > 0) {
+      raise(Invalid_format);
+    } else {
+      tests |> List.map(Result.get_ok);
+    };
+  }) {
+  | _ => raise(Invalid_format)
+  };
 };
 
 let find =

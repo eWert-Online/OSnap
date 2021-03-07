@@ -1,10 +1,10 @@
 [
   {
-    "name": "component",
+    "name": "component2",
     "url": "http://localhost:3000/test"
   },
   {
-    "name": "component~variant",
+    "name": "component2~variant",
     "url": "http://localhost:3000/test-2"
   }
 ]
