@@ -137,17 +137,12 @@ let go_to = (url, browser) => {
 //     Lwt_result.return(Obj.magic());
 //   };
 
-// let set_size: (~width: int, ~height: int, t) => Lwt_result.t(t, string) =
-//   (~width as _a, ~height as _b, _c) => {
-//     Lwt_result.return(Obj.magic());
-//   };
-
-let screenshot = (~full_size as _=false, browser) => {
+let set_size = (~width, ~height, browser) => {
   let%lwt _ =
     Emulation.SetDeviceMetricsOverride.make(
       ~sessionId=browser.sessionId,
-      ~width=100,
-      ~height=100,
+      ~width,
+      ~height,
       ~scale=1,
       ~deviceScaleFactor=0,
       ~mobile=false,
@@ -155,6 +150,10 @@ let screenshot = (~full_size as _=false, browser) => {
     )
     |> OSnap_Websocket.send;
 
+  Lwt.return();
+};
+
+let screenshot = (~full_size as _=false, browser) => {
   let%lwt _ =
     Target.ActivateTarget.make(browser.targetId) |> OSnap_Websocket.send;
 
