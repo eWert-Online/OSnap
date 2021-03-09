@@ -7,6 +7,7 @@ module IO: ImageIO.ImageIO = {
   let readRow = (_, y) => y;
 
   let loadImage = (filename): Odiff.ImageIO.img(t) => {
+    print_endline("Loading:" ++ filename);
     let camlimage =
       switch (Images.load(filename, [])) {
       | Index8(i8img) => Index8.to_rgba32(i8img)

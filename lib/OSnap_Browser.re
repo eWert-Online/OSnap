@@ -107,21 +107,45 @@ let make = () => {
   | Error(e) => Lwt_result.fail(e)
   | Ok(url) =>
     let _ = OSnap_Websocket.connect(url);
-    let%lwt targets = Target.GetTargets.make() |> OSnap_Websocket.send;
-    let target = targets |> Target.GetTargets.parse;
-    let targetId =
-      target.Response.result.Target.GetTargets.targetInfos[0].targetId;
 
-    let%lwt response =
-      Target.AttachToTarget.make(targetId, ~flatten=true)
-      |> OSnap_Websocket.send
-      |> Lwt.map(Target.AttachToTarget.parse);
-    let sessionId = response.Response.result.Target.AttachToTarget.sessionId;
+    let rec go = () => {
+      let%lwt targets =
+        Target.GetTargets.make()
+        |> OSnap_Websocket.send
+        |> Lwt.map(Target.GetTargets.parse);
+
+      let targetInfos =
+        targets.Response.result.Target.GetTargets.targetInfos |> Array.to_list;
+      switch (targetInfos) {
+      | [] => go()
+      | [first, ..._rest] =>
+        let targetId = first.targetId;
+        let%lwt response =
+          Target.AttachToTarget.make(targetId, ~flatten=true)
+          |> OSnap_Websocket.send
+          |> Lwt.map(Target.AttachToTarget.parse);
+
+        let sessionId =
+          response.Response.result.Target.AttachToTarget.sessionId;
+        Lwt.return((sessionId, targetId));
+      };
+    };
+
+    let%lwt (sessionId, targetId) = go();
 
     let%lwt _ = Page.Enable.make(~sessionId, ()) |> OSnap_Websocket.send;
 
     Lwt_result.return({ws: url, process, targetId, sessionId});
   };
+};
+
+let wait_for = event => {
+  let (p, resolver) = Lwt.wait();
+  let callback = () => {
+    Lwt.wakeup_later(resolver, ());
+  };
+  OSnap_Websocket.listen(event, callback);
+  p;
 };
 
 let go_to = (url, browser) => {

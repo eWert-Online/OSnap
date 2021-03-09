@@ -5,7 +5,7 @@
 _Pre Release:_
 
 - [ ] Download correct verion of chrome on setup
-- [ ] Listen for events
+- [x] Listen for events
 - [ ] Trigger events (click, type) on element in browser
 - [ ] screenshot whole page (once websocketaf parsing is fixed)
 - [ ] Set screen sizes

@@ -6,6 +6,7 @@
     uri
     odiff
     base64
+    fileutils
   )
   (preprocess (pps
     lwt_ppx

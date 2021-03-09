@@ -1,6 +1,7 @@
 let close_requests = Queue.create();
 let pending_requests = Queue.create();
 let sent_requests = Hashtbl.create(10);
+let listeners = Hashtbl.create(10);
 
 let websocket_handler = (u, wsd) => {
   let rec input_loop = wsd => {
@@ -47,6 +48,19 @@ let websocket_handler = (u, wsd) => {
       |> Yojson.Safe.from_string
       |> Yojson.Safe.Util.member("id")
       |> Yojson.Safe.Util.to_int_option;
+
+    let listeners =
+      response
+      |> Yojson.Safe.from_string
+      |> Yojson.Safe.Util.member("method")
+      |> Yojson.Safe.Util.to_string_option
+      |> Option.bind(_, Hashtbl.find_opt(listeners));
+
+    switch (listeners) {
+    | None => ()
+    | Some(listeners) => listeners |> List.iter(handler => handler())
+    };
+
     switch (id) {
     | None => ()
     | Some(key) =>
@@ -115,6 +129,14 @@ let send = message => {
   let (p, resolver) = Lwt.wait();
   pending_requests |> Queue.add((key, message, resolver));
   p;
+};
+
+let listen = (event, handler) => {
+  let stored_listeners = Hashtbl.find_opt(listeners, event);
+  switch (stored_listeners) {
+  | None => Hashtbl.add(listeners, event, [handler])
+  | Some(stored) => Hashtbl.replace(listeners, event, [handler, ...stored])
+  };
 };
 
 let close = () => {
