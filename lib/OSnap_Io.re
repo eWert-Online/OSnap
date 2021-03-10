@@ -1,7 +1,6 @@
-// open Util;
 open Odiff;
 
-module IO: ImageIO.ImageIO = {
+module PNG: ImageIO.ImageIO = {
   type t = Rgba32.t;
   type row = int;
   let readRow = (_, y) => y;

@@ -1,8 +1,8 @@
 [
   {
-    "name": "component1",
-    "url": "http://localhost:3000/test",
-    "sizes": [{ "width": 320, "height": 768 }],
+    "name": "ocaml",
+    "url": "https://www.ocaml.org",
+    "sizes": [{ "width": 20, "height": 20 }],
     "actions": [
       { "action": "click", "selector": "#id" },
       { "action": "click", "selector": ".className[0]" },
@@ -11,11 +11,11 @@
     ]
   },
   {
-    "name": "component1~active",
-    "url": "http://localhost:3000/test"
+    "name": "rescript-lang",
+    "url": "https://www.rescript-lang.org"
   },
   {
-    "name": "component1~open",
-    "url": "http://localhost:3000/test"
+    "name": "google",
+    "url": "https://www.google.com"
   }
 ]

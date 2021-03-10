@@ -1,10 +1,10 @@
 [
   {
-    "name": "component2",
-    "url": "http://localhost:3000/test"
+    "name": "youtube",
+    "url": "https://www.youtube.com/"
   },
   {
-    "name": "component2~variant",
-    "url": "http://localhost:3000/test-2"
+    "name": "logic-joe",
+    "url": "https://www.logic.joe.com/"
   }
 ]

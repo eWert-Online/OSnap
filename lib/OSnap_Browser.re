@@ -1,43 +1,42 @@
 open OSnap_CDP;
 
-let detect_platform = () => {
-  let win = Sys.win32 || Sys.cygwin;
-  let ic = Unix.open_process_in("uname");
-  let uname = input_line(ic);
-  let () = close_in(ic);
+module Utils = {
+  let detect_platform = () => {
+    let win = Sys.win32 || Sys.cygwin;
+    let ic = Unix.open_process_in("uname");
+    let uname = input_line(ic);
+    let () = close_in(ic);
 
-  switch (win, uname) {
-  | (true, _) =>
-    switch (Sys.word_size) {
-    | 64 => "win64"
-    | _ => "win32"
-    }
-  | (_, "Darwin") => "darwin"
-  | _ => "linux"
+    switch (win, uname) {
+    | (true, _) =>
+      switch (Sys.word_size) {
+      | 64 => "win64"
+      | _ => "win32"
+      }
+    | (_, "Darwin") => "darwin"
+    | _ => "linux"
+    };
   };
+
+  let contains_substring = (search, str) => {
+    let re = Str.regexp_string(search);
+    try(Str.search_forward(re, str, 0) >= 0) {
+    | Not_found => false
+    };
+  };
+  // module Download = {
+  //   let get_url = () => {
+  //     switch (detect_platform()) {
+  //     | "darwin" => "https://storage.googleapis.com/chromium-browser-snapshots/Mac/856098/chrome-mac.zip"
+  //     | "linux" => "https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64/856098/chrome-linux.zip"
+  //     | "win64" => "https://storage.googleapis.com/chromium-browser-snapshots/Win_x64/856098/chrome-win.zip"
+  //     | _ => ""
+  //     };
+  //   };
+  // };
 };
 
-let contains_substring = (search, str) => {
-  let re = Str.regexp_string(search);
-  try(Str.search_forward(re, str, 0) >= 0) {
-  | Not_found => false
-  };
-};
-
-// module Download = {
-//   let get_url = () => {
-//     switch (detect_platform()) {
-//     | "darwin" => "https://storage.googleapis.com/chromium-browser-snapshots/Mac/856098/chrome-mac.zip"
-//     | "linux" => "https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64/856098/chrome-linux.zip"
-//     | "win64" => "https://storage.googleapis.com/chromium-browser-snapshots/Win_x64/856098/chrome-win.zip"
-//     | _ => ""
-//     };
-//   };
-// };
-
-type action =
-  | Click(string)
-  | Type(string, string);
+exception Connection_failed;
 
 type t = {
   ws: string,
@@ -59,9 +58,9 @@ type t = {
 };
 
 let make = () => {
-  let assets_path = Unix.getcwd() ++ "/assets/";
+  let assets_path = Sys.getcwd() ++ "/assets/";
   let executable_path =
-    switch (detect_platform()) {
+    switch (Utils.detect_platform()) {
     | "darwin" =>
       assets_path ++ "chrome-mac/Chromium.app/Contents/MacOS/Chromium"
     | "linux" => assets_path ++ "chrome-linux/chrome"
@@ -86,57 +85,55 @@ let make = () => {
     | Lwt_process.Running =>
       let%lwt line = proc#stderr |> Lwt_io.read_line;
       print_endline("[CHROME] " ++ line);
-      if (contains_substring("Cannot start http server for devtools", line)) {
+      if (Utils.contains_substring(
+            "Cannot start http server for devtools",
+            line,
+          )) {
         proc#terminate;
       };
-      if (line |> contains_substring("DevTools listening on")) {
+      if (line |> Utils.contains_substring("DevTools listening on")) {
         let offset = String.length("DevTools listening on");
         let len = String.length(line);
         let socket = String.sub(line, offset, len - offset);
-        Lwt_result.return(socket);
+        socket |> Lwt.return;
       } else {
         get_ws_url(proc);
       };
-    | Lwt_process.Exited(status) => Lwt_result.fail(status)
+    | Lwt_process.Exited(_) => raise(Connection_failed)
     };
   };
 
   let%lwt url = get_ws_url(process);
 
-  switch (url) {
-  | Error(e) => Lwt_result.fail(e)
-  | Ok(url) =>
-    let _ = OSnap_Websocket.connect(url);
+  let _ = OSnap_Websocket.connect(url);
 
-    let rec go = () => {
-      let%lwt targets =
-        Target.GetTargets.make()
+  let rec get_target_and_session = () => {
+    let%lwt targets =
+      Target.GetTargets.make()
+      |> OSnap_Websocket.send
+      |> Lwt.map(Target.GetTargets.parse);
+
+    let targetInfos =
+      targets.Response.result.Target.GetTargets.targetInfos |> Array.to_list;
+    switch (targetInfos) {
+    | [] => get_target_and_session()
+    | [first, ..._rest] =>
+      let targetId = first.targetId;
+      let%lwt response =
+        Target.AttachToTarget.make(targetId, ~flatten=true)
         |> OSnap_Websocket.send
-        |> Lwt.map(Target.GetTargets.parse);
+        |> Lwt.map(Target.AttachToTarget.parse);
 
-      let targetInfos =
-        targets.Response.result.Target.GetTargets.targetInfos |> Array.to_list;
-      switch (targetInfos) {
-      | [] => go()
-      | [first, ..._rest] =>
-        let targetId = first.targetId;
-        let%lwt response =
-          Target.AttachToTarget.make(targetId, ~flatten=true)
-          |> OSnap_Websocket.send
-          |> Lwt.map(Target.AttachToTarget.parse);
-
-        let sessionId =
-          response.Response.result.Target.AttachToTarget.sessionId;
-        Lwt.return((sessionId, targetId));
-      };
+      let sessionId = response.Response.result.Target.AttachToTarget.sessionId;
+      Lwt.return((sessionId, targetId));
     };
-
-    let%lwt (sessionId, targetId) = go();
-
-    let%lwt _ = Page.Enable.make(~sessionId, ()) |> OSnap_Websocket.send;
-
-    Lwt_result.return({ws: url, process, targetId, sessionId});
   };
+
+  let%lwt (sessionId, targetId) = get_target_and_session();
+
+  let%lwt _ = Page.Enable.make(~sessionId, ()) |> OSnap_Websocket.send;
+
+  Lwt.return({ws: url, process, targetId, sessionId});
 };
 
 let wait_for = event => {
@@ -149,6 +146,7 @@ let wait_for = event => {
 };
 
 let go_to = (url, browser) => {
+  print_endline("[BROWSER]\t Going to: " ++ url);
   let%lwt payload =
     Page.Navigate.make(url, ~sessionId=browser.sessionId)
     |> OSnap_Websocket.send
@@ -162,6 +160,12 @@ let go_to = (url, browser) => {
 //   };
 
 let set_size = (~width, ~height, browser) => {
+  print_endline(
+    "[BROWSER]\t Set size to: "
+    ++ string_of_int(width)
+    ++ "x"
+    ++ string_of_int(height),
+  );
   let%lwt _ =
     Emulation.SetDeviceMetricsOverride.make(
       ~sessionId=browser.sessionId,
@@ -178,6 +182,7 @@ let set_size = (~width, ~height, browser) => {
 };
 
 let screenshot = (~full_size as _=false, browser) => {
+  print_endline("[BROWSER]\t Making screenshot!");
   let%lwt _ =
     Target.ActivateTarget.make(browser.targetId) |> OSnap_Websocket.send;
 

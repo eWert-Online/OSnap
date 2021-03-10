@@ -13,7 +13,6 @@ let websocket_handler = (u, wsd) => {
       Lwt.return_unit;
     } else if (!Queue.is_empty(pending_requests)) {
       let (key, message, resolver) = Queue.take(pending_requests);
-      print_endline("[SOCKET] sending: " ++ message);
       let payload = Bytes.of_string(message);
       Websocketaf.Wsd.send_bytes(
         wsd,
@@ -30,35 +29,29 @@ let websocket_handler = (u, wsd) => {
   };
   Lwt.async(() => input_loop(wsd));
 
-  let frame = (~opcode, ~is_fin, bs, ~off, ~len) => {
-    print_newline();
-    print_newline();
-    print_int(opcode |> Websocketaf.Websocket.Opcode.code);
-    print_newline();
-    print_endline(
-      "[SOCKET] GETTING DATA FIN:" ++ (is_fin ? "true" : "false"),
-    );
-    print_endline("[SOCKET] GETTING DATA LEN:" ++ string_of_int(len));
+  let frame = (~opcode as _, ~is_fin as _, bs, ~off, ~len) => {
     let payload = Bytes.create(len);
     Lwt_bytes.blit_to_bytes(bs, off, payload, 0, len);
     let response = Bytes.to_string(payload);
-    print_endline("[SOCKET] got: " ++ response);
+    // print_endline("[SOCKET] got: " ++ response);
     let id =
       response
       |> Yojson.Safe.from_string
       |> Yojson.Safe.Util.member("id")
       |> Yojson.Safe.Util.to_int_option;
 
-    let listeners =
+    let method =
       response
       |> Yojson.Safe.from_string
       |> Yojson.Safe.Util.member("method")
-      |> Yojson.Safe.Util.to_string_option
-      |> Option.bind(_, Hashtbl.find_opt(listeners));
+      |> Yojson.Safe.Util.to_string_option;
 
-    switch (listeners) {
+    switch (method) {
     | None => ()
-    | Some(listeners) => listeners |> List.iter(handler => handler())
+    | Some(method) =>
+      Hashtbl.find_opt(listeners, method)
+      |> Option.iter(List.iter(handler => handler()));
+      Hashtbl.remove(listeners, method);
     };
 
     switch (id) {

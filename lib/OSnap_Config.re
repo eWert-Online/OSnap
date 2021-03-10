@@ -10,6 +10,9 @@ type t = {
   snapshot_directory: string,
 };
 
+exception Parse_Error(string);
+exception No_Config_Found;
+
 let parse = path => {
   let ic = open_in(path);
   let file_length = in_channel_length(ic);
@@ -74,7 +77,7 @@ let parse = path => {
       |> Yojson.Basic.Util.to_string_option
       |> Option.value(~default="**/*.osnap.json");
 
-    Result.ok({
+    {
       root_path,
       test_pattern,
       ignore_patterns,
@@ -82,9 +85,9 @@ let parse = path => {
       fullscreen,
       default_sizes,
       snapshot_directory,
-    });
+    };
   }) {
-  | Yojson.Basic.Util.Type_error(msg, _) => Result.error(msg)
+  | Yojson.Basic.Util.Type_error(msg, _) => raise(Parse_Error(msg))
   };
 };
 
@@ -137,7 +140,7 @@ let find = () => {
 
   let config_path = scan_dir([base_path]);
   switch (config_path) {
-  | None => Result.error("No config file found")
-  | Some(paths) => [config_name, ...paths] |> path_of_segments |> Result.ok
+  | None => raise(No_Config_Found)
+  | Some(paths) => [config_name, ...paths] |> path_of_segments
   };
 };

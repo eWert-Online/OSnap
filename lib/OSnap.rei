@@ -5,21 +5,17 @@ module Config = OSnap_Config;
 module Browser = OSnap_Browser;
 module Websocket = OSnap_Websocket;
 
-type action =
-  | Click(string)
-  | Type(string, string);
-
-type test = {
-  name: string,
-  url: string,
-  sizes: list(OSnap_Config.size),
-  actions: option(list(action)),
+type t = {
+  config: Config.t,
+  browser: Browser.t,
+  tests: list(Test.t),
+  snapshot_dir: string,
+  updated_dir: string,
+  diff_dir: string,
 };
 
-type browser;
+let setup: unit => Lwt.t(t);
 
-let init: unit => browser;
+let run: t => Lwt.t(unit);
 
-let test: (test, browser) => Lwt_result.t(unit, string);
-
-let close: browser => unit;
+let teardown: t => unit;

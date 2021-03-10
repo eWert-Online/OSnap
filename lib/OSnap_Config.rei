@@ -1,3 +1,6 @@
+exception Parse_Error(string);
+exception No_Config_Found;
+
 type size = (int, int);
 
 type t = {
@@ -10,6 +13,6 @@ type t = {
   snapshot_directory: string,
 };
 
-let parse: string => Result.t(t, string);
+let parse: string => t;
 
-let find: unit => Result.t(string, string);
+let find: unit => string;
