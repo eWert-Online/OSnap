@@ -167,13 +167,14 @@ module Page = {
       response |> Yojson.Safe.from_string |> response_of_yojson;
     };
 
-    let make = (~quality=?, ~format=?, ~sessionId=?, ()) => {
+    let make =
+        (~quality=?, ~format=?, ~sessionId=?, ~captureBeyondViewport=?, ()) => {
       Request.make(
         "Page.captureScreenshot",
         ~params={
           quality,
           format,
-          captureBeyondViewport: Some(false),
+          captureBeyondViewport,
           fromSurface: Some(true),
         },
         ~sessionId?,

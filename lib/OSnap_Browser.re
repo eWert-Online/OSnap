@@ -27,9 +27,9 @@ module Utils = {
   // module Download = {
   //   let get_url = () => {
   //     switch (detect_platform()) {
-  //     | "darwin" => "https://storage.googleapis.com/chromium-browser-snapshots/Mac/856098/chrome-mac.zip"
-  //     | "linux" => "https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64/856098/chrome-linux.zip"
-  //     | "win64" => "https://storage.googleapis.com/chromium-browser-snapshots/Win_x64/856098/chrome-win.zip"
+  //     | "darwin" => "https://storage.googleapis.com/chromium-browser-snapshots/Mac/856583/chrome-mac.zip"
+  //     | "linux" => "https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64/856583/chrome-linux.zip"
+  //     | "win64" => "https://storage.googleapis.com/chromium-browser-snapshots/Win_x64/856583/chrome-win.zip"
   //     | _ => ""
   //     };
   //   };
@@ -76,7 +76,32 @@ let make = () => {
         "--headless",
         "--hide-scrollbars",
         "--remote-debugging-port=0",
-        // "--disable-gpu",
+        "--mute-audio",
+        "--disable-gpu",
+        "--disable-background-networking",
+        "--enable-features=NetworkService,NetworkServiceInProcess",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-breakpad",
+        "--disable-client-side-phishing-detection",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-default-apps",
+        "--disable-dev-shm-usage",
+        "--disable-extensions",
+        "--disable-features=TranslateUI",
+        "--disable-hang-monitor",
+        "--disable-ipc-flooding-protection",
+        "--disable-popup-blocking",
+        "--disable-prompt-on-repost",
+        "--disable-renderer-backgrounding",
+        "--disable-sync",
+        "--force-color-profile=srgb",
+        "--metrics-recording-only",
+        "--no-first-run",
+        "--enable-automation",
+        "--password-store=basic",
+        "--use-mock-keychain",
+        "--enable-blink-features=IdleDetection",
       |],
     ));
 
@@ -190,10 +215,13 @@ let screenshot = (~full_size as _=false, browser) => {
     Page.CaptureScreenshot.make(
       ~format="png",
       ~sessionId=browser.sessionId,
+      ~captureBeyondViewport=true,
       (),
     )
     |> OSnap_Websocket.send
     |> Lwt.map(Page.CaptureScreenshot.parse);
+
+  print_endline(response.Response.result.Page.CaptureScreenshot.data);
 
   response.Response.result.Page.CaptureScreenshot.data |> Lwt.return;
 };

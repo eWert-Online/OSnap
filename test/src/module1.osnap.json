@@ -2,7 +2,7 @@
   {
     "name": "ocaml",
     "url": "https://www.ocaml.org",
-    "sizes": [{ "width": 20, "height": 20 }],
+    "sizes": [{ "width": 200, "height": 200 }],
     "actions": [
       { "action": "click", "selector": "#id" },
       { "action": "click", "selector": ".className[0]" },

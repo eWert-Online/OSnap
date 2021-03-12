@@ -33,7 +33,7 @@ let websocket_handler = (u, wsd) => {
     let payload = Bytes.create(len);
     Lwt_bytes.blit_to_bytes(bs, off, payload, 0, len);
     let response = Bytes.to_string(payload);
-    // print_endline("[SOCKET] got: " ++ response);
+    print_endline("[SOCKET] got: " ++ response);
     let id =
       response
       |> Yojson.Safe.from_string
