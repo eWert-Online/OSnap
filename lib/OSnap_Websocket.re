@@ -33,7 +33,7 @@ let websocket_handler = (u, wsd) => {
     let payload = Bytes.create(len);
     Lwt_bytes.blit_to_bytes(bs, off, payload, 0, len);
     let response = Bytes.to_string(payload);
-    print_endline("[SOCKET] got: " ++ response);
+    print_endline("[SOCKET] < \t" ++ response);
     let id =
       response
       |> Yojson.Safe.from_string
@@ -57,8 +57,8 @@ let websocket_handler = (u, wsd) => {
     switch (id) {
     | None => ()
     | Some(key) =>
-      let resolver = Hashtbl.find(sent_requests, key);
-      Lwt.wakeup_later(resolver, response);
+      Hashtbl.find_opt(sent_requests, key)
+      |> Option.iter(resolver => {Lwt.wakeup_later(resolver, response)});
       Hashtbl.remove(sent_requests, key);
     };
   };
@@ -113,6 +113,7 @@ let connect = url => {
 };
 
 let send = message => {
+  print_endline("[SOCKET] > \t" ++ message);
   let key =
     message
     |> Yojson.Safe.from_string

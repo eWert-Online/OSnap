@@ -73,6 +73,7 @@ let make = () => {
       "",
       [|
         executable_path,
+        "about:blank",
         "--headless",
         "--hide-scrollbars",
         "--remote-debugging-port=0",
@@ -88,7 +89,7 @@ let make = () => {
         "--disable-default-apps",
         "--disable-dev-shm-usage",
         "--disable-extensions",
-        "--disable-features=TranslateUI",
+        "--disable-features=Translate",
         "--disable-hang-monitor",
         "--disable-ipc-flooding-protection",
         "--disable-popup-blocking",
@@ -132,31 +133,46 @@ let make = () => {
 
   let _ = OSnap_Websocket.connect(url);
 
-  let rec get_target_and_session = () => {
-    let%lwt targets =
-      Target.GetTargets.make()
-      |> OSnap_Websocket.send
-      |> Lwt.map(Target.GetTargets.parse);
+  let%lwt browserContextId =
+    Target.CreateBrowserContext.make()
+    |> OSnap_Websocket.send
+    |> Lwt.map(Target.CreateBrowserContext.parse)
+    |> Lwt.map(response => {
+         response.Response.result.Target.CreateBrowserContext.browserContextId
+       });
 
-    let targetInfos =
-      targets.Response.result.Target.GetTargets.targetInfos |> Array.to_list;
-    switch (targetInfos) {
-    | [] => get_target_and_session()
-    | [first, ..._rest] =>
-      let targetId = first.targetId;
-      let%lwt response =
-        Target.AttachToTarget.make(targetId, ~flatten=true)
-        |> OSnap_Websocket.send
-        |> Lwt.map(Target.AttachToTarget.parse);
+  let%lwt targetId =
+    Target.CreateTarget.make(~browserContextId, "about:blank")
+    |> OSnap_Websocket.send
+    |> Lwt.map(Target.CreateTarget.parse)
+    |> Lwt.map(response =>
+         response.Response.result.Target.CreateTarget.targetId
+       );
 
-      let sessionId = response.Response.result.Target.AttachToTarget.sessionId;
-      Lwt.return((sessionId, targetId));
-    };
-  };
-
-  let%lwt (sessionId, targetId) = get_target_and_session();
+  let%lwt sessionId =
+    Target.AttachToTarget.make(targetId, ~flatten=true)
+    |> OSnap_Websocket.send
+    |> Lwt.map(Target.AttachToTarget.parse)
+    |> Lwt.map(response =>
+         response.Response.result.Target.AttachToTarget.sessionId
+       );
 
   let%lwt _ = Page.Enable.make(~sessionId, ()) |> OSnap_Websocket.send;
+  let%lwt _ =
+    Page.SetLifecycleEventsEnabled.make(~sessionId, ~enabled=true)
+    |> OSnap_Websocket.send;
+  let%lwt _ =
+    Target.SetAutoAttach.make(
+      ~sessionId,
+      ~flatten=true,
+      ~waitForDebuggerOnStart=false,
+      ~autoAttach=true,
+    )
+    |> OSnap_Websocket.send;
+  // let%lwt _ = Performance.Enable.make(~sessionId, ()) |> OSnap_Websocket.send;
+  // let%lwt _ = Log.Enable.make(~sessionId, ()) |> OSnap_Websocket.send;
+  // let%lwt _ = Runtime.Enable.make(~sessionId, ()) |> OSnap_Websocket.send;
+  // let%lwt _ = Network.Enable.make(~sessionId, ()) |> OSnap_Websocket.send;
 
   Lwt.return({ws: url, process, targetId, sessionId});
 };

@@ -95,7 +95,6 @@ let run = t => {
               };
               Lwt.return();
             } else {
-              print_endline("Save new!");
               let%lwt io =
                 Lwt_io.open_file(~mode=Output, snapshot_dir ++ filename);
               let%lwt () = Lwt_io.write(io, data);
