@@ -3,117 +3,103 @@ let pending_requests = Queue.create();
 let sent_requests = Hashtbl.create(10);
 let listeners = Hashtbl.create(10);
 
-let websocket_handler = (u, wsd) => {
-  let rec input_loop = wsd => {
+let websocket_handler = (recv, send) => {
+  let close = () => {
+    Websocket.Frame.close(1002) |> send;
+  };
+
+  let send_payload = payload => {
+    Websocket.Frame.create(~content=payload, ()) |> send;
+  };
+
+  let rec input_loop = () => {
     let%lwt () = Lwt.pause();
     if (!Queue.is_empty(close_requests)) {
-      Websocketaf.Wsd.close(wsd);
       close_requests |> Queue.iter(resolver => Lwt.wakeup_later(resolver, ()));
       close_requests |> Queue.clear;
-      Lwt.return_unit;
+      close();
     } else if (!Queue.is_empty(pending_requests)) {
       let (key, message, resolver) = Queue.take(pending_requests);
-      let payload = Bytes.of_string(message);
-      Websocketaf.Wsd.send_bytes(
-        wsd,
-        ~kind=`Text,
-        payload,
-        ~off=0,
-        ~len=Bytes.length(payload),
-      );
+      let%lwt () = send_payload(message);
       Hashtbl.add(sent_requests, key, resolver);
-      input_loop(wsd);
+      input_loop();
     } else {
-      input_loop(wsd);
-    };
-  };
-  Lwt.async(() => input_loop(wsd));
-
-  let frame = (~opcode as _, ~is_fin as _, bs, ~off, ~len) => {
-    let payload = Bytes.create(len);
-    Lwt_bytes.blit_to_bytes(bs, off, payload, 0, len);
-    let response = Bytes.to_string(payload);
-    print_endline("[SOCKET] < \t" ++ response);
-    let id =
-      response
-      |> Yojson.Safe.from_string
-      |> Yojson.Safe.Util.member("id")
-      |> Yojson.Safe.Util.to_int_option;
-
-    let method =
-      response
-      |> Yojson.Safe.from_string
-      |> Yojson.Safe.Util.member("method")
-      |> Yojson.Safe.Util.to_string_option;
-
-    switch (method) {
-    | None => ()
-    | Some(method) =>
-      Hashtbl.find_opt(listeners, method)
-      |> Option.iter(List.iter(handler => handler()));
-      Hashtbl.remove(listeners, method);
-    };
-
-    switch (id) {
-    | None => ()
-    | Some(key) =>
-      Hashtbl.find_opt(sent_requests, key)
-      |> Option.iter(resolver => {Lwt.wakeup_later(resolver, response)});
-      Hashtbl.remove(sent_requests, key);
+      input_loop();
     };
   };
 
-  let eof = () => {
-    print_endline("[CLOSING SOCKET]");
-    Lwt.wakeup_later(u, ());
+  let react = (frame: Websocket.Frame.t) => {
+    switch (frame.opcode) {
+    | Close
+    | Continuation
+    | Ctrl(_)
+    | Nonctrl(_) => close()
+    | Ping => Websocket.Frame.create(~opcode=Pong, ()) |> send
+    | Pong => Lwt.return()
+    | Text
+    | Binary =>
+      let response = frame.Websocket.Frame.content;
+      let id =
+        response
+        |> Yojson.Safe.from_string
+        |> Yojson.Safe.Util.member("id")
+        |> Yojson.Safe.Util.to_int_option;
+
+      let method =
+        response
+        |> Yojson.Safe.from_string
+        |> Yojson.Safe.Util.member("method")
+        |> Yojson.Safe.Util.to_string_option;
+
+      switch (method) {
+      | None => ()
+      | Some(method) =>
+        Hashtbl.find_opt(listeners, method)
+        |> Option.iter(List.iter(handler => handler()));
+        Hashtbl.remove(listeners, method);
+      };
+
+      switch (id) {
+      | None => Lwt.return()
+      | Some(key) =>
+        Hashtbl.find_opt(sent_requests, key)
+        |> Option.iter(resolver => {Lwt.wakeup_later(resolver, response)});
+        Hashtbl.remove(sent_requests, key);
+        Lwt.return();
+      };
+    };
   };
 
-  Websocketaf.Client_connection.{frame, eof};
-};
-
-let error_handler = error => {
-  print_endline("[SOCKET] GOT ERROR");
-  switch (error) {
-  | `Exn(_exn) => ()
-  | `Handshake_failure(_resp, _body) => ()
-  | `Invalid_response_body_length(_resp) => ()
-  | `Malformed_response(_string) => ()
-  | _ => assert(false)
+  let rec react_forever = () => {
+    let%lwt frame = recv();
+    let%lwt () = react(frame);
+    react_forever();
   };
+
+  Lwt.pick([input_loop(), react_forever()]);
 };
 
 let connect = url => {
-  let uri = Uri.of_string(url);
-  let port = uri |> Uri.port |> Option.value(~default=0);
-  let host = uri |> Uri.host_with_default(~default="");
-  let resource = uri |> Uri.path;
+  let orig_uri = Uri.of_string(url);
+  let uri = Uri.with_scheme(orig_uri, Some("http"));
 
-  let%lwt addresses =
-    Lwt_unix.getaddrinfo(
-      host,
-      string_of_int(port),
-      [Unix.(AI_FAMILY(PF_INET))],
+  let%lwt endpoint = Resolver_lwt.resolve_uri(~uri, Resolver_lwt_unix.system);
+
+  let%lwt client =
+    endpoint
+    |> Conduit_lwt_unix.endp_to_client(~ctx=Conduit_lwt_unix.default_ctx);
+
+  let%lwt (recv, send) =
+    Websocket_lwt_unix.with_connection(
+      ~ctx=Conduit_lwt_unix.default_ctx,
+      client,
+      uri,
     );
-  let socket = Lwt_unix.socket(Unix.PF_INET, Unix.SOCK_STREAM, 0);
-  let%lwt () = Lwt_unix.connect(socket, List.hd(addresses).Unix.ai_addr);
 
-  let (p, u) = Lwt.wait();
-
-  let _ =
-    socket
-    |> Websocketaf_lwt_unix.Client.connect(
-         ~nonce="0123456789ABCDEF",
-         ~host,
-         ~port,
-         ~resource,
-         ~error_handler,
-         ~websocket_handler=websocket_handler(u),
-       );
-  p;
+  websocket_handler(recv, send);
 };
 
 let send = message => {
-  print_endline("[SOCKET] > \t" ++ message);
   let key =
     message
     |> Yojson.Safe.from_string

@@ -2,7 +2,6 @@
   {
     "name": "ocaml",
     "url": "https://www.ocaml.org",
-    "sizes": [{ "width": 200, "height": 200 }],
     "actions": [
       { "action": "click", "selector": "#id" },
       { "action": "click", "selector": ".className[0]" },
@@ -16,6 +15,7 @@
   },
   {
     "name": "google",
+    "sizes": [{ "width": 768, "height": 1024 }],
     "url": "https://www.google.com"
   }
 ]

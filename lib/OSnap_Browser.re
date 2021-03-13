@@ -237,7 +237,5 @@ let screenshot = (~full_size as _=false, browser) => {
     |> OSnap_Websocket.send
     |> Lwt.map(Page.CaptureScreenshot.parse);
 
-  print_endline(response.Response.result.Page.CaptureScreenshot.data);
-
   response.Response.result.Page.CaptureScreenshot.data |> Lwt.return;
 };

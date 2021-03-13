@@ -3,6 +3,11 @@
   "fullScreen": true,
   "testPattern": "test/**/*.osnap.json",
   "ignorePatterns": ["node_modules", "_esy", "esy.lock"],
-  "defaultSizes": [{ "width": 320, "height": 100 }],
+  "defaultSizes": [
+    { "width": 1920, "height": 1080 },
+    { "width": 1600, "height": 900 },
+    { "width": 768, "height": 1024 },
+    { "width": 320, "height": 568 }
+  ],
   "snapshotDirectory": "./__image-snapshots__"
 }

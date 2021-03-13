@@ -1,0 +1,15 @@
+{
+  "build": [
+    [
+      "#{os == 'windows' ? 'x86_64-w64-mingw32-gcc' : 'cc'}",
+      "-c",
+      "${CFLAGS:--g}",
+      "$CPPFLAGS",
+      "$LDFLAGS",
+      "test.c"
+    ]
+  ],
+  "dependencies": {
+    "esy-gmp": "esy-packages/esy-gmp#7b39ae9195e6a72b2072a6d8ae18d3b4870d5ca1"
+  }
+}
