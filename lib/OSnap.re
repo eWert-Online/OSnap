@@ -1,62 +1,13 @@
-module Io = OSnap_Io;
-module Test = OSnap_Test;
-module Utils = OSnap_Utils;
 module Config = OSnap_Config;
 module Browser = OSnap_Browser;
-module Websocket = OSnap_Websocket;
 
-module Diff = Odiff.Diff.MakeDiff(Io.PNG, Io.PNG);
-
-let test_name = (~name, ~width, ~height, ()) => {
-  let width = Int.to_string(width);
-  let height = Int.to_string(height);
-  let padding_length = 8 - String.length(width) - String.length(height);
-  let padding = padding_length > 0 ? String.make(padding_length, ' ') : "";
-  <Pastel>
-    name
-    " "
-    <Pastel dim=true> "(" width "x" height ")" padding </Pastel>
-    "\t"
-  </Pastel>;
-};
-
-let created_message = (~name, ~width, ~height, ()) =>
-  <Pastel>
-    <Pastel color=Blue bold=true> "CREATE" </Pastel>
-    "\t"
-    {test_name(~name, ~width, ~height, ())}
-  </Pastel>;
-
-let success_message = (~name, ~width, ~height, ()) =>
-  <Pastel>
-    <Pastel color=Green bold=true> "PASS" </Pastel>
-    "\t"
-    {test_name(~name, ~width, ~height, ())}
-  </Pastel>;
-
-let layout_message = (~name, ~width, ~height, ()) =>
-  <Pastel>
-    <Pastel color=Red bold=true> "FAIL" </Pastel>
-    "\t"
-    {test_name(~name, ~width, ~height, ())}
-    <Pastel color=Red> "Images have different layout." </Pastel>
-  </Pastel>;
-
-let diff_message = (~name, ~width, ~height, ~diffCount, ()) =>
-  <Pastel>
-    <Pastel color=Red bold=true> "FAIL" </Pastel>
-    "\t"
-    {test_name(~name, ~width, ~height, ())}
-    <Pastel color=Red>
-      "Different pixels: "
-      {Int.to_string(diffCount)}
-    </Pastel>
-  </Pastel>;
+module Diff = OSnap_Diff;
+module Printer = OSnap_Printer;
 
 type t = {
-  config: Config.t,
+  config: Config.Global.t,
   browser: Browser.t,
-  tests: list(Test.t),
+  tests: list(Config.Test.t),
   snapshot_dir: string,
   updated_dir: string,
   diff_dir: string,
@@ -64,7 +15,7 @@ type t = {
 
 let init_folder_structure = config => {
   let snapshot_dir =
-    config.Config.root_path ++ config.Config.snapshot_directory;
+    config.Config.Global.root_path ++ config.Config.Global.snapshot_directory;
   if (!Sys.file_exists(snapshot_dir)) {
     FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), snapshot_dir);
   };
@@ -81,11 +32,11 @@ let init_folder_structure = config => {
 };
 
 let setup = () => {
-  let config = Config.find() |> Config.parse;
+  let config = Config.Global.find() |> Config.Global.parse;
   let (snapshot_dir, updated_dir, diff_dir) = init_folder_structure(config);
-  let tests = Test.init(config);
+  let tests = Config.Test.init(config);
 
-  let%lwt browser = Browser.make();
+  let%lwt browser = Browser.Launcher.make();
 
   Lwt.return({config, browser, tests, snapshot_dir, updated_dir, diff_dir});
 };
@@ -101,15 +52,15 @@ let run = t => {
   let%lwt () =
     tests
     |> Lwt_list.iter_s(test => {
-         open Test;
+         open Config.Test;
 
          let sizes =
            switch (test.sizes) {
            | Some(sizes) => sizes
-           | None => config.Config.default_sizes
+           | None => config.Config.Global.default_sizes
            };
 
-         let url = config.Config.base_url ++ test.url;
+         let url = config.Config.Global.base_url ++ test.url;
 
          sizes
          |> Lwt_list.iter_s(((width, height)) => {
@@ -122,14 +73,17 @@ let run = t => {
                 ++ string_of_int(height);
               let filename = "/" ++ name ++ ".png";
 
-              let%lwt () = browser |> Browser.set_size(~width, ~height);
+              let%lwt () =
+                browser |> Browser.Actions.set_size(~width, ~height);
 
-              let%lwt _ = browser |> Browser.go_to(url);
-              let%lwt () = Browser.wait_for("Page.loadEventFired");
+              let%lwt _ = browser |> Browser.Actions.go_to(url);
+              let%lwt () = Browser.Actions.wait_for("Page.loadEventFired");
 
               let%lwt screenshot =
                 browser
-                |> Browser.screenshot(~full_size=config.Config.fullscreen)
+                |> Browser.Actions.screenshot(
+                     ~full_size=config.Config.Global.fullscreen,
+                   )
                 |> Lwt.map(Base64.decode_exn);
 
               if (!Sys.file_exists(snapshot_dir ++ filename)) {
@@ -138,9 +92,7 @@ let run = t => {
                 let%lwt () = Lwt_io.write(io, screenshot);
                 let%lwt () = Lwt_io.close(io);
                 create_count := create_count^ + 1;
-                Console.log(
-                  created_message(~name=test.name, ~width, ~height, ()),
-                );
+                Printer.created_message(~name=test.name, ~width, ~height);
                 Lwt.return();
               } else {
                 let%lwt io =
@@ -148,50 +100,33 @@ let run = t => {
                 let%lwt () = Lwt_io.write(io, screenshot);
                 let%lwt () = Lwt_io.close(io);
 
-                let img1 = Io.PNG.loadImage(snapshot_dir ++ filename);
-                let img2 = Io.PNG.loadImage(updated_dir ++ filename);
+                let current_image_path = snapshot_dir ++ filename;
+                let new_image_path = updated_dir ++ filename;
+                let diff_image_path = diff_dir ++ filename;
 
-                if (img1.width != img2.width || img1.height != img2.height) {
-                  failed_count := failed_count^ + 1;
-                  Console.log(
-                    layout_message(~name=test.name, ~width, ~height, ()),
+                let result =
+                  Diff.diff(
+                    current_image_path,
+                    new_image_path,
+                    ~output=diff_image_path,
                   );
-                } else {
-                  switch (
-                    Diff.diff(
-                      img1,
-                      img2,
-                      ~outputDiffMask=true,
-                      ~threshold=0.1,
-                      ~failOnLayoutChange=true,
-                      ~diffPixel=(255, 0, 0),
-                      (),
-                    )
-                  ) {
-                  | Pixel((_diffOutput, diffCount)) when diffCount == 0 =>
-                    FileUtil.rm(~recurse=true, [updated_dir ++ filename]);
-                    passed_count := passed_count^ + 1;
-                    Console.log(
-                      success_message(~name=test.name, ~width, ~height, ()),
-                    );
-                  | Layout =>
-                    failed_count := failed_count^ + 1;
-                    Console.log(
-                      layout_message(~name=test.name, ~width, ~height, ()),
-                    );
-                  | Pixel((diffImg, diffCount)) =>
-                    Io.PNG.saveImage(diffImg, diff_dir ++ filename);
-                    failed_count := failed_count^ + 1;
-                    Console.log(
-                      diff_message(
-                        ~name=test.name,
-                        ~width,
-                        ~height,
-                        ~diffCount,
-                        (),
-                      ),
-                    );
-                  };
+
+                switch (result) {
+                | Ok () =>
+                  passed_count := passed_count^ + 1;
+                  FileUtil.rm(~recurse=true, [new_image_path]);
+                  Printer.success_message(~name=test.name, ~width, ~height);
+                | Error(Layout) =>
+                  failed_count := failed_count^ + 1;
+                  Printer.layout_message(~name=test.name, ~width, ~height);
+                | Error(Pixel(diffCount)) =>
+                  failed_count := failed_count^ + 1;
+                  Printer.diff_message(
+                    ~name=test.name,
+                    ~width,
+                    ~height,
+                    ~diffCount,
+                  );
                 };
 
                 Lwt.return();
@@ -199,44 +134,17 @@ let run = t => {
             });
        });
 
-  Console.log(
-    <Pastel>
-      "\n"
-      "\n"
-      "Done! 🚀\n"
-      "I did run "
-      <Pastel bold=true>
-        {Int.to_string(List.length(tests))}
-        " Test-Suites"
-      </Pastel>
-      " with a total of "
-      <Pastel bold=true> {Int.to_string(test_count^)} " snapshots" </Pastel>
-      " in "
-      <Pastel bold=true> {Float.to_string(Sys.time())} " seconds" </Pastel>
-      "!"
-      "\n\nResults:\n"
-      {create_count^ > 0
-         ? <Pastel bold=true>
-             {Int.to_string(create_count^)}
-             " Snapshots created \n"
-           </Pastel>
-         : ""}
-      <Pastel color=Green bold=true>
-        {Int.to_string(passed_count^)}
-        " Snapshots passed \n"
-      </Pastel>
-      {failed_count^ > 0
-         ? <Pastel color=Red bold=true>
-             {Int.to_string(failed_count^)}
-             " Snapshots failed \n"
-           </Pastel>
-         : ""}
-    </Pastel>,
+  Printer.stats(
+    ~test_suites=List.length(tests),
+    ~test_count=test_count^,
+    ~create_count=create_count^,
+    ~passed_count=passed_count^,
+    ~failed_count=failed_count^,
   );
 
   Lwt.return();
 };
 
 let teardown = t => {
-  (t.browser.process)#terminate;
+  t.browser |> Browser.Launcher.shutdown;
 };

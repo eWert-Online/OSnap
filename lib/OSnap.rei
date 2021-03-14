@@ -1,14 +1,7 @@
-module Io = OSnap_Io;
-module Test = OSnap_Test;
-module Utils = OSnap_Utils;
-module Config = OSnap_Config;
-module Browser = OSnap_Browser;
-module Websocket = OSnap_Websocket;
-
 type t = {
-  config: Config.t,
-  browser: Browser.t,
-  tests: list(Test.t),
+  config: OSnap_Config.Global.t,
+  browser: OSnap_Browser.t,
+  tests: list(OSnap_Config.Test.t),
   snapshot_dir: string,
   updated_dir: string,
   diff_dir: string,

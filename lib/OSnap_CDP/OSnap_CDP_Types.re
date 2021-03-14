@@ -80,3 +80,38 @@ module Target = {
     };
   };
 };
+
+module Request = {
+  let id = ref(0);
+
+  let id = () => {
+    let new_id = id^ + 1;
+    id := new_id;
+    new_id;
+  };
+
+  [@deriving yojson]
+  type t('a) = {
+    [@yojson.option]
+    sessionId: option(Target.SessionID.t),
+    method: string,
+    [@yojson.option]
+    params: option('a),
+    id: int,
+  };
+
+  let make = (~sessionId=?, ~params=?, method) => {
+    let id = id();
+    {sessionId, method, params, id};
+  };
+};
+
+module Response = {
+  [@deriving yojson]
+  type t('a) = {
+    id: int,
+    result: 'a,
+    [@yojson.option]
+    sessionId: option(Target.SessionID.t),
+  };
+};

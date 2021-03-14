@@ -1,15 +1,3 @@
-let path_of_segments = paths =>
-  paths
-  |> List.rev
-  |> List.fold_left(
-       (acc, curr) =>
-         switch (acc) {
-         | "" => curr
-         | path => path ++ "/" ++ curr
-         },
-       "",
-     );
-
 let find_duplicates = (get_key, list) => {
   let hash = Hashtbl.create(List.length(list));
   list
@@ -22,3 +10,15 @@ let find_duplicates = (get_key, list) => {
        }
      );
 };
+
+let path_of_segments = paths =>
+  paths
+  |> List.rev
+  |> List.fold_left(
+       (acc, curr) =>
+         switch (acc) {
+         | "" => curr
+         | path => path ++ "/" ++ curr
+         },
+       "",
+     );

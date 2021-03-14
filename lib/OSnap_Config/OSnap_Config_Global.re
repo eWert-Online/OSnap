@@ -94,28 +94,16 @@ let parse = path => {
 let find = () => {
   let config_name = "osnap.config.json";
 
-  let path_of_segments = paths =>
-    paths
-    |> List.rev
-    |> List.fold_left(
-         (acc, curr) =>
-           switch (acc) {
-           | "" => curr
-           | path => path ++ "/" ++ curr
-           },
-         "",
-       );
-
   let base_path = Sys.getcwd();
 
   let rec scan_dir = segments => {
     let elements =
-      segments |> path_of_segments |> Sys.readdir |> Array.to_list;
+      segments |> Utils.path_of_segments |> Sys.readdir |> Array.to_list;
 
     let files =
       elements
       |> List.find_all(el => {
-           let path = path_of_segments([el, ...segments]);
+           let path = Utils.path_of_segments([el, ...segments]);
            let is_direcoty = path |> Sys.is_directory;
            !is_direcoty;
          });
@@ -124,7 +112,7 @@ let find = () => {
       Some(segments);
     } else {
       let parent_dir_segments = ["..", ...segments];
-      let parent_dir = parent_dir_segments |> path_of_segments;
+      let parent_dir = parent_dir_segments |> Utils.path_of_segments;
 
       try(
         if (parent_dir |> Sys.is_directory) {
@@ -141,6 +129,6 @@ let find = () => {
   let config_path = scan_dir([base_path]);
   switch (config_path) {
   | None => raise(No_Config_Found)
-  | Some(paths) => [config_name, ...paths] |> path_of_segments
+  | Some(paths) => [config_name, ...paths] |> Utils.path_of_segments
   };
 };

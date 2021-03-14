@@ -1,13 +1,10 @@
 (library
-  (name OSnap)
+  (name OSnap_CDP)
   (flags (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
   (libraries
-    OSnap_Diff
-    OSnap_Printer
-    OSnap_Config
-    OSnap_Browser
+    yojson
   )
   (preprocess (pps
-    lwt_ppx
+    ppx_yojson_conv
   ))
 )

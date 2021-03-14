@@ -1,11 +1,10 @@
 (library
-  (name OSnap)
+  (name OSnap_Browser)
   (flags (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
   (libraries
-    OSnap_Diff
-    OSnap_Printer
-    OSnap_Config
-    OSnap_Browser
+    OSnap_CDP
+    OSnap_Websocket
+    lwt
   )
   (preprocess (pps
     lwt_ppx

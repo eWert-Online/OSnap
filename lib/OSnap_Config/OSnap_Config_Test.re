@@ -163,16 +163,16 @@ let find =
 let init = config => {
   let tests =
     find(
-      ~root_path=config.OSnap_Config.root_path,
-      ~pattern=config.OSnap_Config.test_pattern,
-      ~ignore_patterns=config.OSnap_Config.ignore_patterns,
+      ~root_path=config.OSnap_Config_Global.root_path,
+      ~pattern=config.OSnap_Config_Global.test_pattern,
+      ~ignore_patterns=config.OSnap_Config_Global.ignore_patterns,
       (),
     )
     |> List.map(parse)
     |> List.flatten;
 
   let duplicates =
-    tests |> OSnap_Utils.find_duplicates(t => t.name) |> List.map(t => t.name);
+    tests |> Utils.find_duplicates(t => t.name) |> List.map(t => t.name);
 
   if (List.length(duplicates) != 0) {
     raise(Duplicate_Tests(duplicates));

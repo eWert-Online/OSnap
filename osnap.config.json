@@ -1,6 +1,7 @@
 {
   "baseUrl": "",
   "fullScreen": true,
+  "parallelism": 6,
   "testPattern": "test/**/*.osnap.json",
   "ignorePatterns": ["node_modules", "_esy", "esy.lock"],
   "defaultSizes": [
