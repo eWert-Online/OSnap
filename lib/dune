@@ -16,6 +16,8 @@
     websocketaf-lwt-unix
     camlimages.png
     fileutils
+    console.lib
+    pastel.lib
   )
   (preprocess (pps
     lwt_ppx
