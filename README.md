@@ -7,12 +7,12 @@ _Pre Release:_
 - [ ] Download correct verion of chrome on setup
 - [x] Listen for events
 - [ ] Trigger events (click, type) on element in browser
-- [ ] screenshot whole page (once websocketaf parsing is fixed)
+- [x] screenshot whole page (once websocketaf parsing is fixed)
 - [x] Set screen sizes
 - [ ] Create new tab / target for every screen size
 - [ ] Use cmdliner to specify commands
 - [ ] Better error messages
-- [ ] Prettier output with Pastel
+- [x] Prettier output with Pastel
 
 _After initial Release:_
 

@@ -1,31 +1,4 @@
-module TargetID = {
-  [@deriving yojson]
-  type t = string;
-};
-
-module SessionID = {
-  [@deriving yojson]
-  type t = string;
-};
-
-module BrowserContextID = {
-  [@deriving yojson]
-  type t = string;
-};
-
-module TargetInfo = {
-  [@deriving yojson]
-  type t = {
-    targetId: TargetID.t,
-    [@key "type"]
-    type_: string,
-    title: string,
-    url: string,
-    attached: bool,
-    canAccessOpener: bool,
-    browserContextId: string,
-  };
-};
+open OSnap_CDP_Types;
 
 module Request = {
   let id = ref(0);
@@ -39,7 +12,7 @@ module Request = {
   [@deriving yojson]
   type t('a) = {
     [@yojson.option]
-    sessionId: option(SessionID.t),
+    sessionId: option(Target.SessionID.t),
     method: string,
     [@yojson.option]
     params: option('a),
@@ -58,7 +31,7 @@ module Response = {
     id: int,
     result: 'a,
     [@yojson.option]
-    sessionId: option(SessionID.t),
+    sessionId: option(Target.SessionID.t),
   };
 };
 
@@ -72,7 +45,7 @@ module Target = {
       [@yojson.option]
       height: option(int),
       [@yojson.option]
-      browserContextId: option(BrowserContextID.t),
+      browserContextId: option(Browser.BrowserContextID.t),
       [@yojson.option]
       enableBeginFrameControl: option(bool),
       [@yojson.option]
@@ -85,7 +58,7 @@ module Target = {
     type request = Request.t(params);
 
     [@deriving yojson]
-    type result = {targetId: TargetID.t};
+    type result = {targetId: Target.TargetID.t};
 
     [@deriving yojson]
     type response = Response.t(result);
@@ -136,7 +109,7 @@ module Target = {
     type request = Request.t(params);
 
     [@deriving yojson]
-    type result = {browserContextId: BrowserContextID.t};
+    type result = {browserContextId: Browser.BrowserContextID.t};
 
     [@deriving yojson]
     type response = Response.t(result);
@@ -165,7 +138,7 @@ module Target = {
 
   module ActivateTarget = {
     [@deriving yojson]
-    type params = {targetId: TargetID.t};
+    type params = {targetId: Target.TargetID.t};
 
     [@deriving yojson]
     type request = Request.t(params);
@@ -189,7 +162,7 @@ module Target = {
     type request = Request.t(params);
 
     [@deriving yojson]
-    type result = {targetInfos: array(TargetInfo.t)};
+    type result = {targetInfos: array(Target.TargetInfo.t)};
 
     [@deriving yojson]
     type response = Response.t(result);
@@ -208,7 +181,7 @@ module Target = {
   module AttachToTarget = {
     [@deriving yojson]
     type params = {
-      targetId: TargetID.t,
+      targetId: Target.TargetID.t,
       [@yojson.option]
       flatten: option(bool),
     };
@@ -217,7 +190,7 @@ module Target = {
     type request = Request.t(params);
 
     [@deriving yojson]
-    type result = {sessionId: SessionID.t};
+    type result = {sessionId: Target.SessionID.t};
 
     [@deriving yojson]
     type response = Response.t(result);
@@ -319,13 +292,15 @@ module Page = {
     [@deriving yojson]
     type params = {
       [@yojson.option]
-      quality: option(int),
-      [@yojson.option]
       format: option(string),
       [@yojson.option]
-      captureBeyondViewport: option(bool),
+      quality: option(int),
+      [@yojson.option]
+      clip: option(Page.Viewport.t),
       [@yojson.option]
       fromSurface: option(bool),
+      [@yojson.option]
+      captureBeyondViewport: option(bool),
     };
 
     [@deriving yojson]
@@ -342,12 +317,48 @@ module Page = {
     };
 
     let make =
-        (~quality=?, ~format=?, ~sessionId=?, ~captureBeyondViewport=?, ()) => {
+        (
+          ~sessionId=?,
+          ~format=?,
+          ~quality=?,
+          ~clip=?,
+          ~captureBeyondViewport=?,
+          ~fromSurface=?,
+          (),
+        ) => {
       Request.make(
         "Page.captureScreenshot",
-        ~params={quality, format, captureBeyondViewport, fromSurface: None},
+        ~params={format, quality, clip, captureBeyondViewport, fromSurface},
         ~sessionId?,
       )
+      |> yojson_of_request
+      |> Yojson.Safe.to_string;
+    };
+  };
+
+  module GetLayoutMetrics = {
+    [@deriving yojson]
+    type params;
+
+    [@deriving yojson]
+    type request = Request.t(params);
+
+    [@deriving yojson]
+    type result = {
+      layoutViewport: Page.LayoutViewport.t,
+      visualViewport: Page.VisualViewport.t,
+      contentSize: DOM.Rect.t,
+    };
+
+    [@deriving yojson]
+    type response = Response.t(result);
+
+    let parse = response => {
+      response |> Yojson.Safe.from_string |> response_of_yojson;
+    };
+
+    let make = (~sessionId=?, ()) => {
+      Request.make("Page.getLayoutMetrics", ~sessionId?)
       |> yojson_of_request
       |> Yojson.Safe.to_string;
     };

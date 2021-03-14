@@ -40,8 +40,8 @@ exception Connection_failed;
 
 type t = {
   ws: string,
-  targetId: TargetID.t,
-  sessionId: SessionID.t,
+  targetId: OSnap_CDP_Types.Target.TargetID.t,
+  sessionId: OSnap_CDP_Types.Target.SessionID.t,
   process: {
     .
     close: Lwt.t(Unix.process_status),
@@ -110,7 +110,6 @@ let make = () => {
     switch (proc#state) {
     | Lwt_process.Running =>
       let%lwt line = proc#stderr |> Lwt_io.read_line;
-      print_endline("[CHROME] " ++ line);
       if (Utils.contains_substring(
             "Cannot start http server for devtools",
             line,
@@ -187,7 +186,6 @@ let wait_for = event => {
 };
 
 let go_to = (url, browser) => {
-  print_endline("[BROWSER]\t Going to: " ++ url);
   let%lwt payload =
     Page.Navigate.make(url, ~sessionId=browser.sessionId)
     |> OSnap_Websocket.send
@@ -201,12 +199,6 @@ let go_to = (url, browser) => {
 //   };
 
 let set_size = (~width, ~height, browser) => {
-  print_endline(
-    "[BROWSER]\t Set size to: "
-    ++ string_of_int(width)
-    ++ "x"
-    ++ string_of_int(height),
-  );
   let%lwt _ =
     Emulation.SetDeviceMetricsOverride.make(
       ~sessionId=browser.sessionId,
@@ -222,15 +214,33 @@ let set_size = (~width, ~height, browser) => {
   Lwt.return();
 };
 
-let screenshot = (~full_size as _=false, browser) => {
-  print_endline("[BROWSER]\t Making screenshot!");
+let screenshot = (~full_size=false, browser) => {
   let%lwt _ =
-    Target.ActivateTarget.make(browser.targetId) |> OSnap_Websocket.send;
+    Target.ActivateTarget.make(browser.targetId, ~sessionId=browser.sessionId)
+    |> OSnap_Websocket.send;
+
+  let%lwt metrics =
+    Page.GetLayoutMetrics.make(~sessionId=browser.sessionId, ())
+    |> OSnap_Websocket.send
+    |> Lwt.map(Page.GetLayoutMetrics.parse)
+    |> Lwt.map(response => response.Response.result);
+  let width = metrics.contentSize.width;
+  let height = metrics.contentSize.height;
+
+  let clip =
+    if (full_size) {
+      Some(
+        OSnap_CDP_Types.Page.Viewport.{x: 0, y: 0, width, height, scale: 1},
+      );
+    } else {
+      None;
+    };
 
   let%lwt response =
     Page.CaptureScreenshot.make(
       ~format="png",
       ~sessionId=browser.sessionId,
+      ~clip?,
       ~captureBeyondViewport=true,
       (),
     )

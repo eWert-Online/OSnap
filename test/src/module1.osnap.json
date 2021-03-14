@@ -1,6 +1,6 @@
 [
   {
-    "name": "ocaml",
+    "name": "OCaml",
     "url": "https://www.ocaml.org",
     "actions": [
       { "action": "click", "selector": "#id" },
@@ -10,11 +10,11 @@
     ]
   },
   {
-    "name": "rescript-lang",
+    "name": "ReScript",
     "url": "https://www.rescript-lang.org"
   },
   {
-    "name": "google",
+    "name": "Google",
     "sizes": [{ "width": 768, "height": 1024 }],
     "url": "https://www.google.com"
   }
