@@ -29,8 +29,7 @@ let set_size = (~width, ~height, browser) => {
       ~sessionId=browser.sessionId,
       ~width,
       ~height,
-      ~scale=1,
-      ~deviceScaleFactor=0,
+      ~deviceScaleFactor=1,
       ~mobile=false,
       (),
     )
