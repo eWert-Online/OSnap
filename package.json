@@ -9,7 +9,7 @@
     "release": {
       "rewritePrefix": true,
       "bin": {
-        "osnap": "OSnap"
+        "osnap": "osnap"
       }
     },
     "buildEnv": {
