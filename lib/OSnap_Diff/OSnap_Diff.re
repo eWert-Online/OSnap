@@ -15,7 +15,7 @@ let diff = (~output, path1, path2) => {
     Diff.diff(
       img1,
       img2,
-      ~outputDiffMask=true,
+      ~outputDiffMask=false,
       ~threshold=0.1,
       ~failOnLayoutChange=true,
       ~diffPixel=(255, 0, 0),
