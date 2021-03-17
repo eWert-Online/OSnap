@@ -14,17 +14,19 @@ type t = {
 };
 
 let init_folder_structure = config => {
-  let snapshot_dir =
+  let base_path =
     config.Config.Global.root_path ++ config.Config.Global.snapshot_directory;
+
+  let snapshot_dir = base_path ++ "/__base_images__";
   if (!Sys.file_exists(snapshot_dir)) {
     FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), snapshot_dir);
   };
 
-  let updated_dir = snapshot_dir ++ "/__updated__";
+  let updated_dir = base_path ++ "/__updated__";
   FileUtil.rm(~recurse=true, [updated_dir]);
   FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), updated_dir);
 
-  let diff_dir = snapshot_dir ++ "/__diff__";
+  let diff_dir = base_path ++ "/__diff__";
   FileUtil.rm(~recurse=true, [diff_dir]);
   FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), diff_dir);
 
