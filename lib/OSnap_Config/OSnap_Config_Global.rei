@@ -12,6 +12,7 @@ type t = {
   default_sizes: list(size),
   snapshot_directory: string,
   diff_pixel_color: (int, int, int),
+  parallelism: int,
 };
 
 let parse: string => t;

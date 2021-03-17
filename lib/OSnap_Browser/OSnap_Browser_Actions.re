@@ -1,7 +1,7 @@
-open OSnap_Browser_Types;
 open OSnap_CDP;
 
 let wait_for = event => {
+  // TODO: Wait on a specific target
   let (p, resolver) = Lwt.wait();
   let callback = () => {
     Lwt.wakeup_later(resolver, ());
@@ -10,9 +10,10 @@ let wait_for = event => {
   p;
 };
 
-let go_to = (url, browser) => {
+let go_to = (~url, target) => {
+  let (_targetId, sessionId) = target;
   let%lwt payload =
-    Page.Navigate.make(url, ~sessionId=browser.sessionId)
+    Page.Navigate.make(url, ~sessionId)
     |> OSnap_Websocket.send
     |> Lwt.map(Page.Navigate.parse);
   payload.Types.Response.result.Page.Navigate.frameId |> Lwt.return;
@@ -23,10 +24,12 @@ let go_to = (url, browser) => {
 //     Lwt_result.return(Obj.magic());
 //   };
 
-let set_size = (~width, ~height, browser) => {
+let set_size = (~width, ~height, target) => {
+  let (_targetId, sessionId) = target;
+
   let%lwt _ =
     Emulation.SetDeviceMetricsOverride.make(
-      ~sessionId=browser.sessionId,
+      ~sessionId,
       ~width,
       ~height,
       ~deviceScaleFactor=1,
@@ -38,13 +41,13 @@ let set_size = (~width, ~height, browser) => {
   Lwt.return();
 };
 
-let screenshot = (~full_size=false, browser) => {
+let screenshot = (~full_size=false, target) => {
+  let (targetId, sessionId) = target;
   let%lwt _ =
-    Target.ActivateTarget.make(browser.targetId, ~sessionId=browser.sessionId)
-    |> OSnap_Websocket.send;
+    Target.ActivateTarget.make(targetId, ~sessionId) |> OSnap_Websocket.send;
 
   let%lwt metrics =
-    Page.GetLayoutMetrics.make(~sessionId=browser.sessionId, ())
+    Page.GetLayoutMetrics.make(~sessionId, ())
     |> OSnap_Websocket.send
     |> Lwt.map(Page.GetLayoutMetrics.parse)
     |> Lwt.map(response => response.Types.Response.result);
@@ -61,7 +64,7 @@ let screenshot = (~full_size=false, browser) => {
   let%lwt response =
     Page.CaptureScreenshot.make(
       ~format="png",
-      ~sessionId=browser.sessionId,
+      ~sessionId,
       ~clip?,
       ~captureBeyondViewport=true,
       (),

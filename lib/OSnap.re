@@ -39,6 +39,9 @@ let setup = () => {
   let tests = Config.Test.init(config);
 
   let%lwt browser = Browser.Launcher.make();
+  let%lwt browser =
+    browser
+    |> Browser.Launcher.create_targets(config.Config.Global.parallelism);
 
   Lwt.return({config, browser, tests, snapshot_dir, updated_dir, diff_dir});
 };
@@ -50,6 +53,17 @@ let run = t => {
   let passed_count = ref(0);
   let failed_count = ref(0);
   let test_count = ref(0);
+
+  let target_queue = Queue.create();
+  browser
+  |> Browser.Launcher.get_targets
+  |> List.iter(target => Queue.add(target, target_queue));
+
+  let get_available_target = target_queue => {
+    let target = Queue.take(target_queue);
+    Queue.add(target, target_queue);
+    target;
+  };
 
   let%lwt () =
     tests
@@ -64,6 +78,8 @@ let run = t => {
 
          let url = config.Config.Global.base_url ++ test.url;
 
+         let target = target_queue |> get_available_target;
+
          sizes
          |> Lwt_list.iter_s(((width, height)) => {
               test_count := test_count^ + 1;
@@ -76,13 +92,13 @@ let run = t => {
               let filename = "/" ++ name ++ ".png";
 
               let%lwt () =
-                browser |> Browser.Actions.set_size(~width, ~height);
+                target |> Browser.Actions.set_size(~width, ~height);
 
-              let%lwt _ = browser |> Browser.Actions.go_to(url);
+              let%lwt _ = target |> Browser.Actions.go_to(~url);
               let%lwt () = Browser.Actions.wait_for("Page.loadEventFired");
 
               let%lwt screenshot =
-                browser
+                target
                 |> Browser.Actions.screenshot(
                      ~full_size=config.Config.Global.fullscreen,
                    )

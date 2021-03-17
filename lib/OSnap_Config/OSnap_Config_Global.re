@@ -9,6 +9,7 @@ type t = {
   default_sizes: list(size),
   snapshot_directory: string,
   diff_pixel_color: (int, int, int),
+  parallelism: int,
 };
 
 exception Parse_Error(string);
@@ -55,6 +56,12 @@ let parse = path => {
       |> Yojson.Basic.Util.member("snapshotDirectory")
       |> Yojson.Basic.Util.to_string_option
       |> Option.value(~default="__snapshots__");
+
+    let parallelism =
+      json
+      |> Yojson.Basic.Util.member("parallelism")
+      |> Yojson.Basic.Util.to_int_option
+      |> Option.value(~default=3);
 
     let root_path =
       String.sub(
@@ -116,6 +123,7 @@ let parse = path => {
       default_sizes,
       snapshot_directory,
       diff_pixel_color,
+      parallelism,
     };
   }) {
   | Yojson.Basic.Util.Type_error(msg, _) => raise(Parse_Error(msg))
