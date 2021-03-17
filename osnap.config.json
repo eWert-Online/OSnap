@@ -10,5 +10,10 @@
     { "width": 768, "height": 1024 },
     { "width": 320, "height": 568 }
   ],
-  "snapshotDirectory": "./__image-snapshots__"
+  "snapshotDirectory": "./__image-snapshots__",
+  "diffPixelColor": {
+    "r": 0,
+    "g": 255,
+    "b": 0
+  }
 }
