@@ -5,7 +5,7 @@ type failState =
   | Pixel(int)
   | Layout;
 
-let diff = (~output, path1, path2) => {
+let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0.1, path1, path2) => {
   let img1 = Io.PNG.loadImage(path1);
   let img2 = Io.PNG.loadImage(path2);
 
@@ -16,9 +16,9 @@ let diff = (~output, path1, path2) => {
       img1,
       img2,
       ~outputDiffMask=false,
-      ~threshold=0.1,
+      ~threshold,
       ~failOnLayoutChange=true,
-      ~diffPixel=(255, 0, 0),
+      ~diffPixel,
       (),
     )
     |> (

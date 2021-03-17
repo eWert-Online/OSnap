@@ -11,6 +11,7 @@ type t = {
   fullscreen: bool,
   default_sizes: list(size),
   snapshot_directory: string,
+  diff_pixel_color: (int, int, int),
 };
 
 let parse: string => t;

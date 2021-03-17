@@ -8,6 +8,7 @@ type t = {
   fullscreen: bool,
   default_sizes: list(size),
   snapshot_directory: string,
+  diff_pixel_color: (int, int, int),
 };
 
 exception Parse_Error(string);
@@ -77,6 +78,35 @@ let parse = path => {
       |> Yojson.Basic.Util.to_string_option
       |> Option.value(~default="**/*.osnap.json");
 
+    let diff_pixel_color =
+      json
+      |> Yojson.Basic.Util.member("diffPixelColor")
+      |> (
+        fun
+        | `Assoc(_) as assoc => {
+            let get_color = (
+              fun
+              | `Int(i) => i
+              | `Float(f) => int_of_float(f)
+              | `String(s) => int_of_string(s)
+              | _ =>
+                raise(
+                  Parse_Error(
+                    "diffPixelColor does not have a correct format",
+                  ),
+                )
+            );
+            (
+              assoc |> Yojson.Basic.Util.member("r") |> get_color,
+              assoc |> Yojson.Basic.Util.member("g") |> get_color,
+              assoc |> Yojson.Basic.Util.member("b") |> get_color,
+            );
+          }
+        | `Null => (255, 0, 0)
+        | _ =>
+          raise(Parse_Error("diffPixelColor does not have a correct format"))
+      );
+
     {
       root_path,
       test_pattern,
@@ -85,6 +115,7 @@ let parse = path => {
       fullscreen,
       default_sizes,
       snapshot_directory,
+      diff_pixel_color,
     };
   }) {
   | Yojson.Basic.Util.Type_error(msg, _) => raise(Parse_Error(msg))
