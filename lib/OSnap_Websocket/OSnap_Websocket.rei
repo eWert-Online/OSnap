@@ -1,4 +1,4 @@
-let listen: (string, unit => unit) => unit;
+let listen: (~event: string, ~sessionId: string, unit => unit) => unit;
 
 let close: unit => Lwt.t(unit);
 

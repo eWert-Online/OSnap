@@ -27,9 +27,12 @@ module SetLifecycleEventsEnabled = {
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response => {
-    response |> Yojson.Safe.from_string |> response_of_yojson;
-  };
+  let parse = response =>
+    try(response |> Yojson.Safe.from_string |> response_of_yojson) {
+    | _ as exn =>
+      print_endline("Error parsing SetLifecycleEventsEnabled!");
+      raise(exn);
+    };
 
   let make = (~sessionId=?, ~enabled) => {
     Request.make(
@@ -66,9 +69,13 @@ module CaptureScreenshot = {
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response => {
-    response |> Yojson.Safe.from_string |> response_of_yojson;
-  };
+  let parse = response =>
+    try(response |> Yojson.Safe.from_string |> response_of_yojson) {
+    | _ as exn =>
+      print_endline("Error parsing CaptureScreenshot! Response was:");
+      print_endline(response);
+      raise(exn);
+    };
 
   let make =
       (
@@ -107,9 +114,12 @@ module GetLayoutMetrics = {
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response => {
-    response |> Yojson.Safe.from_string |> response_of_yojson;
-  };
+  let parse = response =>
+    try(response |> Yojson.Safe.from_string |> response_of_yojson) {
+    | _ as exn =>
+      print_endline("Error parsing GetLayoutMetrics!");
+      raise(exn);
+    };
 
   let make = (~sessionId=?, ()) => {
     Request.make("Page.getLayoutMetrics", ~sessionId?)
@@ -141,9 +151,12 @@ module Navigate = {
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response => {
-    response |> Yojson.Safe.from_string |> response_of_yojson;
-  };
+  let parse = response =>
+    try(response |> Yojson.Safe.from_string |> response_of_yojson) {
+    | _ as exn =>
+      print_endline("Error parsing Navigate!");
+      raise(exn);
+    };
 
   let make = (~sessionId=?, ~referrer=?, url) => {
     Request.make("Page.navigate", ~params={url, referrer}, ~sessionId?)

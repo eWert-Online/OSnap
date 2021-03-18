@@ -51,12 +51,23 @@ let websocket_handler = (recv, send) => {
         |> Yojson.Safe.Util.member("method")
         |> Yojson.Safe.Util.to_string_option;
 
-      switch (method) {
-      | None => ()
-      | Some(method) =>
+      let sessionId =
+        response
+        |> Yojson.Safe.from_string
+        |> Yojson.Safe.Util.member("sessionId")
+        |> Yojson.Safe.Util.to_string_option;
+
+      switch (method, sessionId) {
+      | (None, None) => ()
+      | (None, _) => ()
+      | (Some(method), None) =>
         Hashtbl.find_opt(listeners, method)
         |> Option.iter(List.iter(handler => handler()));
         Hashtbl.remove(listeners, method);
+      | (Some(method), Some(sessionId)) =>
+        Hashtbl.find_opt(listeners, method ++ sessionId)
+        |> Option.iter(List.iter(handler => handler()));
+        Hashtbl.remove(listeners, method ++ sessionId);
       };
 
       switch (id) {
@@ -111,11 +122,12 @@ let send = message => {
   p;
 };
 
-let listen = (event, handler) => {
-  let stored_listeners = Hashtbl.find_opt(listeners, event);
+let listen = (~event, ~sessionId, handler) => {
+  let key = event ++ sessionId;
+  let stored_listeners = Hashtbl.find_opt(listeners, key);
   switch (stored_listeners) {
-  | None => Hashtbl.add(listeners, event, [handler])
-  | Some(stored) => Hashtbl.replace(listeners, event, [handler, ...stored])
+  | None => Hashtbl.add(listeners, key, [handler])
+  | Some(stored) => Hashtbl.replace(listeners, key, [handler, ...stored])
   };
 };
 

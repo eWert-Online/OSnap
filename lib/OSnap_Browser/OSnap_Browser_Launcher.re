@@ -132,6 +132,7 @@ let create_targets = (count, browser) => {
     List.init(count, _ => {
       CDP.Target.CreateTarget.make(
         ~browserContextId=browser.browserContextId,
+        ~newWindow=true,
         "about:blank",
       )
     })

@@ -27,9 +27,12 @@ module CreateTarget = {
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response => {
-    response |> Yojson.Safe.from_string |> response_of_yojson;
-  };
+  let parse = response =>
+    try(response |> Yojson.Safe.from_string |> response_of_yojson) {
+    | _ as exn =>
+      print_endline("Error parsing CreateTarget!");
+      raise(exn);
+    };
 
   let make =
       (
@@ -78,9 +81,12 @@ module CreateBrowserContext = {
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response => {
-    response |> Yojson.Safe.from_string |> response_of_yojson;
-  };
+  let parse = response =>
+    try(response |> Yojson.Safe.from_string |> response_of_yojson) {
+    | _ as exn =>
+      print_endline("Error parsing CreateBrowserContext!");
+      raise(exn);
+    };
 
   let make =
       (
@@ -131,9 +137,12 @@ module GetTargets = {
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response => {
-    response |> Yojson.Safe.from_string |> response_of_yojson;
-  };
+  let parse = response =>
+    try(response |> Yojson.Safe.from_string |> response_of_yojson) {
+    | _ as exn =>
+      print_endline("Error parsing GetTargets!");
+      raise(exn);
+    };
 
   let make = (~sessionId=?, ()) => {
     Request.make("Target.getTargets", ~sessionId?)
@@ -159,9 +168,12 @@ module AttachToTarget = {
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response => {
-    response |> Yojson.Safe.from_string |> response_of_yojson;
-  };
+  let parse = response =>
+    try(response |> Yojson.Safe.from_string |> response_of_yojson) {
+    | _ as exn =>
+      print_endline("Error parsing AttachToTarget!");
+      raise(exn);
+    };
 
   let make = (~sessionId=?, ~flatten=?, targetId) => {
     Request.make(
@@ -192,9 +204,12 @@ module SetAutoAttach = {
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response => {
-    response |> Yojson.Safe.from_string |> response_of_yojson;
-  };
+  let parse = response =>
+    try(response |> Yojson.Safe.from_string |> response_of_yojson) {
+    | _ as exn =>
+      print_endline("Error parsing SetAutoAttach!");
+      raise(exn);
+    };
 
   let make = (~sessionId=?, ~flatten=?, ~waitForDebuggerOnStart, ~autoAttach) => {
     Request.make(

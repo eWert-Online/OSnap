@@ -15,7 +15,7 @@ module Launcher: {
 };
 
 module Actions: {
-  let wait_for: string => Lwt.t(unit);
+  let wait_for: (~event: string, (string, string)) => Lwt.t(unit);
 
   let go_to:
     (

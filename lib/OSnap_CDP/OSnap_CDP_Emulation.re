@@ -24,9 +24,12 @@ module SetDeviceMetricsOverride = {
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response => {
-    response |> Yojson.Safe.from_string |> response_of_yojson;
-  };
+  let parse = response =>
+    try(response |> Yojson.Safe.from_string |> response_of_yojson) {
+    | _ as exn =>
+      print_endline("Error parsing SetDeviceMetricsOverride!");
+      raise(exn);
+    };
 
   let make =
       (
