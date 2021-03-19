@@ -68,103 +68,99 @@ let run = t => {
     };
   };
 
-  let%lwt () =
-    tests
-    |> Lwt_list.iter_p(test => {
-         open Config.Test;
+  let get_filename = (name, width, height) =>
+    Printf.sprintf("/%s_%ix%i.png", name, width, height);
 
-         let sizes =
-           switch (test.sizes) {
-           | Some(sizes) => sizes
-           | None => config.Config.Global.default_sizes
+  let tests =
+    tests
+    |> List.map(test => {
+         test.Config.Test.sizes
+         |> Option.value(~default=config.Config.Global.default_sizes)
+         |> List.map(size => (test, size))
+       })
+    |> List.flatten;
+
+  let diff_queue = Queue.create();
+  let screenshots_done = ref(false);
+
+  let rec diff_task = () =>
+    switch (Queue.take_opt(diff_queue)) {
+    | None when screenshots_done^ => Lwt.return()
+    | None =>
+      let%lwt () = Lwt.pause();
+      diff_task();
+    | Some((name, width, height)) =>
+      let filename = get_filename(name, width, height);
+      let current_image_path = snapshot_dir ++ filename;
+      let new_image_path = updated_dir ++ filename;
+      let diff_image_path = diff_dir ++ filename;
+
+      let result =
+        Diff.diff(
+          current_image_path,
+          new_image_path,
+          ~diffPixel=config.Config.Global.diff_pixel_color,
+          ~output=diff_image_path,
+        );
+
+      switch (result) {
+      | Ok () =>
+        passed_count := passed_count^ + 1;
+        FileUtil.rm(~recurse=true, [new_image_path]);
+        Printer.success_message(~name, ~width, ~height);
+      | Error(Layout) =>
+        failed_count := failed_count^ + 1;
+        Printer.layout_message(~name, ~width, ~height);
+      | Error(Pixel(diffCount)) =>
+        failed_count := failed_count^ + 1;
+        Printer.diff_message(~name, ~width, ~height, ~diffCount);
+      };
+
+      diff_task();
+    };
+
+  let screenshot_task =
+    tests
+    |> Lwt_list.iter_p(((test: Config.Test.t, (width, height))) => {
+         let%lwt target = get_available_target();
+         test_count := test_count^ + 1;
+         let url = config.Config.Global.base_url ++ test.url;
+         let filename = get_filename(test.name, width, height);
+         let full_size = config.Config.Global.fullscreen;
+
+         let%lwt () = target |> Browser.Actions.set_size(~width, ~height);
+         let%lwt _ = target |> Browser.Actions.go_to(~url);
+         // TODO: This is pretty flaky :/
+         let%lwt () =
+           target |> Browser.Actions.wait_for(~event="Page.loadEventFired");
+
+         let%lwt screenshot =
+           target
+           |> Browser.Actions.screenshot(~full_size)
+           |> Lwt.map(Base64.decode_exn);
+
+         let%lwt io =
+           if (!Sys.file_exists(snapshot_dir ++ filename)) {
+             create_count := create_count^ + 1;
+             passed_count := passed_count^ + 1;
+             Printer.created_message(~name=test.name, ~width, ~height);
+             Lwt_io.open_file(~mode=Output, snapshot_dir ++ filename);
+           } else {
+             diff_queue |> Queue.add((test.name, width, height));
+             Lwt_io.open_file(~mode=Output, updated_dir ++ filename);
            };
 
-         let url = config.Config.Global.base_url ++ test.url;
-
-         let%lwt target = get_available_target();
-         let (targetId, _) = target;
-
-         Console.log(targetId ++ ": " ++ test.name);
-
-         let%lwt () =
-           sizes
-           |> Lwt_list.iter_s(((width, height)) => {
-                test_count := test_count^ + 1;
-                let name =
-                  test.name
-                  ++ "_"
-                  ++ string_of_int(width)
-                  ++ "x"
-                  ++ string_of_int(height);
-                let filename = "/" ++ name ++ ".png";
-
-                let%lwt () =
-                  target |> Browser.Actions.set_size(~width, ~height);
-
-                let%lwt _ = target |> Browser.Actions.go_to(~url);
-                let%lwt () =
-                  target
-                  |> Browser.Actions.wait_for(~event="Page.loadEventFired");
-
-                let%lwt screenshot =
-                  target
-                  |> Browser.Actions.screenshot(
-                       ~full_size=config.Config.Global.fullscreen,
-                     )
-                  |> Lwt.map(Base64.decode_exn);
-
-                if (!Sys.file_exists(snapshot_dir ++ filename)) {
-                  let%lwt io =
-                    Lwt_io.open_file(~mode=Output, snapshot_dir ++ filename);
-                  let%lwt () = Lwt_io.write(io, screenshot);
-                  let%lwt () = Lwt_io.close(io);
-                  create_count := create_count^ + 1;
-                  Printer.created_message(~name=test.name, ~width, ~height);
-                  Lwt.return();
-                } else {
-                  let%lwt io =
-                    Lwt_io.open_file(~mode=Output, updated_dir ++ filename);
-                  let%lwt () = Lwt_io.write(io, screenshot);
-                  let%lwt () = Lwt_io.close(io);
-
-                  let current_image_path = snapshot_dir ++ filename;
-                  let new_image_path = updated_dir ++ filename;
-                  let diff_image_path = diff_dir ++ filename;
-
-                  let result =
-                    Diff.diff(
-                      current_image_path,
-                      new_image_path,
-                      ~diffPixel=config.Config.Global.diff_pixel_color,
-                      ~output=diff_image_path,
-                    );
-
-                  switch (result) {
-                  | Ok () =>
-                    passed_count := passed_count^ + 1;
-                    FileUtil.rm(~recurse=true, [new_image_path]);
-                    Printer.success_message(~name=test.name, ~width, ~height);
-                  | Error(Layout) =>
-                    failed_count := failed_count^ + 1;
-                    Printer.layout_message(~name=test.name, ~width, ~height);
-                  | Error(Pixel(diffCount)) =>
-                    failed_count := failed_count^ + 1;
-                    Printer.diff_message(
-                      ~name=test.name,
-                      ~width,
-                      ~height,
-                      ~diffCount,
-                    );
-                  };
-
-                  Lwt.return();
-                };
-              });
+         let%lwt () = Lwt_io.write(io, screenshot);
+         let%lwt () = Lwt_io.close(io);
 
          target_queue |> Queue.add(target);
 
          Lwt.return();
        });
+
+  let%lwt () = Lwt.pick([screenshot_task, diff_task()]);
+  screenshots_done := true;
+  let%lwt () = diff_task();
 
   Printer.stats(
     ~test_suites=List.length(tests),
