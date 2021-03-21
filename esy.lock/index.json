@@ -1,5 +1,5 @@
 {
-  "checksum": "4196c306f649d0e8db69916f15533478",
+  "checksum": "42e70f8c5f21a2ff10dfd2aad995cefd",
   "root": "osnap@link-dev:./package.json",
   "node": {
     "refmterr@3.3.2@d41d8cd9": {
@@ -41,11 +41,12 @@
         "@opam/websocketaf-lwt@github:eWert-Online/websocketaf:websocketaf-lwt.opam#9e66152819ef854f0d974425e55fe904f7635154@d41d8cd9",
         "@opam/websocketaf@github:eWert-Online/websocketaf:websocketaf.opam#9e66152819ef854f0d974425e55fe904f7635154@d41d8cd9",
         "@opam/websocket-lwt-unix@opam:2.14@03e9609b",
-        "@opam/websocket@opam:2.13@976f8eb6",
+        "@opam/websocket@opam:2.14@ff7a857c",
         "@opam/uri@opam:4.1.0@aebd13aa",
         "@opam/re@github:ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017@d41d8cd9",
         "@opam/ppx_yojson_conv@opam:v0.14.0@97845f62",
         "@opam/path_glob@opam:0.2@e298ab39",
+        "@opam/ocamlfind@opam:1.8.1@b7dc3072",
         "@opam/lwt_ppx@opam:2.0.1@e6a764a0", "@opam/lwt@opam:5.3.0@0c09f517",
         "@opam/fileutils@opam:0.6.3@67cadc89",
         "@opam/conduit-lwt-unix@opam:2.3.0@c5acc611",
@@ -479,33 +480,33 @@
       },
       "overrides": [],
       "dependencies": [
-        "ocaml@4.10.2000@d41d8cd9", "@opam/websocket@opam:2.13@976f8eb6",
+        "ocaml@4.10.2000@d41d8cd9", "@opam/websocket@opam:2.14@ff7a857c",
         "@opam/lwt_log@opam:1.1.1@2d7a797f",
         "@opam/dune@opam:2.7.1@baccb77f",
         "@opam/cohttp-lwt-unix@opam:2.5.4@7d654937",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
-        "ocaml@4.10.2000@d41d8cd9", "@opam/websocket@opam:2.13@976f8eb6",
+        "ocaml@4.10.2000@d41d8cd9", "@opam/websocket@opam:2.14@ff7a857c",
         "@opam/lwt_log@opam:1.1.1@2d7a797f",
         "@opam/dune@opam:2.7.1@baccb77f",
         "@opam/cohttp-lwt-unix@opam:2.5.4@7d654937"
       ]
     },
-    "@opam/websocket@opam:2.13@976f8eb6": {
-      "id": "@opam/websocket@opam:2.13@976f8eb6",
+    "@opam/websocket@opam:2.14@ff7a857c": {
+      "id": "@opam/websocket@opam:2.14@ff7a857c",
       "name": "@opam/websocket",
-      "version": "opam:2.13",
+      "version": "opam:2.14",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/d0/d0d07611c69250602c0ad9d7cddfae8e#md5:d0d07611c69250602c0ad9d7cddfae8e",
-          "archive:https://github.com/vbmithr/ocaml-websocket/releases/download/2.13/websocket-2.13.tbz#md5:d0d07611c69250602c0ad9d7cddfae8e"
+          "archive:https://opam.ocaml.org/cache/sha256/30/30e40d098da86fb5f6b2adbc53211503c6e0c20422c21a7b41c8ac83168ca439#sha256:30e40d098da86fb5f6b2adbc53211503c6e0c20422c21a7b41c8ac83168ca439",
+          "archive:https://github.com/vbmithr/ocaml-websocket/releases/download/2.14/websocket-2.14.tbz#sha256:30e40d098da86fb5f6b2adbc53211503c6e0c20422c21a7b41c8ac83168ca439"
         ],
         "opam": {
           "name": "websocket",
-          "version": "2.13",
-          "path": "esy.lock/opam/websocket.2.13"
+          "version": "2.14",
+          "path": "esy.lock/opam/websocket.2.14"
         }
       },
       "overrides": [],
@@ -1450,7 +1451,7 @@
         "@opam/ocamlfind@opam:1.8.1@b7dc3072",
         "@opam/dune-build-info@opam:2.7.1@da03d61d",
         "@opam/dune@opam:2.7.1@baccb77f",
-        "@opam/dot-merlin-reader@opam:4.1@120afa42",
+        "@opam/dot-merlin-reader@opam:3.4.2@55baebb0",
         "@opam/csexp@opam:1.4.0@bd1cb034", "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
@@ -1461,7 +1462,7 @@
         "@opam/ocamlfind@opam:1.8.1@b7dc3072",
         "@opam/dune-build-info@opam:2.7.1@da03d61d",
         "@opam/dune@opam:2.7.1@baccb77f",
-        "@opam/dot-merlin-reader@opam:4.1@120afa42",
+        "@opam/dot-merlin-reader@opam:3.4.2@55baebb0",
         "@opam/csexp@opam:1.4.0@bd1cb034"
       ]
     },
@@ -1767,13 +1768,13 @@
       "dependencies": [
         "ocaml@4.10.2000@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
         "@opam/result@opam:1.5@6b753c82", "@opam/dune@opam:2.7.1@baccb77f",
-        "@opam/dot-merlin-reader@opam:4.1@120afa42",
+        "@opam/dot-merlin-reader@opam:3.4.2@55baebb0",
         "@opam/csexp@opam:1.4.0@bd1cb034", "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
         "ocaml@4.10.2000@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
         "@opam/result@opam:1.5@6b753c82", "@opam/dune@opam:2.7.1@baccb77f",
-        "@opam/dot-merlin-reader@opam:4.1@120afa42",
+        "@opam/dot-merlin-reader@opam:3.4.2@55baebb0",
         "@opam/csexp@opam:1.4.0@bd1cb034"
       ]
     },
@@ -2671,20 +2672,20 @@
         "@opam/base-threads@opam:base@36803084"
       ]
     },
-    "@opam/dot-merlin-reader@opam:4.1@120afa42": {
-      "id": "@opam/dot-merlin-reader@opam:4.1@120afa42",
+    "@opam/dot-merlin-reader@opam:3.4.2@55baebb0": {
+      "id": "@opam/dot-merlin-reader@opam:3.4.2@55baebb0",
       "name": "@opam/dot-merlin-reader",
-      "version": "opam:4.1",
+      "version": "opam:3.4.2",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/sha256/14/14a36d6fb8646a5df4530420a7861722f1a4ee04753717947305e3676031e7cd#sha256:14a36d6fb8646a5df4530420a7861722f1a4ee04753717947305e3676031e7cd",
-          "archive:https://github.com/ocaml/merlin/releases/download/v4.1/dot-merlin-reader-v4.1.tbz#sha256:14a36d6fb8646a5df4530420a7861722f1a4ee04753717947305e3676031e7cd"
+          "archive:https://opam.ocaml.org/cache/sha256/e1/e1b7b897b11119d92995c558530149fd07bd67a4aaf140f55f3c4ffb5e882a81#sha256:e1b7b897b11119d92995c558530149fd07bd67a4aaf140f55f3c4ffb5e882a81",
+          "archive:https://github.com/ocaml/merlin/releases/download/v3.4.2/merlin-v3.4.2.tbz#sha256:e1b7b897b11119d92995c558530149fd07bd67a4aaf140f55f3c4ffb5e882a81"
         ],
         "opam": {
           "name": "dot-merlin-reader",
-          "version": "4.1",
-          "path": "esy.lock/opam/dot-merlin-reader.4.1"
+          "version": "3.4.2",
+          "path": "esy.lock/opam/dot-merlin-reader.3.4.2"
         }
       },
       "overrides": [],
