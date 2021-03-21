@@ -3,21 +3,45 @@ open OSnap_CDP;
 let wait_for = (~event, target) => {
   let (_targetId, sessionId) = target;
   let (p, resolver) = Lwt.wait();
-  let callback = () => {
+  let callback = (_, remove) => {
+    remove();
     Lwt.wakeup_later(resolver, ());
   };
   OSnap_Websocket.listen(~event, ~sessionId, callback);
   p;
 };
 
+let wait_for_network_idle = (target, ~loaderId) => {
+  let (_targetId, sessionId) = target;
+  let (p, resolver) = Lwt.wait();
+
+  OSnap_Websocket.listen(
+    ~event=Page.Events.LifecycleEvent.name,
+    ~sessionId,
+    (response, remove) => {
+      open Page.Events;
+      let eventData = LifecycleEvent.parse(response);
+      let name = eventData.Types.Event.params.LifecycleEvent.name;
+      let returned_loaderId =
+        eventData.Types.Event.params.LifecycleEvent.loaderId;
+      if (name == "networkIdle" && loaderId == returned_loaderId) {
+        remove();
+        Lwt.wakeup_later(resolver, ());
+      };
+    },
+  );
+
+  p;
+};
+
 let go_to = (~url, target) => {
-  let (_, sessionId) = target;
+  let (_targetId, sessionId) = target;
   let%lwt payload =
     Page.Navigate.make(url, ~sessionId)
     |> OSnap_Websocket.send
     |> Lwt.map(Page.Navigate.parse);
 
-  payload.Types.Response.result.Page.Navigate.frameId |> Lwt.return;
+  payload.Types.Response.result.Page.Navigate.loaderId |> Lwt.return;
 };
 
 // let run_action: (action, t) => Lwt_result.t(t, string) =

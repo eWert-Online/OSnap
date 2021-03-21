@@ -17,7 +17,78 @@ module DOM = {
   };
 };
 
+module Security = {
+  module MixedContentType = {
+    [@deriving yojson]
+    type t = string;
+  };
+};
+
+module Network = {
+  module RequestId = {
+    [@deriving yojson]
+    type t = string;
+  };
+
+  module LoaderId = {
+    [@deriving yojson]
+    type t = string;
+  };
+
+  module ResourcePriority = {
+    [@deriving yojson]
+    type t = string;
+  };
+
+  module ResourceType = {
+    [@deriving yojson]
+    type t = string;
+  };
+
+  module CorsError = {
+    [@deriving yojson]
+    type t = string;
+  };
+
+  module CorsErrorStatus = {
+    [@deriving yojson]
+    type t = {
+      corsError: CorsError.t,
+      failedParameter: string,
+    };
+  };
+
+  module BlockedReason = {
+    [@deriving yojson]
+    type t = string;
+  };
+
+  module MonotonicTime = {
+    [@deriving yojson]
+    type t = float;
+  };
+
+  module TimeSinceEpoch = {
+    [@deriving yojson]
+    type t = float;
+  };
+
+  module Request = {
+    [@deriving yojson]
+    [@yojson.allow_extra_fields]
+    type t = {
+      url: string, // Request URL (without fragment).
+      method: string // HTTP request method.
+    };
+  };
+};
+
 module Page = {
+  module FrameId = {
+    [@deriving yojson]
+    type t = string;
+  };
+
   module Viewport = {
     [@deriving yojson]
     type t = {
@@ -56,12 +127,12 @@ module Page = {
 };
 
 module Target = {
-  module TargetID = {
+  module TargetId = {
     [@deriving yojson]
     type t = string;
   };
 
-  module SessionID = {
+  module SessionId = {
     [@deriving yojson]
     type t = string;
   };
@@ -69,7 +140,7 @@ module Target = {
   module TargetInfo = {
     [@deriving yojson]
     type t = {
-      targetId: TargetID.t,
+      targetId: TargetId.t,
       [@key "type"]
       type_: string,
       title: string,
@@ -93,7 +164,7 @@ module Request = {
   [@deriving yojson]
   type t('a) = {
     [@yojson.option]
-    sessionId: option(Target.SessionID.t),
+    sessionId: option(Target.SessionId.t),
     method: string,
     [@yojson.option]
     params: option('a),
@@ -112,6 +183,18 @@ module Response = {
     id: int,
     result: 'a,
     [@yojson.option]
-    sessionId: option(Target.SessionID.t),
+    sessionId: option(Target.SessionId.t),
+  };
+};
+
+module Event = {
+  [@deriving yojson]
+  type t('a) = {
+    [@key "method"]
+    method: string,
+    [@key "params"]
+    params: 'a,
+    [@key "sessionId"]
+    sessionId: Target.SessionId.t,
   };
 };

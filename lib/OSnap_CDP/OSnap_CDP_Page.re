@@ -142,10 +142,9 @@ module Navigate = {
   [@deriving yojson]
   type result = {
     frameId: string,
+    loaderId: string,
     [@yojson.option]
     errorText: option(string),
-    [@yojson.option]
-    loaderId: option(string),
   };
 
   [@deriving yojson]
@@ -162,5 +161,38 @@ module Navigate = {
     Request.make("Page.navigate", ~params={url, referrer}, ~sessionId?)
     |> yojson_of_request
     |> Yojson.Safe.to_string;
+  };
+};
+
+module Events = {
+  module LifecycleEvent = {
+    let name = "Page.lifecycleEvent";
+
+    [@deriving yojson]
+    [@yojson.allow_extra_fields]
+    type result = {
+      frameId: Page.FrameId.t,
+      loaderId: Network.LoaderId.t,
+      name: string,
+      timestamp: Network.MonotonicTime.t,
+    };
+
+    [@deriving yojson]
+    type event = Event.t(result);
+
+    let parse = event =>
+      try(event |> Yojson.Safe.from_string |> event_of_yojson) {
+      | Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error(a, b) =>
+        print_endline("Error parsing " ++ name);
+        print_endline("Event data was:");
+        print_endline(event);
+        Printexc.to_string(a) |> print_endline;
+        raise(Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error(a, b));
+      | _ as exn =>
+        print_endline("Error parsing " ++ name);
+        print_endline("Event data was:");
+        print_endline(event);
+        raise(exn);
+      };
   };
 };

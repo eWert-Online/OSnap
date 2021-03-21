@@ -62,12 +62,20 @@ let websocket_handler = (recv, send) => {
       | (None, _) => ()
       | (Some(method), None) =>
         Hashtbl.find_opt(listeners, method)
-        |> Option.iter(List.iter(handler => handler()));
-        Hashtbl.remove(listeners, method);
+        |> Option.iter(
+             List.iter(handler =>
+               handler(response, () => {Hashtbl.remove(listeners, method)})
+             ),
+           )
       | (Some(method), Some(sessionId)) =>
         Hashtbl.find_opt(listeners, method ++ sessionId)
-        |> Option.iter(List.iter(handler => handler()));
-        Hashtbl.remove(listeners, method ++ sessionId);
+        |> Option.iter(
+             List.iter(handler =>
+               handler(response, () => {
+                 Hashtbl.remove(listeners, method ++ sessionId)
+               })
+             ),
+           )
       };
 
       switch (id) {

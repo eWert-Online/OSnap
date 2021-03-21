@@ -13,7 +13,7 @@ let enable_events = sessionId => {
   // let%lwt _ = Performance.Enable.make(~sessionId, ()) |> Websocket.send;
   // let%lwt _ = Log.Enable.make(~sessionId, ()) |> Websocket.send;
   // let%lwt _ = Runtime.Enable.make(~sessionId, ()) |> Websocket.send;
-  // let%lwt _ = Network.Enable.make(~sessionId, ()) |> Websocket.send;
+  // let%lwt _ = CDP.Network.Enable.make(~sessionId, ()) |> Websocket.send;
   Lwt.return();
 };
 

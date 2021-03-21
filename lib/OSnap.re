@@ -129,29 +129,32 @@ let run = t => {
          let full_size = config.Config.Global.fullscreen;
 
          let%lwt () = target |> Browser.Actions.set_size(~width, ~height);
-         let%lwt _ = target |> Browser.Actions.go_to(~url);
-         // TODO: This is pretty flaky :/
+         let%lwt loaderId = target |> Browser.Actions.go_to(~url);
          let%lwt () =
-           target |> Browser.Actions.wait_for(~event="Page.loadEventFired");
+           target |> Browser.Actions.wait_for_network_idle(~loaderId);
 
          let%lwt screenshot =
            target
            |> Browser.Actions.screenshot(~full_size)
            |> Lwt.map(Base64.decode_exn);
 
-         let%lwt io =
-           if (!Sys.file_exists(snapshot_dir ++ filename)) {
-             create_count := create_count^ + 1;
-             passed_count := passed_count^ + 1;
-             Printer.created_message(~name=test.name, ~width, ~height);
-             Lwt_io.open_file(~mode=Output, snapshot_dir ++ filename);
-           } else {
-             diff_queue |> Queue.add((test.name, width, height));
-             Lwt_io.open_file(~mode=Output, updated_dir ++ filename);
-           };
+         let create_new = !Sys.file_exists(snapshot_dir ++ filename);
 
+         let%lwt io =
+           Lwt_io.open_file(
+             ~mode=Output,
+             create_new ? snapshot_dir ++ filename : updated_dir ++ filename,
+           );
          let%lwt () = Lwt_io.write(io, screenshot);
          let%lwt () = Lwt_io.close(io);
+
+         if (create_new) {
+           create_count := create_count^ + 1;
+           passed_count := passed_count^ + 1;
+           Printer.created_message(~name=test.name, ~width, ~height);
+         } else {
+           diff_queue |> Queue.add((test.name, width, height));
+         };
 
          target_queue |> Queue.add(target);
 

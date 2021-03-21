@@ -22,7 +22,7 @@ module CreateTarget = {
   type request = Request.t(params);
 
   [@deriving yojson]
-  type result = {targetId: Target.TargetID.t};
+  type result = {targetId: Target.TargetId.t};
 
   [@deriving yojson]
   type response = Response.t(result);
@@ -108,7 +108,7 @@ module CreateBrowserContext = {
 
 module ActivateTarget = {
   [@deriving yojson]
-  type params = {targetId: Target.TargetID.t};
+  type params = {targetId: Target.TargetId.t};
 
   [@deriving yojson]
   type request = Request.t(params);
@@ -154,7 +154,7 @@ module GetTargets = {
 module AttachToTarget = {
   [@deriving yojson]
   type params = {
-    targetId: Target.TargetID.t,
+    targetId: Target.TargetId.t,
     [@yojson.option]
     flatten: option(bool),
   };
@@ -163,7 +163,7 @@ module AttachToTarget = {
   type request = Request.t(params);
 
   [@deriving yojson]
-  type result = {sessionId: Target.SessionID.t};
+  type result = {sessionId: Target.SessionId.t};
 
   [@deriving yojson]
   type response = Response.t(result);
