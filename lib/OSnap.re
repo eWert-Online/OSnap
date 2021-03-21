@@ -4,6 +4,17 @@ module Browser = OSnap_Browser;
 module Diff = OSnap_Diff;
 module Printer = OSnap_Printer;
 
+module List = {
+  include List;
+
+  let find_all_or_input = (fn, list) => {
+    switch (List.find_all(fn, list)) {
+    | [] => list
+    | list => list
+    };
+  };
+};
+
 type t = {
   config: Config.Global.t,
   browser: Browser.t,
@@ -71,15 +82,6 @@ let run = t => {
   let get_filename = (name, width, height) =>
     Printf.sprintf("/%s_%ix%i.png", name, width, height);
 
-  let tests =
-    tests
-    |> List.map(test => {
-         test.Config.Test.sizes
-         |> Option.value(~default=config.Config.Global.default_sizes)
-         |> List.map(size => (test, size))
-       })
-    |> List.flatten;
-
   let diff_queue = Queue.create();
   let screenshots_done = ref(false);
 
@@ -119,8 +121,27 @@ let run = t => {
       diff_task();
     };
 
-  let screenshot_task =
+  let all_tests =
     tests
+    |> List.map(test => {
+         test.Config.Test.sizes |> List.map(size => (test, size))
+       })
+    |> List.flatten;
+
+  let tests_to_run =
+    all_tests
+    |> List.find_all_or_input(((test, _)) => test.Config.Test.only)
+    |> List.find_all(((test, (width, height))) =>
+         if (test.Config.Test.skip) {
+           Printer.skipped_message(~name=test.name, ~width, ~height);
+           false;
+         } else {
+           true;
+         }
+       );
+
+  let screenshot_task =
+    tests_to_run
     |> Lwt_list.iter_p(((test: Config.Test.t, (width, height))) => {
          let%lwt target = get_available_target();
          test_count := test_count^ + 1;
@@ -166,11 +187,11 @@ let run = t => {
   let%lwt () = diff_task();
 
   Printer.stats(
-    ~test_suites=List.length(tests),
-    ~test_count=test_count^,
+    ~test_count=List.length(tests_to_run),
     ~create_count=create_count^,
     ~passed_count=passed_count^,
     ~failed_count=failed_count^,
+    ~skipped_count=List.length(all_tests) - List.length(tests_to_run),
   );
 
   Lwt.return();

@@ -9,9 +9,11 @@ type action =
   | Wait(int);
 
 type t = {
+  only: bool,
+  skip: bool,
   name: string,
   url: string,
-  sizes: option(list(size)),
+  sizes: list(size),
   actions: option(list(action)),
 };
 

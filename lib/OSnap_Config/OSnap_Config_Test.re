@@ -9,9 +9,11 @@ type action =
   | Wait(int);
 
 type t = {
+  only: bool,
+  skip: bool,
   name: string,
   url: string,
-  sizes: option(list(size)),
+  sizes: list(size),
   actions: option(list(action)),
 };
 
@@ -65,10 +67,22 @@ let parse_action = a => {
   };
 };
 
-let parse_single_test = test =>
+let parse_single_test = (global_config, test) =>
   try({
     let name =
       test |> Yojson.Basic.Util.member("name") |> Yojson.Basic.Util.to_string;
+
+    let only =
+      test
+      |> Yojson.Basic.Util.member("only")
+      |> Yojson.Basic.Util.to_bool_option
+      |> Option.value(~default=false);
+
+    let skip =
+      test
+      |> Yojson.Basic.Util.member("skip")
+      |> Yojson.Basic.Util.to_bool_option
+      |> Option.value(~default=false);
 
     let url =
       test |> Yojson.Basic.Util.member("url") |> Yojson.Basic.Util.to_string;
@@ -80,7 +94,10 @@ let parse_single_test = test =>
         fun
         | `List(list) => Some(List.map(parse_size, list))
         | _ => None
-      );
+      )
+      |> Option.value(
+           ~default=global_config.OSnap_Config_Global.default_sizes,
+         );
 
     let actions =
       test
@@ -91,12 +108,12 @@ let parse_single_test = test =>
         | _ => None
       );
 
-    Result.ok({name, url, sizes, actions});
+    Result.ok({only, skip, name, url, sizes, actions});
   }) {
   | _ => raise(Invalid_format)
   };
 
-let parse = path => {
+let parse = (global_config, path) => {
   let ic = open_in(path);
   let file_length = in_channel_length(ic);
   let config = really_input_string(ic, file_length);
@@ -108,7 +125,7 @@ let parse = path => {
     let (tests, failed) =
       json
       |> Yojson.Basic.Util.to_list
-      |> List.map(parse_single_test)
+      |> List.map(parse_single_test(global_config))
       |> List.partition(Result.is_ok);
 
     if (List.length(failed) > 0) {
@@ -168,7 +185,7 @@ let init = config => {
       ~ignore_patterns=config.OSnap_Config_Global.ignore_patterns,
       (),
     )
-    |> List.map(parse)
+    |> List.map(parse(config))
     |> List.flatten;
 
   let duplicates =

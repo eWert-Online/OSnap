@@ -21,6 +21,16 @@ let created_message = (~name, ~width, ~height) => {
   );
 };
 
+let skipped_message = (~name, ~width, ~height) => {
+  Console.log(
+    <Pastel>
+      <Pastel color=Yellow bold=true> "SKIP" </Pastel>
+      "\t"
+      {test_name(~name, ~width, ~height)}
+    </Pastel>,
+  );
+};
+
 let success_message = (~name, ~width, ~height) => {
   Console.log(
     <Pastel>
@@ -56,15 +66,13 @@ let diff_message = (~name, ~width, ~height, ~diffCount) => {
   );
 };
 let stats =
-    (~test_suites, ~test_count, ~create_count, ~passed_count, ~failed_count) => {
+    (~test_count, ~create_count, ~passed_count, ~failed_count, ~skipped_count) => {
   Console.log(
     <Pastel>
       "\n"
       "\n"
       "Done! 🚀\n"
-      "I did run "
-      <Pastel bold=true> {Int.to_string(test_suites)} " Test-Suites" </Pastel>
-      " with a total of "
+      "I did run a total of "
       <Pastel bold=true> {Int.to_string(test_count)} " snapshots" </Pastel>
       " in "
       <Pastel bold=true> {Float.to_string(Sys.time())} " seconds" </Pastel>
@@ -74,6 +82,12 @@ let stats =
          ? <Pastel bold=true>
              {Int.to_string(create_count)}
              " Snapshots created \n"
+           </Pastel>
+         : ""}
+      {skipped_count > 0
+         ? <Pastel color=Yellow bold=true>
+             {Int.to_string(skipped_count)}
+             " Snapshots skipped \n"
            </Pastel>
          : ""}
       <Pastel color=Green bold=true>
