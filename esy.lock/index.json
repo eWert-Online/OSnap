@@ -1,5 +1,5 @@
 {
-  "checksum": "2cfd5e007aaac27a5ccd3ce4d49d6c85",
+  "checksum": "de6b456228bd3e96969726db18dfa2cb",
   "root": "osnap@link-dev:./package.json",
   "node": {
     "refmterr@3.3.2@d41d8cd9": {
@@ -46,6 +46,7 @@
         "@opam/lwt_ppx@opam:2.0.1@e6a764a0", "@opam/lwt@opam:5.3.0@0c09f517",
         "@opam/fileutils@opam:0.6.3@67cadc89",
         "@opam/cmdliner@opam:1.0.4@93208aac",
+        "@opam/camlimages@git:https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870@bdc4ddc0",
         "@opam/base64@opam:3.5.0@827395e3"
       ],
       "devDependencies": [
@@ -77,7 +78,7 @@
         "@reason-native/console@0.1.0@d41d8cd9",
         "@opam/dune@opam:2.7.1@baccb77f",
         "@opam/cmdliner@opam:1.0.4@93208aac",
-        "@opam/camlimages@opam:5.0.4@b5c11222",
+        "@opam/camlimages@git:https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870@bdc4ddc0",
         "@esy-ocaml/reason@3.7.0@d41d8cd9"
       ],
       "devDependencies": []
@@ -2807,25 +2808,30 @@
       ],
       "devDependencies": [ "ocaml@4.10.2000@d41d8cd9" ]
     },
-    "@opam/camlimages@opam:5.0.4@b5c11222": {
-      "id": "@opam/camlimages@opam:5.0.4@b5c11222",
+    "@opam/camlimages@git:https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870@bdc4ddc0": {
+      "id":
+        "@opam/camlimages@git:https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870@bdc4ddc0",
       "name": "@opam/camlimages",
-      "version": "opam:5.0.4",
+      "version":
+        "git:https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/1d/1ddba74d210b86a899b5d6565f45c2dc#md5:1ddba74d210b86a899b5d6565f45c2dc",
-          "archive:https://gitlab.com/camlspotter/camlimages/-/archive/5.0.4/camlimages-5.0.4.tar.bz2#md5:1ddba74d210b86a899b5d6565f45c2dc"
-        ],
-        "opam": {
-          "name": "camlimages",
-          "version": "5.0.4",
-          "path": "esy.lock/opam/camlimages.5.0.4"
-        }
+          "git:https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870"
+        ]
       },
-      "overrides": [],
+      "overrides": [
+        {
+          "dependencies": {
+            "esy-libpng":
+              "dmtrKovalenko/esy-libpng#a8f4da71d87e5bfbf567f472c0e52c95db90e04d"
+          }
+        }
+      ],
       "dependencies": [
-        "ocaml@4.10.2000@d41d8cd9", "@opam/stdio@opam:v0.14.0@a624e254",
+        "ocaml@4.10.2000@d41d8cd9",
+        "esy-libpng@github:dmtrKovalenko/esy-libpng#a8f4da71d87e5bfbf567f472c0e52c95db90e04d@d41d8cd9",
+        "@opam/stdio@opam:v0.14.0@a624e254",
         "@opam/ocamlfind@opam:1.8.1@b7dc3072",
         "@opam/dune-configurator@opam:2.7.1@96307faa",
         "@opam/dune@opam:2.7.1@baccb77f", "@opam/cppo@opam:1.6.7@c28ac3ae",
