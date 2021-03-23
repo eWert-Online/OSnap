@@ -3,6 +3,20 @@ let pending_requests = Queue.create();
 let sent_requests = Hashtbl.create(10);
 let listeners = Hashtbl.create(10);
 
+let events = Hashtbl.create(1000);
+
+let call_event_handlers = (key, message) => {
+  List.iter(handler =>
+    handler(
+      message,
+      () => {
+        Hashtbl.remove(listeners, key);
+        Hashtbl.remove(events, key);
+      },
+    )
+  );
+};
+
 let websocket_handler = (recv, send) => {
   let close = () => {
     Websocket.Frame.close(1002) |> send;
@@ -61,21 +75,15 @@ let websocket_handler = (recv, send) => {
       | (None, None) => ()
       | (None, _) => ()
       | (Some(method), None) =>
-        Hashtbl.find_opt(listeners, method)
-        |> Option.iter(
-             List.iter(handler =>
-               handler(response, () => {Hashtbl.remove(listeners, method)})
-             ),
-           )
+        let key = method;
+        Hashtbl.add(events, key, response);
+        Hashtbl.find_opt(listeners, key)
+        |> Option.iter(call_event_handlers(key, response));
       | (Some(method), Some(sessionId)) =>
-        Hashtbl.find_opt(listeners, method ++ sessionId)
-        |> Option.iter(
-             List.iter(handler =>
-               handler(response, () => {
-                 Hashtbl.remove(listeners, method ++ sessionId)
-               })
-             ),
-           )
+        let key = method ++ sessionId;
+        Hashtbl.add(events, key, response);
+        Hashtbl.find_opt(listeners, key)
+        |> Option.iter(call_event_handlers(key, response));
       };
 
       switch (id) {
@@ -137,6 +145,17 @@ let listen = (~event, ~sessionId, handler) => {
   | None => Hashtbl.add(listeners, key, [handler])
   | Some(stored) => Hashtbl.replace(listeners, key, [handler, ...stored])
   };
+
+  Hashtbl.find_all(events, key)
+  |> List.iter(event => {
+       handler(
+         event,
+         () => {
+           Hashtbl.remove(listeners, key);
+           Hashtbl.remove(events, key);
+         },
+       )
+     });
 };
 
 let close = () => {
