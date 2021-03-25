@@ -54,8 +54,10 @@ let setup = () => {
   Lwt.return({config, browser, tests, snapshot_dir, updated_dir, diff_dir});
 };
 
-let run = t => {
+let run = (~ci, t) => {
   let {browser, snapshot_dir, updated_dir, diff_dir, tests, config} = t;
+
+  let max_concurrency = config.Config.Global.parallelism;
 
   let create_count = ref(0);
   let passed_count = ref(0);
@@ -85,13 +87,13 @@ let run = t => {
        );
 
   let pool =
-    Lwt_pool.create(config.Config.Global.parallelism, () => {
-      Browser.Target.make(browser)
-    });
+    Lwt_pool.create(max_concurrency, () => Browser.Target.make(browser));
 
   let%lwt () =
     tests_to_run
-    |> Lwt_list.iter_p(((test: Config.Test.t, (width, height))) => {
+    |> Lwt_stream.of_list
+    |> Lwt_stream.iter_n(
+         ~max_concurrency, ((test: Config.Test.t, (width, height))) => {
          Lwt_pool.use(
            pool,
            target => {
@@ -100,6 +102,17 @@ let run = t => {
              let current_image_path = snapshot_dir ++ filename;
              let new_image_path = updated_dir ++ filename;
              let diff_image_path = diff_dir ++ filename;
+
+             let create_new = !Sys.file_exists(current_image_path);
+
+             if (ci && create_new) {
+               raise(
+                 Failure(
+                   "Cannot create new images in ci mode. Tried to create "
+                   ++ filename,
+                 ),
+               );
+             };
 
              let url = config.Config.Global.base_url ++ test.url;
              let full_size = config.Config.Global.fullscreen;
@@ -113,8 +126,6 @@ let run = t => {
                target
                |> Browser.Actions.screenshot(~full_size)
                |> Lwt.map(Base64.decode_exn);
-
-             let create_new = !Sys.file_exists(current_image_path);
 
              let%lwt io =
                Lwt_io.open_file(
@@ -154,6 +165,7 @@ let run = t => {
                  );
                };
              };
+
              Lwt.return();
            },
          )
@@ -167,7 +179,11 @@ let run = t => {
     ~skipped_count=List.length(all_tests) - List.length(tests_to_run),
   );
 
-  Lwt.return();
+  if (failed_count^ == 0) {
+    Lwt_result.return();
+  } else {
+    Lwt_result.fail();
+  };
 };
 
 let teardown = t => {

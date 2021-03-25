@@ -9,6 +9,6 @@ type t = {
 
 let setup: unit => Lwt.t(t);
 
-let run: t => Lwt.t(unit);
+let run: (~ci: bool, t) => Lwt_result.t(unit, unit);
 
 let teardown: t => unit;

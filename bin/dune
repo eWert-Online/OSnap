@@ -3,11 +3,6 @@
   (public_name osnap)
   (libraries
     OSnap
-    uri
-    odiff
-    base64
+    cmdliner
   )
-  (preprocess (pps
-    lwt_ppx
-  ))
 )
