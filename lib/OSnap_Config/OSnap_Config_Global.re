@@ -61,7 +61,8 @@ let parse = path => {
       json
       |> Yojson.Basic.Util.member("parallelism")
       |> Yojson.Basic.Util.to_int_option
-      |> Option.value(~default=3);
+      |> Option.value(~default=3)
+      |> max(1);
 
     let root_path =
       String.sub(

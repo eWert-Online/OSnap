@@ -1,7 +1,8 @@
 open OSnap_CDP;
+open OSnap_Browser_Target;
 
 let wait_for = (~event, target) => {
-  let (_targetId, sessionId) = target;
+  let sessionId = target.sessionId;
   let (p, resolver) = Lwt.wait();
   let callback = (_, remove) => {
     remove();
@@ -12,7 +13,7 @@ let wait_for = (~event, target) => {
 };
 
 let wait_for_network_idle = (target, ~loaderId) => {
-  let (_targetId, sessionId) = target;
+  let sessionId = target.sessionId;
   let (p, resolver) = Lwt.wait();
 
   OSnap_Websocket.listen(
@@ -35,7 +36,7 @@ let wait_for_network_idle = (target, ~loaderId) => {
 };
 
 let go_to = (~url, target) => {
-  let (_targetId, sessionId) = target;
+  let sessionId = target.sessionId;
   let%lwt payload =
     Page.Navigate.make(url, ~sessionId)
     |> OSnap_Websocket.send
@@ -50,7 +51,7 @@ let go_to = (~url, target) => {
 //   };
 
 let set_size = (~width, ~height, target) => {
-  let (_, sessionId) = target;
+  let sessionId = target.sessionId;
 
   let%lwt _ =
     Emulation.SetDeviceMetricsOverride.make(
@@ -67,7 +68,7 @@ let set_size = (~width, ~height, target) => {
 };
 
 let screenshot = (~full_size=false, target) => {
-  let (_, sessionId) = target;
+  let sessionId = target.sessionId;
 
   let%lwt metrics =
     Page.GetLayoutMetrics.make(~sessionId, ())
