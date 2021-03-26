@@ -70,19 +70,21 @@ let set_size = (~width, ~height, target) => {
 let screenshot = (~full_size=false, target) => {
   let sessionId = target.sessionId;
 
-  let%lwt metrics =
-    Page.GetLayoutMetrics.make(~sessionId, ())
-    |> OSnap_Websocket.send
-    |> Lwt.map(Page.GetLayoutMetrics.parse)
-    |> Lwt.map(response => response.Types.Response.result);
-  let width = metrics.contentSize.width;
-  let height = metrics.contentSize.height;
-
-  let clip =
+  let%lwt clip =
     if (full_size) {
-      Some(Types.Page.Viewport.{x: 0, y: 0, width, height, scale: 1});
+      let%lwt metrics =
+        Page.GetLayoutMetrics.make(~sessionId, ())
+        |> OSnap_Websocket.send
+        |> Lwt.map(Page.GetLayoutMetrics.parse)
+        |> Lwt.map(response => response.Types.Response.result);
+      let width = metrics.contentSize.width;
+      let height = metrics.contentSize.height;
+
+      Lwt.return(
+        Some(Types.Page.Viewport.{x: 0, y: 0, width, height, scale: 1}),
+      );
     } else {
-      None;
+      Lwt.return(None);
     };
 
   let%lwt response =

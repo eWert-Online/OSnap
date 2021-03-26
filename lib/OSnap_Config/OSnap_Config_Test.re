@@ -15,7 +15,7 @@ type t = {
   name: string,
   url: string,
   sizes: list(size),
-  actions: option(list(action)),
+  actions: list(action),
 };
 
 let parse_size = size => {
@@ -111,8 +111,8 @@ let parse_single_test = (global_config, test) =>
       |> Yojson.Basic.Util.member("actions")
       |> (
         fun
-        | `List(list) => Some(List.map(parse_action, list))
-        | _ => None
+        | `List(list) => List.map(parse_action, list)
+        | _ => []
       );
 
     Result.ok({only, skip, threshold, name, url, sizes, actions});

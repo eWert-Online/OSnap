@@ -15,7 +15,7 @@ type t = {
   name: string,
   url: string,
   sizes: list(size),
-  actions: option(list(action)),
+  actions: list(action),
 };
 
 let init: OSnap_Config_Global.t => list(t);

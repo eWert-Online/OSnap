@@ -134,6 +134,18 @@ let run = (~ci, t) => {
              let%lwt () =
                target |> Browser.Actions.wait_for_network_idle(~loaderId);
 
+             let%lwt () =
+               test.Config.Test.actions
+               |> Lwt_list.iter_s(action => {
+                    switch (action) {
+                    | Config.Test.Click(_selector) => Lwt.return()
+                    | Config.Test.Type(_selector, _text) => Lwt.return()
+                    | Config.Test.Wait(int) =>
+                      let timeout = float_of_int(int) /. 1000.0;
+                      Lwt_unix.sleep(timeout);
+                    }
+                  });
+
              let%lwt screenshot =
                target
                |> Browser.Actions.screenshot(~full_size)
