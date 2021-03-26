@@ -144,6 +144,7 @@ let run = (~ci, t) => {
                  Diff.diff(
                    current_image_path,
                    new_image_path,
+                   ~threshold=test.threshold,
                    ~diffPixel=config.Config.Global.diff_pixel_color,
                    ~output=diff_image_path,
                  )

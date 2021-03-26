@@ -11,6 +11,7 @@ type action =
 type t = {
   only: bool,
   skip: bool,
+  threshold: int,
   name: string,
   url: string,
   sizes: list(size),

@@ -5,6 +5,7 @@ type size = (int, int);
 
 type t = {
   root_path: string,
+  threshold: int,
   ignore_patterns: list(string),
   test_pattern: string,
   base_url: string,

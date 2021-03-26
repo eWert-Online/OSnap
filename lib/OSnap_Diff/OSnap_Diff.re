@@ -14,7 +14,7 @@ let transparent = Color.{
                     alpha: 0,
                   };
 
-let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0.1, path1, path2) => {
+let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
   let original_image = Io.PNG.loadImage(path1);
   let new_image = Io.PNG.loadImage(path2);
 
@@ -22,14 +22,14 @@ let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0.1, path1, path2) => {
     original_image,
     new_image,
     ~outputDiffMask=true,
-    ~threshold,
+    ~threshold=0.1,
     ~failOnLayoutChange=true,
     ~diffPixel,
     (),
   )
   |> (
     fun
-    | Pixel((_diffImg, diffCount)) when diffCount == 0 => Result.ok()
+    | Pixel((_diffImg, diffCount)) when diffCount <= threshold => Result.ok()
     | Layout => Result.error(Layout)
     | Pixel((diff_mask, diffCount)) => {
         let original_image: Rgba32.t = Obj.magic(original_image.image);

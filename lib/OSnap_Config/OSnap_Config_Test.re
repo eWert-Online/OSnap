@@ -11,6 +11,7 @@ type action =
 type t = {
   only: bool,
   skip: bool,
+  threshold: int,
   name: string,
   url: string,
   sizes: list(size),
@@ -84,6 +85,12 @@ let parse_single_test = (global_config, test) =>
       |> Yojson.Basic.Util.to_bool_option
       |> Option.value(~default=false);
 
+    let threshold =
+      test
+      |> Yojson.Basic.Util.member("threshold")
+      |> Yojson.Basic.Util.to_int_option
+      |> Option.value(~default=global_config.OSnap_Config_Global.threshold);
+
     let url =
       test |> Yojson.Basic.Util.member("url") |> Yojson.Basic.Util.to_string;
 
@@ -108,7 +115,7 @@ let parse_single_test = (global_config, test) =>
         | _ => None
       );
 
-    Result.ok({only, skip, name, url, sizes, actions});
+    Result.ok({only, skip, threshold, name, url, sizes, actions});
   }) {
   | _ => raise(Invalid_format)
   };

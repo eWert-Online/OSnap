@@ -2,6 +2,7 @@ type size = (int, int);
 
 type t = {
   root_path: string,
+  threshold: int,
   ignore_patterns: list(string),
   test_pattern: string,
   base_url: string,
@@ -34,6 +35,12 @@ let parse = path => {
       |> Yojson.Basic.Util.member("fullScreen")
       |> Yojson.Basic.Util.to_bool_option
       |> Option.value(~default=false);
+
+    let threshold =
+      json
+      |> Yojson.Basic.Util.member("threshold")
+      |> Yojson.Basic.Util.to_int_option
+      |> Option.value(~default=0);
 
     let default_sizes =
       json
@@ -117,6 +124,7 @@ let parse = path => {
 
     {
       root_path,
+      threshold,
       test_pattern,
       ignore_patterns,
       base_url,

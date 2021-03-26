@@ -6,7 +6,7 @@ let diff:
   (
     ~output: string,
     ~diffPixel: (int, int, int)=?,
-    ~threshold: float=?,
+    ~threshold: int=?,
     string,
     string
   ) =>
