@@ -70,21 +70,42 @@ let run = (~ci, t) => {
   let all_tests =
     tests
     |> List.map(test => {
-         test.Config.Test.sizes |> List.map(size => (test, size))
+         test.Config.Test.sizes
+         |> List.map(size => {
+              let (width, height) = size;
+              let filename = get_filename(test.name, width, height);
+              let current_image_path = snapshot_dir ++ filename;
+              let exists = Sys.file_exists(current_image_path);
+
+              if (ci && !exists) {
+                raise(
+                  Failure(
+                    "Cannot create new images in ci mode. Tried to create "
+                    ++ filename,
+                  ),
+                );
+              };
+              (test, size, exists);
+            })
        })
     |> List.flatten;
 
   let tests_to_run =
     all_tests
-    |> List.find_all_or_input(((test, _)) => test.Config.Test.only)
-    |> List.find_all(((test, (width, height))) =>
+    |> List.find_all_or_input(((test, _size, _exists)) =>
+         test.Config.Test.only
+       )
+    |> List.find_all(((test, (width, height), _exists)) =>
          if (test.Config.Test.skip) {
            Printer.skipped_message(~name=test.name, ~width, ~height);
            false;
          } else {
            true;
          }
-       );
+       )
+    |> List.fast_sort(((_test, _size, exists1), (_test, _size, exists2)) => {
+         Bool.compare(exists1, exists2)
+       });
 
   let pool =
     Lwt_pool.create(max_concurrency, () => Browser.Target.make(browser));
@@ -93,7 +114,7 @@ let run = (~ci, t) => {
     tests_to_run
     |> Lwt_stream.of_list
     |> Lwt_stream.iter_n(
-         ~max_concurrency, ((test: Config.Test.t, (width, height))) => {
+         ~max_concurrency, ((test: Config.Test.t, (width, height), exists)) => {
          Lwt_pool.use(
            pool,
            target => {
@@ -103,16 +124,7 @@ let run = (~ci, t) => {
              let new_image_path = updated_dir ++ filename;
              let diff_image_path = diff_dir ++ filename;
 
-             let create_new = !Sys.file_exists(current_image_path);
-
-             if (ci && create_new) {
-               raise(
-                 Failure(
-                   "Cannot create new images in ci mode. Tried to create "
-                   ++ filename,
-                 ),
-               );
-             };
+             let create_new = !exists;
 
              let url = config.Config.Global.base_url ++ test.url;
              let full_size = config.Config.Global.fullscreen;

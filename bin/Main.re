@@ -4,7 +4,13 @@ let main = ci => {
   open Lwt.Syntax;
   let run = {
     let* t = OSnap.setup();
-    let* res = OSnap.run(t, ~ci);
+    let* res =
+      try(OSnap.run(t, ~ci)) {
+      | Failure(message) =>
+        print_endline(message);
+        Lwt_result.fail();
+      | exn => raise(exn)
+      };
     OSnap.teardown(t);
 
     let exit_code =
