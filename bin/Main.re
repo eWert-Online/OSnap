@@ -1,11 +1,11 @@
 open Cmdliner;
 
-let main = ci => {
+let main = (noCreate, noOnly, noSkip) => {
   open Lwt.Syntax;
   let run = {
     let* t = OSnap.setup();
     let* res =
-      try(OSnap.run(t, ~ci)) {
+      try(OSnap.run(t, ~noCreate, ~noOnly, ~noSkip)) {
       | Failure(message) =>
         print_endline(message);
         Lwt_result.fail();
@@ -54,11 +54,30 @@ let info =
       ],
   );
 
-let ci = {
-  let doc = "With this option enabled, new snapshots will not be created, but fail the whole test run instead.";
-  Arg.(value & flag & info(["ci"], ~doc));
+let noCreate = {
+  let doc = "
+    With this option enabled, new snapshots will not be created, but fail the whole test run instead.
+    This option is recommended for ci environments.
+  ";
+  Arg.(value & flag & info(["no-create"], ~doc));
 };
 
-let cmd = Term.(const(main) $ ci);
+let noOnly = {
+  let doc = "
+    With this option enabled, the test run will fail, if you have any test with \"only\" set to true.
+    This option is recommended for ci environments.
+  ";
+  Arg.(value & flag & info(["no-only"], ~doc));
+};
+
+let noSkip = {
+  let doc = "
+    With this option enabled, the test run will fail, if you have any test with \"skip\" set to true.
+    This option is recommended for ci environments.
+  ";
+  Arg.(value & flag & info(["no-skip"], ~doc));
+};
+
+let cmd = Term.(const(main) $ noCreate $ noOnly $ noSkip);
 
 let () = Term.eval((cmd, info)) |> Term.exit_status;

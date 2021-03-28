@@ -9,6 +9,8 @@ type t = {
 
 let setup: unit => Lwt.t(t);
 
-let run: (~ci: bool, t) => Lwt_result.t(unit, unit);
+let run:
+  (~noCreate: bool, ~noOnly: bool, ~noSkip: bool, t) =>
+  Lwt_result.t(unit, unit);
 
 let teardown: t => unit;

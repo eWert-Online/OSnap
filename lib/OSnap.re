@@ -54,7 +54,7 @@ let setup = () => {
   Lwt.return({config, browser, tests, snapshot_dir, updated_dir, diff_dir});
 };
 
-let run = (~ci, t) => {
+let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   let {browser, snapshot_dir, updated_dir, diff_dir, tests, config} = t;
 
   let max_concurrency = config.Config.Global.parallelism;
@@ -77,11 +77,13 @@ let run = (~ci, t) => {
               let current_image_path = snapshot_dir ++ filename;
               let exists = Sys.file_exists(current_image_path);
 
-              if (ci && !exists) {
+              if (noCreate && !exists) {
                 raise(
                   Failure(
-                    "Cannot create new images in ci mode. Tried to create "
-                    ++ filename,
+                    Printf.sprintf(
+                      "Flag --no-create is set. Cannot create new images for %s.",
+                      test.Config.Test.name,
+                    ),
                   ),
                 );
               };
@@ -93,10 +95,34 @@ let run = (~ci, t) => {
   let tests_to_run =
     all_tests
     |> List.find_all_or_input(((test, _size, _exists)) =>
-         test.Config.Test.only
+         if (test.Config.Test.only) {
+           if (noOnly) {
+             raise(
+               Failure(
+                 Printf.sprintf(
+                   "Flag --no-only is set, but test %s still has only set to true.",
+                   test.Config.Test.name,
+                 ),
+               ),
+             );
+           };
+           true;
+         } else {
+           false;
+         }
        )
     |> List.find_all(((test, (width, height), _exists)) =>
          if (test.Config.Test.skip) {
+           if (noSkip) {
+             raise(
+               Failure(
+                 Printf.sprintf(
+                   "Flag --no-skip is set, but test %s still has skip set to true.",
+                   test.Config.Test.name,
+                 ),
+               ),
+             );
+           };
            Printer.skipped_message(~name=test.name, ~width, ~height);
            false;
          } else {
