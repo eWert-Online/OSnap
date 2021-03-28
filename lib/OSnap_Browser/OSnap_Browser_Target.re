@@ -12,6 +12,7 @@ let enable_events = t => {
   let sessionId = t.sessionId;
 
   let%lwt _ = CDP.Page.Enable.make(~sessionId, ()) |> Websocket.send;
+  let%lwt _ = CDP.Dom.Enable.make(~sessionId, ()) |> Websocket.send;
   let%lwt _ =
     CDP.Page.SetLifecycleEventsEnabled.make(~sessionId, ~enabled=true)
     |> Websocket.send;

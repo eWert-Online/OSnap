@@ -16,6 +16,8 @@ module Target: {
 };
 
 module Actions: {
+  let click: (~selector: string, Target.target) => Lwt.t(unit);
+
   let wait_for: (~event: string, Target.target) => Lwt.t(unit);
 
   let wait_for_network_idle:

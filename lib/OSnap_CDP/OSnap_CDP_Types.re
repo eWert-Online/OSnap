@@ -1,19 +1,20 @@
-module Browser = {
-  module BrowserContextID = {
+module Input = {
+  module TimeSinceEpoch = {
+    [@deriving yojson]
+    type t = float;
+  };
+
+  module MouseButton = {
+    // none, left, middle, right, back, forward
     [@deriving yojson]
     type t = string;
   };
 };
 
-module DOM = {
-  module Rect = {
+module Browser = {
+  module BrowserContextID = {
     [@deriving yojson]
-    type t = {
-      x: int,
-      y: int,
-      width: int,
-      height: int,
-    };
+    type t = string;
   };
 };
 
@@ -174,6 +175,112 @@ module Request = {
   let make = (~sessionId=?, ~params=?, method) => {
     let id = id();
     {sessionId, method, params, id};
+  };
+};
+
+module DOM = {
+  module Quad = {
+    type t = list(float);
+    let t_of_yojson: Yojson.Safe.t => t =
+      fun
+      | `List(list) =>
+        list
+        |> List.map(
+             fun
+             | `Float(f) => f
+             | `Int(i) => float_of_int(i)
+             | _ => 0.0,
+           )
+      | _ => [];
+
+    let yojson_of_t: t => Yojson.Safe.t =
+      quads => {
+        `List(quads |> List.map(quad => `Float(quad)));
+      };
+  };
+
+  module NodeId = {
+    [@deriving yojson]
+    type t = int;
+  };
+
+  module Rect = {
+    [@deriving yojson]
+    type t = {
+      x: int,
+      y: int,
+      width: int,
+      height: int,
+    };
+  };
+
+  module BackendNodeId = {
+    [@deriving yojson]
+    type t = int;
+  };
+
+  module BackendNode = {
+    [@deriving yojson]
+    type t = {
+      nodeType: int, // Node's nodeType.
+      nodeName: string, // Node's nodeName.
+      backendNodeId: BackendNodeId.t,
+    };
+  };
+
+  module PseudoType = {
+    [@deriving yojson]
+    type t = string;
+  };
+
+  module ShadowRootType = {
+    [@deriving yojson]
+    type t = string;
+  };
+
+  module Node = {
+    [@deriving yojson]
+    [@yojson.allow_extra_fields]
+    type t = {
+      nodeId: NodeId.t, // Node identifier that is passed into the rest of the DOM messages as the nodeId. Backend will only push node with given id once. It is aware of all requested nodes and will only fire DOM events for nodes known to the client.
+      [@yojson.option]
+      parentId: option(NodeId.t), // The id of the parent node if any.
+      backendNodeId: BackendNodeId.t, // The BackendNodeId for this node.
+      nodeType: int, // Node's nodeType.
+      nodeName: string, // Node's nodeName.
+      localName: string, // Node's localName.
+      nodeValue: string, // Node's nodeValue.
+      [@yojson.option]
+      childNodeCount: option(int), // Child count for Container nodes.
+      [@yojson.option]
+      attributes: option(list(string)), // Attributes of the Element node in the form of flat list [name1, value1, name2, value2].
+      [@yojson.option]
+      documentURL: option(string), // Document URL that Document or FrameOwner node points to.
+      [@yojson.option]
+      baseURL: option(string), // Base URL that Document or FrameOwner node uses for URL completion.
+      [@yojson.option]
+      publicId: option(string), // DocumentType's publicId.
+      [@yojson.option]
+      systemId: option(string), // DocumentType's systemId.
+      [@yojson.option]
+      internalSubset: option(string), // DocumentType's internalSubset.
+      [@yojson.option]
+      xmlVersion: option(string), // Document's XML version in case of XML documents.
+      [@yojson.option]
+      name: option(string), // Attr's name.
+      [@yojson.option]
+      value: option(string), // Attr's value.
+      [@yojson.option]
+      pseudoType: option(PseudoType.t), // Pseudo element type for this node.
+      [@yojson.option]
+      shadowRootType: option(ShadowRootType.t), // Shadow root type.
+      [@yojson.option]
+      frameId: option(Page.FrameId.t), // Frame ID for frame owner elements.
+      [@yojson.option]
+      distributedNodes: option(list(BackendNode.t)), // Distributed nodes for given insertion point.
+      [@yojson.option]
+      isSVG: option(bool) // Whether the node is SVG.
+    };
   };
 };
 

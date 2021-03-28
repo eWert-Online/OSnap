@@ -45,10 +45,80 @@ let go_to = (~url, target) => {
   payload.Types.Response.result.Page.Navigate.loaderId |> Lwt.return;
 };
 
-// let run_action: (action, t) => Lwt_result.t(t, string) =
-//   (_a, _b) => {
-//     Lwt_result.return(Obj.magic());
-//   };
+let click = (~selector, target) => {
+  let sessionId = target.sessionId;
+  let%lwt document =
+    Dom.GetDocument.make(~sessionId, ())
+    |> OSnap_Websocket.send
+    |> Lwt.map(Dom.GetDocument.parse)
+    |> Lwt.map(response => response.Types.Response.result);
+
+  let%lwt node =
+    Dom.QuerySelector.make(
+      ~sessionId,
+      ~nodeId=document.root.nodeId,
+      ~selector,
+    )
+    |> OSnap_Websocket.send
+    |> Lwt.map(Dom.QuerySelector.parse)
+    |> Lwt.map(response => response.Types.Response.result);
+
+  let%lwt quads =
+    Dom.GetContentQuads.make(~sessionId, ~nodeId=node.nodeId, ())
+    |> OSnap_Websocket.send
+    |> Lwt.map(Dom.GetContentQuads.parse)
+    |> Lwt.map(response =>
+         response.Types.Response.result.Dom.GetContentQuads.quads
+       );
+
+  let (x, y) =
+    switch (quads) {
+    | [[x1, y1, x2, _y2, _x3, y2, _x4, _y4, ..._], ..._] =>
+      let top = y1;
+      let bottom = y2;
+      let left = x1;
+      let right = x2;
+      let center_x = left +. (right -. left) /. 2.0;
+      let center_y = top +. (bottom -. top) /. 2.0;
+      (center_x, center_y);
+    | _ => (0.0, 0.0)
+    };
+
+  let%lwt () =
+    Input.DispatchMouseEvent.make(~sessionId, ~x, ~y, ~type_=`mouseMoved, ())
+    |> OSnap_Websocket.send
+    |> Lwt.map(ignore);
+
+  let%lwt _ =
+    Input.DispatchMouseEvent.make(
+      ~type_=`mousePressed,
+      ~button="left",
+      ~buttons=1,
+      ~clickCount=1,
+      ~sessionId,
+      ~x,
+      ~y,
+      (),
+    )
+    |> OSnap_Websocket.send
+    |> Lwt.map(ignore);
+
+  let%lwt _ =
+    Input.DispatchMouseEvent.make(
+      ~type_=`mouseReleased,
+      ~button="left",
+      ~buttons=1,
+      ~clickCount=1,
+      ~sessionId,
+      ~x,
+      ~y,
+      (),
+    )
+    |> OSnap_Websocket.send
+    |> Lwt.map(ignore);
+
+  Lwt.return();
+};
 
 let set_size = (~width, ~height, target) => {
   let sessionId = target.sessionId;
