@@ -5,7 +5,7 @@
     "actions": [
       { "action": "click", "selector": "#home-header .btn" },
       { "action": "wait", "timeout": 2000 },
-      { "action": "type", "selector": "#id2", "text": "something" }
+      { "action": "type", "selector": "#search", "text": "some something" }
     ]
   },
   {

@@ -165,11 +165,9 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
                |> Lwt_list.iter_s(action => {
                     switch (action) {
                     | Config.Test.Click(selector) =>
-                      // https://github.com/puppeteer/puppeteer/blob/b349c91e7df76630b7411d6645e649945c4609bd/src/common/Input.ts#L400
                       target |> Browser.Actions.click(~selector)
-                    | Config.Test.Type(_selector, _text) =>
-                      // https://github.com/puppeteer/puppeteer/blob/b349c91e7df76630b7411d6645e649945c4609bd/src/common/Input.ts#L235
-                      Lwt.return()
+                    | Config.Test.Type(selector, text) =>
+                      target |> Browser.Actions.type_text(~selector, ~text)
                     | Config.Test.Wait(int) =>
                       let timeout = float_of_int(int) /. 1000.0;
                       Lwt_unix.sleep(timeout);

@@ -45,6 +45,67 @@ let go_to = (~url, target) => {
   payload.Types.Response.result.Page.Navigate.loaderId |> Lwt.return;
 };
 
+let type_text = (~selector, ~text, target) => {
+  let sessionId = target.sessionId;
+
+  let%lwt document =
+    Dom.GetDocument.make(~sessionId, ())
+    |> OSnap_Websocket.send
+    |> Lwt.map(Dom.GetDocument.parse)
+    |> Lwt.map(response => response.Types.Response.result);
+
+  let%lwt node =
+    Dom.QuerySelector.make(
+      ~sessionId,
+      ~nodeId=document.root.nodeId,
+      ~selector,
+    )
+    |> OSnap_Websocket.send
+    |> Lwt.map(Dom.QuerySelector.parse)
+    |> Lwt.map(response => response.Types.Response.result);
+
+  let%lwt () =
+    Dom.Focus.make(~sessionId, ~nodeId=node.nodeId, ())
+    |> OSnap_Websocket.send
+    |> Lwt.map(ignore);
+
+  List.init(String.length(text), String.get(text))
+  |> Lwt_list.iter_s(char => {
+       let definition: option(OSnap_Browser_KeyDefinition.t) =
+         OSnap_Browser_KeyDefinition.make(char);
+       switch (definition) {
+       | Some(def) =>
+         let%lwt () =
+           Input.DispatchKeyEvent.make(
+             ~sessionId,
+             ~type_=`keyDown,
+             ~windowsVirtualKeyCode=Option.value(def.keyCode, ~default=0),
+             ~key=def.key,
+             ~code=def.code,
+             ~text=def.text,
+             ~unmodifiedText=def.text,
+             ~location=def.location,
+             ~isKeypad=def.location == 3,
+             (),
+           )
+           |> OSnap_Websocket.send
+           |> Lwt.map(ignore);
+
+         Input.DispatchKeyEvent.make(
+           ~sessionId,
+           ~type_=`keyUp,
+           ~key=def.key,
+           ~code=def.code,
+           ~location=def.location,
+           (),
+         )
+         |> OSnap_Websocket.send
+         |> Lwt.map(ignore);
+       | None => Lwt.return()
+       };
+     });
+};
+
 let click = (~selector, target) => {
   let sessionId = target.sessionId;
   let%lwt document =

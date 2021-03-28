@@ -82,6 +82,25 @@ module QuerySelector = {
   };
 };
 
+module Focus = {
+  [@deriving yojson]
+  type params = {
+    [@yojson.option]
+    nodeId: option(DOM.NodeId.t),
+    [@yojson.option]
+    backendNodeId: option(DOM.BackendNodeId.t),
+  };
+
+  [@deriving yojson]
+  type request = Request.t(params);
+
+  let make = (~sessionId=?, ~nodeId=?, ~backendNodeId=?, ()) => {
+    Request.make("DOM.focus", ~params={nodeId, backendNodeId}, ~sessionId?)
+    |> yojson_of_request
+    |> Yojson.Safe.to_string;
+  };
+};
+
 module GetContentQuads = {
   [@deriving yojson]
   type params = {
