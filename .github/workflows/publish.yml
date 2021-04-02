@@ -1,0 +1,117 @@
+name: Publish packages to npm
+
+on:
+  push:
+    branches:
+      - test
+
+jobs:
+  build-platform:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - uses: actions/checkout@v2
+      - name: Install esy
+        run: |
+          npm install -g esy
+      - uses: esy/github-action@master
+        with:
+          cache-key: ${{ hashFiles('esy.lock/index.json') }}
+      - name: Install dependencies
+        run: esy install
+      - name: Build
+        run: esy build
+
+      # Create the NPM package for this platform
+      - name: Create npm package
+        run: esy npm-release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.os }}
+          path: _release/
+  prepare-publish:
+    name: Prepare publish to npm
+    needs: build-platform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org/
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          ref: ${{ github.ref }}
+          submodules: true
+      # Download platform artifacts
+      - name: Download Linux release
+        uses: actions/download-artifact@v2
+        with:
+          name: ubuntu-latest
+          path: ubuntu-latest
+      - name: Download Windows release
+        uses: actions/download-artifact@v2
+        with:
+          name: windows-latest
+          path: windows-latest
+      - name: Download macOS release
+        uses: actions/download-artifact@v2
+        with:
+          name: macOS-latest
+          path: macOS-latest
+      # Move artifacts in place
+      - name: Move artifacts
+        run: |
+          mkdir -p _release/platform-linux
+          mkdir -p _release/platform-windows-x64
+          mkdir -p _release/platform-darwin
+          cp -a ubuntu-latest/. _release/platform-linux
+          cp -a windows-latest/. _release/platform-windows-x64
+          cp -a macOS-latest/. _release/platform-darwin
+      - name: Prepare package
+        run: node .github/workflows/bundle-release.js
+      # Create a npm package that can easily be published and tested
+      - name: npm pack
+        run: npm pack .
+        working-directory: _release
+      - name: move package
+        run: mv _release/*.tgz osnap.tgz
+      # Upload artifacts
+      - uses: actions/upload-artifact@v2
+        with:
+          name: release
+          path: _release/
+      - uses: actions/upload-artifact@v2
+        with:
+          name: release-tarball
+          path: osnap.tgz
+      #- name: Publish packages
+      #  run: node .github/workflows/publish_to_npm.js
+      #  env:
+      #    NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+  test-platform:
+    name: Test installing ${{ matrix.os }}
+    needs: prepare-publish
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - name: Download ${{ matrix.os }} release
+        uses: actions/download-artifact@v2
+        with:
+          name: release-tarball
+      - name: test install
+        run: npm -g install ./osnap.tgz
+      - name: test binary
+        run: osnap --help
