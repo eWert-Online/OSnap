@@ -34,11 +34,12 @@ conflicts: [
 description: """
 Mirage-crypto-pk provides public-key cryptography (RSA, DSA, DH).
 """
+x-commit-hash: "3013c5286f563743e2f5c13da068a6bdf90cd805"
 url {
   src:
-    "https://github.com/mirage/mirage-crypto/releases/download/v0.8.10/mirage-crypto-v0.8.10.tbz"
+    "https://github.com/mirage/mirage-crypto/releases/download/v0.9.0/mirage-crypto-v0.9.0.tbz"
   checksum: [
-    "sha256=8a5976fe7837491d2fbd1917b77524776f70ae590e9f55cf757cc8951b5481fc"
-    "sha512=ea3a1717574d3dcc3e6ea1e930d2c0c0ffe4e69600886bff1bbaef88333f8ec7e603eb0fae4fe8dece7fc6eb5d7c300ff4e7d20ca276a336b78b401a7139ee77"
+    "sha256=716684f8a70031f16115e3c84d42141c75fb1e688b7a699bbd09166176ed5217"
+    "sha512=7eb56f28583567824b32bf33635b15c39dd684a047455b2cc6a5f768c52ccbe6d8eac80308fac80d78c8f678b0132059fdbc219a252de6ecfd53c26c717a9a3a"
   ]
 }

@@ -54,7 +54,7 @@
   },
   "resolutions": {
     "@opam/re": "ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017",
-    "odiff": "dmtrKovalenko/odiff#2bc9c67401fd0fe4615d271a8d1cd05e9058bc30",
+    "odiff": "ewert-online/odiff#6f55f9181068e5728662001eac1147352f285863",
     "@opam/camlimages": {
       "source": "git+https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870",
       "override": {

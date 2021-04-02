@@ -208,13 +208,14 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
                | Error(Layout) =>
                  failed_count := failed_count^ + 1;
                  Printer.layout_message(~name=test.name, ~width, ~height);
-               | Error(Pixel(diffCount)) =>
+                 | Error(Pixel(diffCount, diffPercentage)) =>
                  failed_count := failed_count^ + 1;
                  Printer.diff_message(
                    ~name=test.name,
                    ~width,
                    ~height,
                    ~diffCount,
+                     ~diffPercentage,
                  );
                };
              };

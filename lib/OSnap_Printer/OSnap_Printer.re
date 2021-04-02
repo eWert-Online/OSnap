@@ -52,7 +52,7 @@ let layout_message = (~name, ~width, ~height) => {
   );
 };
 
-let diff_message = (~name, ~width, ~height, ~diffCount) => {
+let diff_message = (~name, ~width, ~height, ~diffCount, ~diffPercentage) => {
   Console.log(
     <Pastel>
       <Pastel color=Red bold=true> "FAIL" </Pastel>
@@ -60,7 +60,7 @@ let diff_message = (~name, ~width, ~height, ~diffCount) => {
       {test_name(~name, ~width, ~height)}
       <Pastel color=Red>
         "Different pixels: "
-        {Int.to_string(diffCount)}
+        {Printf.sprintf("%i (%f%%)", diffCount, diffPercentage)}
       </Pastel>
     </Pastel>,
   );

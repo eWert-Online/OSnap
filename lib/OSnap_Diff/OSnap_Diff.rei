@@ -1,5 +1,5 @@
 type failState =
-  | Pixel(int)
+  | Pixel(int, float)
   | Layout;
 
 let diff:

@@ -2,7 +2,7 @@ module Io = OSnap_Diff_Io;
 module Diff = Odiff.Diff.MakeDiff(Io.PNG, Io.PNG);
 
 type failState =
-  | Pixel(int)
+  | Pixel(int, float)
   | Layout;
 
 let transparent = Color.{
@@ -29,9 +29,11 @@ let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
   )
   |> (
     fun
-    | Pixel((_diffImg, diffCount)) when diffCount <= threshold => Result.ok()
+    | Pixel((_diffImg, diffCount, _diffPercentage))
+        when diffCount <= threshold =>
+      Result.ok()
     | Layout => Result.error(Layout)
-    | Pixel((diff_mask, diffCount)) => {
+    | Pixel((diff_mask, diffCount, diffPercentage)) => {
         let original_image: Rgba32.t = Obj.magic(original_image.image);
         let new_image: Rgba32.t = Obj.magic(new_image.image);
 
@@ -106,7 +108,7 @@ let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
 
         Png.save(output, [], Images.Rgba32(complete_image));
 
-        Result.error(Pixel(diffCount));
+        Result.error(Pixel(diffCount, diffPercentage));
       }
   );
 };
