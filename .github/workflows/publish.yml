@@ -11,7 +11,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          # - windows-latest
     steps:
       - uses: actions/setup-node@v2
         with:
@@ -23,14 +26,9 @@ jobs:
       - uses: esy/github-action@master
         with:
           cache-key: ${{ hashFiles('esy.lock/index.json') }}
-      - name: Install dependencies
-        run: esy install
-      - name: Build
-        run: esy build
-
       # Create the NPM package for this platform
       - name: Create npm package
-        run: esy npm-release
+        run: esy release
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os }}
@@ -95,6 +93,7 @@ jobs:
       #  run: node .github/workflows/publish_to_npm.js
       #  env:
       #    NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+
   test-platform:
     name: Test installing ${{ matrix.os }}
     needs: prepare-publish
@@ -102,7 +101,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          # - windows-latest
     steps:
       - uses: actions/setup-node@v2
         with:
