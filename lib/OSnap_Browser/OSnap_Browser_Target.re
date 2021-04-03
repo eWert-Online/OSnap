@@ -14,7 +14,7 @@ let enable_events = t => {
   let%lwt _ = CDP.Page.Enable.make(~sessionId, ()) |> Websocket.send;
   let%lwt _ = CDP.Dom.Enable.make(~sessionId, ()) |> Websocket.send;
   let%lwt _ =
-    CDP.Page.SetLifecycleEventsEnabled.make(~sessionId, ~enabled=true)
+    CDP.Page.SetLifecycleEventsEnabled.make(~sessionId, ~enabled=true, ())
     |> Websocket.send;
   // let%lwt _ = Performance.Enable.make(~sessionId, ()) |> Websocket.send;
   // let%lwt _ = Log.Enable.make(~sessionId, ()) |> Websocket.send;

@@ -59,6 +59,7 @@ let type_text = (~selector, ~text, target) => {
       ~sessionId,
       ~nodeId=document.root.nodeId,
       ~selector,
+      (),
     )
     |> OSnap_Websocket.send
     |> Lwt.map(Dom.QuerySelector.parse)
@@ -119,6 +120,7 @@ let click = (~selector, target) => {
       ~sessionId,
       ~nodeId=document.root.nodeId,
       ~selector,
+      (),
     )
     |> OSnap_Websocket.send
     |> Lwt.map(Dom.QuerySelector.parse)

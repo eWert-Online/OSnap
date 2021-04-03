@@ -71,7 +71,7 @@ module QuerySelector = {
       raise(exn);
     };
 
-  let make = (~sessionId=?, ~nodeId, ~selector) => {
+  let make = (~sessionId=?, ~nodeId, ~selector, ()) => {
     Request.make(
       "DOM.querySelector",
       ~params={nodeId, selector},
