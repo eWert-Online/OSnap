@@ -211,7 +211,8 @@ module SetAutoAttach = {
       raise(exn);
     };
 
-  let make = (~sessionId=?, ~flatten=?, ~waitForDebuggerOnStart, ~autoAttach) => {
+  let make =
+      (~sessionId=?, ~flatten=?, ~waitForDebuggerOnStart, ~autoAttach, ()) => {
     Request.make(
       "Target.setAutoAttach",
       ~params={autoAttach, waitForDebuggerOnStart, flatten},

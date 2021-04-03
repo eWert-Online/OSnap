@@ -34,7 +34,7 @@ module SetLifecycleEventsEnabled = {
       raise(exn);
     };
 
-  let make = (~sessionId=?, ~enabled) => {
+  let make = (~sessionId=?, ~enabled, ()) => {
     Request.make(
       "Page.setLifecycleEventsEnabled",
       ~params={enabled: enabled},
