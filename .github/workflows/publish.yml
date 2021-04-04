@@ -20,6 +20,10 @@ jobs:
         with:
           node-version: 14
       - uses: actions/checkout@v2
+      - name: Echo
+        run: |
+          echo $GITHUB_WORKSPACE
+          echo $HOME
       - name: Install esy
         run: |
           npm install -g @esy-nightly/esy
