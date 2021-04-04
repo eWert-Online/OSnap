@@ -23,7 +23,7 @@ jobs:
       - name: Echo
         if: ${{ runner.os == 'Windows' }}
         run: |
-          $HOME = $GITHUB_WORKSPACE
+          Set-Variable HOME "$GITHUB_WORKSPACE" -Force
           echo $HOME
       - name: Install esy
         run: |
