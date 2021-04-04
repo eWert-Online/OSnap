@@ -21,6 +21,7 @@ jobs:
           node-version: 14
       - uses: actions/checkout@v2
       - name: Echo
+        if: ${{ runner.os == "Windows" }}
         run: |
           $HOME = $GITHUB_WORKSPACE
           echo $HOME
@@ -28,8 +29,6 @@ jobs:
         run: |
           npm install -g @esy-nightly/esy
       - uses: esy/github-action@master
-        env:
-          - HOME: $GITHUB_WORKSPACE
         with:
           cache-key: ${{ hashFiles('esy.lock/index.json') }}
       # Create the NPM package for this platform
