@@ -30,6 +30,7 @@ jobs:
       - uses: esy/github-action@master
         with:
           cache-key: ${{ hashFiles('esy.lock/index.json') }}
+          esy-prefix: ./.esy
       # Create the NPM package for this platform
       - name: Create npm package
         run: esy release
