@@ -16,6 +16,10 @@ jobs:
           - macOS-latest
           - windows-latest
     steps:
+      - name: Add Msys64 to PATH
+        if: matrix.os == 'windows-latest'
+        run: echo "::add-path::/c/msys64/mingw64/bin:/c/msys64/usr/bin"
+        shell: bash
       - uses: actions/setup-node@v2
         with:
           node-version: 14
@@ -24,7 +28,6 @@ jobs:
         run: |
           npm install -g @esy-nightly/esy
       - name: Add esyrc
-        if: ${{ runner.os == 'Windows' }}
         run: |
           echo '{ "prefixPath": "./.esy" }' > .esyrc
       - uses: esy/github-action@master
