@@ -16,10 +16,11 @@ jobs:
           - macOS-latest
           - windows-latest
     steps:
-      - name: Add Msys64 to PATH
+      - name: Setup MinGW
         if: matrix.os == 'windows-latest'
-        run: echo "::add-path::/c/msys64/mingw64/bin:/c/msys64/usr/bin"
-        shell: bash
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: x64
       - uses: actions/setup-node@v2
         with:
           node-version: 14
