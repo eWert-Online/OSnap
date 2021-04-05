@@ -11,7 +11,7 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - { os: windows-latest, shell: msys2 }
+          - { os: windows-latest, shell: bash }
           # - { os: ubuntu-latest,  shell: bash  },
           # - { os: macOS-latest,   shell: bash  },
         os:
@@ -23,15 +23,9 @@ jobs:
       run:
         shell: ${{ matrix.shell }} {0}
     steps:
-      # Install MSYS2 and all required libraries (gcc, cmake, ...) on windows
-      - uses: msys2/setup-msys2@v2
-        if: matrix.os == 'windows-latest'
-        with:
-          path-type: inherit
-          install: >-
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-gcc-libs
-            mingw-w64-x86_64-cmake
+      - name: switch git-bash shell to msys2 shell by adding msys2 path to PATH front
+        run: echo "C:\msys64\usr\bin" >> $GITHUB_PATH
+        shell: bash
       # Setup node to install esy
       - uses: actions/setup-node@v2
         with:
@@ -46,7 +40,7 @@ jobs:
       # We do this because of this issue with esy: https://github.com/esy/esy/issues/1083
       - name: Add esyrc
         run: |
-          echo '{ "prefixPath": "D:/a/osnap/osnap/.esy" }' > .esyrc
+          echo '{ "prefixPath": ".esy" }' > .esyrc
       # - name: Restoring esy install cache
       #   id: esy-install-cache
       #   uses: actions/cache@v2
@@ -56,7 +50,9 @@ jobs:
       - name: Run esy install / build
         run: |
           esy install
-          ls -l D:/a/osnap/osnap/.esy
+          ls -l .esy/3__________________________________________________________________/i
+          ls -l .esy/3__________________________________________________________________/i/esy_ocaml__s__substs-81ea22bc
+          ls -l .esy/3__________________________________________________________________/i/esy_ocaml__s__substs-81ea22bc/bin
       # Create the NPM package for this platform
       - name: Create npm package
         run: esy release
