@@ -57,7 +57,7 @@ jobs:
           key: source-${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
           path: ./.esy/source
       - name: Run esy install
-        run: esy install
+        run: esy install --verbosity=debug
       - name: Restoring esy build cache
         id: esy-build-cache
         uses: actions/cache@v2
@@ -66,8 +66,8 @@ jobs:
           path: ./.esy/3_*/i
       - name: Run esy build
         run: |
-          esy build-dependencies
-          esy build
+          esy build-dependencies --verbosity=debug
+          esy build --verbosity=debug
       # Create the NPM package for this platform
       - name: Create npm package
         run: esy release
