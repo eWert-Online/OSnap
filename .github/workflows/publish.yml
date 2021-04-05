@@ -64,7 +64,6 @@ jobs:
         with:
           key: source-${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
           path: ./.esy/3_*/i
-          restore-keys: ["build-${{ matrix.os }}-", "build-"]
       - name: Run esy build
         run: |
           esy build-dependencies
