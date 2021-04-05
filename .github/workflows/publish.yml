@@ -55,9 +55,7 @@ jobs:
       #     path: ./.esy/source
       - name: Run esy install / build
         run: |
-          esy install --verbosity=debug
-          esy build-dependencies --verbosity=debug
-          esy build --verbosity=debug
+          esy --verbosity=debug
       # Create the NPM package for this platform
       - name: Create npm package
         run: esy release
