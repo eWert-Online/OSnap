@@ -50,13 +50,25 @@ jobs:
       - name: Add esyrc
         run: |
           echo '{ "prefixPath": "./.esy" }' > .esyrc
-      # Install and build our project with esy
-      # Don't forget to set the esy-prefix to the same on we defined in esyrc
-      - uses: esy/github-action@master
-        shell: ${{ matrix.shell }} {0}
+      - name: Restoring esy install cache
+        id: esy-install-cache
+        uses: actions/cache@v2
         with:
-          cache-key: ${{ hashFiles('esy.lock/index.json') }}
-          esy-prefix: ./.esy
+          key: source-${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
+          path: ./.esy/source
+      - name: Run esy install
+        run: esy install
+      - name: Restoring esy build cache
+        id: esy-build-cache
+        uses: actions/cache@v2
+        with:
+          key: source-${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
+          path: ./.esy/3_*/i
+          restore-keys: [`build-${{ matrix.os }}-`, `build-`]
+      - name: Run esy build
+        run: |
+          esy build-dependencies
+          esy build
       # Create the NPM package for this platform
       - name: Create npm package
         run: esy release
