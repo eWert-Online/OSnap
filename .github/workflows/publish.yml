@@ -23,7 +23,7 @@ jobs:
       run:
         shell: ${{ matrix.shell }} {0}
     env:
-      CC: x86_64-w64-mingw32-gcc
+      CC: mingw-w64-x86_64-gcc
     steps:
       # Install MSYS2 and all required libraries (gcc, cmake, ...) on windows
       - uses: msys2/setup-msys2@v2
@@ -33,7 +33,10 @@ jobs:
           path-type: inherit
           release: false
           update: false
-          install: x86_64-w64-mingw32-gcc
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-gcc-libs
+            mingw-w64-x86_64-cmake
       # Setup node to install esy
       - uses: actions/setup-node@v2
         with:
