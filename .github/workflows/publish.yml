@@ -50,9 +50,8 @@ jobs:
       - name: Run esy install / build
         run: |
           esy install
-          ls -l .esy/3__________________________________________________________________/i
-          ls -l .esy/3__________________________________________________________________/i/esy_ocaml__s__substs-81ea22bc
-          ls -l .esy/3__________________________________________________________________/i/esy_ocaml__s__substs-81ea22bc/bin
+          ls -l .esy
+          esy
       # Create the NPM package for this platform
       - name: Create npm package
         run: esy release
