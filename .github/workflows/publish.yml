@@ -11,9 +11,9 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - { os: windows, shell: msys2 }
-          # - { os: ubuntu,  shell: bash  },
-          # - { os: macos,   shell: bash  },
+          - { os: windows-latest, shell: msys2 }
+          # - { os: ubuntu-latest,  shell: bash  },
+          # - { os: macOS-latest,   shell: bash  },
         os:
           - windows-latest
           # - ubuntu-latest
