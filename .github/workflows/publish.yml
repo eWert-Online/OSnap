@@ -22,8 +22,6 @@ jobs:
     defaults:
       run:
         shell: ${{ matrix.shell }} {0}
-    env:
-      CC: mingw-w64-x86_64-gcc
     steps:
       # Install MSYS2 and all required libraries (gcc, cmake, ...) on windows
       - uses: msys2/setup-msys2@v2
@@ -55,6 +53,7 @@ jobs:
       # Install and build our project with esy
       # Don't forget to set the esy-prefix to the same on we defined in esyrc
       - uses: esy/github-action@master
+        shell: ${{ matrix.shell }} {0}
         with:
           cache-key: ${{ hashFiles('esy.lock/index.json') }}
           esy-prefix: ./.esy
