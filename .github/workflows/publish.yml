@@ -23,16 +23,24 @@ jobs:
       run:
         shell: ${{ matrix.shell }} {0}
     steps:
-      - name: Setup msys2
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
         if: matrix.os == 'windows-latest'
-        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          path-type: inherit
+          release: false
+          update: false
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-gcc-libs
+            mingw-w64-x86_64-cmake
       - name: Check
         run: |
           gcc --version
       - uses: actions/setup-node@v2
         with:
           node-version: 14
-      - uses: actions/checkout@v2
       - name: Install esy
         run: |
           npm install -g esy
