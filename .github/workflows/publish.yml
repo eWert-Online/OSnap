@@ -49,8 +49,8 @@ jobs:
       #     path: ./.esy/source
       - name: Run esy install / build
         run: |
-          esy install
-          ls -l .esy/3______________________________________________________________
+          esy install -vvv
+          ls -l .esy/3______________________________________________________________/i
           esy
       # Create the NPM package for this platform
       - name: Create npm package
