@@ -39,6 +39,7 @@
     "@opam/websocket": "2.14",
     "@opam/websocket-lwt-unix": "2.14",
     "@opam/yojson": "1.7.0",
+    "@opam/zarith": "1.11",
     "@reason-native/console": "jfrolich/reason-native:console.json#08085a4048974b06aaf3aab918b677b39dea3d18",
     "@reason-native/pastel": "jfrolich/reason-native:pastel.json#08085a4048974b06aaf3aab918b677b39dea3d18",
     "odiff": "*"
