@@ -49,9 +49,6 @@ jobs:
       - name: Add esyrc
         run: |
           echo '{ "prefixPath": "./.esy" }' > .esyrc
-      - name: Install esy
-        run: |
-          esy add @opam/zarith
       # Install and build our project with esy
       # Don't forget to set the esy-prefix to the same on we defined in esyrc
       - uses: esy/github-action@master
