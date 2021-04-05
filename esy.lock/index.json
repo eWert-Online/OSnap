@@ -1,5 +1,5 @@
 {
-  "checksum": "10681b9ac6cb8255a72d89b3b0bbc29c",
+  "checksum": "b9949e024224491639d094fd832dff58",
   "root": "osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -42,6 +42,7 @@
         "@opam/ocamlfind@opam:1.8.1@b7dc3072",
         "@opam/lwt_ppx@opam:2.0.1@e6a764a0", "@opam/lwt@opam:5.4.0@1ec6dbfd",
         "@opam/fileutils@opam:0.6.3@67cadc89",
+        "@opam/conf-gmp-powm-sec@opam:2@e6fe9f11",
         "@opam/cmdliner@opam:1.0.4@93208aac",
         "@opam/camlimages@git:https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870@bdc4ddc0",
         "@opam/base64@opam:3.5.0@827395e3"
@@ -1563,7 +1564,7 @@
         "@opam/mirage-crypto@opam:0.9.1@82c254a0",
         "@opam/eqaf@opam:0.7@e7d6447e", "@opam/dune@opam:2.8.5@83fb0224",
         "@opam/cstruct@opam:6.0.0@a7534811",
-        "@opam/conf-gmp-powm-sec@opam:3@b66b4239",
+        "@opam/conf-gmp-powm-sec@opam:2@e6fe9f11",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
@@ -2502,20 +2503,25 @@
       ],
       "devDependencies": []
     },
-    "@opam/conf-gmp-powm-sec@opam:3@b66b4239": {
-      "id": "@opam/conf-gmp-powm-sec@opam:3@b66b4239",
+    "@opam/conf-gmp-powm-sec@opam:2@e6fe9f11": {
+      "id": "@opam/conf-gmp-powm-sec@opam:2@e6fe9f11",
       "name": "@opam/conf-gmp-powm-sec",
-      "version": "opam:3",
+      "version": "opam:2",
       "source": {
         "type": "install",
         "source": [ "no-source:" ],
         "opam": {
           "name": "conf-gmp-powm-sec",
-          "version": "3",
-          "path": "esy.lock/opam/conf-gmp-powm-sec.3"
+          "version": "2",
+          "path": "esy.lock/opam/conf-gmp-powm-sec.2"
         }
       },
-      "overrides": [],
+      "overrides": [
+        {
+          "opamoverride":
+            "esy.lock/overrides/opam__s__conf_gmp_powm_sec_opam__c__2_opam_override"
+        }
+      ],
       "dependencies": [
         "@opam/conf-gmp@opam:3@c4c0a162", "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],

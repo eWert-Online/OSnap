@@ -31,16 +31,10 @@ jobs:
       - name: Add esyrc
         run: |
           echo '{ "prefixPath": ".esy" }' > .esyrc
-      # - name: Restoring esy install cache
-      #   id: esy-install-cache
-      #   uses: actions/cache@v2
-      #   with:
-      #     key: source-${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
-      #     path: ./.esy/source
-      - name: Run esy install / build
-        run: |
-          esy install -vvv
-          esy -vvv
+      - uses: esy/github-action@master
+        with:
+          cache-key: ${{ hashFiles('esy.lock/index.json') }}
+          esy-prefix: .esy
       # Create the NPM package for this platform
       - name: Create npm package
         run: esy release
