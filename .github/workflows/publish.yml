@@ -50,8 +50,8 @@ jobs:
       - name: Run esy install / build
         run: |
           esy install -vvv
-          ls -l .esy/3______________________________________________________________/i
-          esy
+          chmod -r 777 .esy
+          esy -vvv
       # Create the NPM package for this platform
       - name: Create npm package
         run: esy release
