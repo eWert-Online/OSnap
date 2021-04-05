@@ -18,12 +18,18 @@ jobs:
           - windows-latest
           # - ubuntu-latest
           # - macOS-latest
+        comp:
+          - { cc: gcc, cxx: g++ }
+          - { cc: clang, cxx: clang++ }
     runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: ${{ matrix.shell }} {0}
+    env:
+      CC: ${{ matrix.comp.cc }}
+      CXX: ${{ matrix.comp.cxx }}
     steps:
-      - uses: actions/checkout@v2
+      # Install MSYS2 and all required libraries (gcc, cc, ...) on windows
       - uses: msys2/setup-msys2@v2
         if: matrix.os == 'windows-latest'
         with:
@@ -31,22 +37,24 @@ jobs:
           path-type: inherit
           release: false
           update: false
-          install: >-
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-gcc-libs
-            mingw-w64-x86_64-cmake
-      - name: Check
-        run: |
-          gcc --version
+          install: gcc g++ clang clang++ make
+      # Setup node to install esy
       - uses: actions/setup-node@v2
         with:
           node-version: 14
+      # Install esy globally
       - name: Install esy
         run: |
           npm install -g esy
+      # Checkout the projects sources
+      - uses: actions/checkout@v2
+      # Add an esyrc to set the cache path for esy.
+      # We do this because of this issue with esy: https://github.com/esy/esy/issues/1083
       - name: Add esyrc
         run: |
           echo '{ "prefixPath": "./.esy" }' > .esyrc
+      # Install and build our project with esy
+      # Don't forget to set the esy-prefix to the same on we defined in esyrc
       - uses: esy/github-action@master
         with:
           cache-key: ${{ hashFiles('esy.lock/index.json') }}
@@ -54,6 +62,7 @@ jobs:
       # Create the NPM package for this platform
       - name: Create npm package
         run: esy release
+      # Upload the npm package as an artifact
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os }}
