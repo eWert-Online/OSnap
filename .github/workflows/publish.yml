@@ -22,6 +22,8 @@ jobs:
     defaults:
       run:
         shell: ${{ matrix.shell }} {0}
+    env:
+      - ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     steps:
       - run: echo ::set-env name=HOME::$GITHUB_WORKSPACE
         shell: bash
