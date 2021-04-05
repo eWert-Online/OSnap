@@ -23,6 +23,9 @@ jobs:
       run:
         shell: ${{ matrix.shell }} {0}
     steps:
+      - name: Setup msys2
+        if: matrix.os == 'windows-latest'
+        uses: msys2/setup-msys2@v2
       - name: Check
         run: |
           gcc --version
