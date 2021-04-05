@@ -18,18 +18,14 @@ jobs:
           - windows-latest
           # - ubuntu-latest
           # - macOS-latest
-        comp:
-          - { cc: gcc, cxx: g++ }
-          - { cc: clang, cxx: clang++ }
     runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: ${{ matrix.shell }} {0}
     env:
-      CC: ${{ matrix.comp.cc }}
-      CXX: ${{ matrix.comp.cxx }}
+      CC: gcc
     steps:
-      # Install MSYS2 and all required libraries (gcc, cc, ...) on windows
+      # Install MSYS2 and all required libraries (gcc, cmake, ...) on windows
       - uses: msys2/setup-msys2@v2
         if: matrix.os == 'windows-latest'
         with:
@@ -37,7 +33,7 @@ jobs:
           path-type: inherit
           release: false
           update: false
-          install: gcc g++ clang clang++ make
+          install: gcc gcc-libs cmake
       # Setup node to install esy
       - uses: actions/setup-node@v2
         with:
@@ -53,6 +49,9 @@ jobs:
       - name: Add esyrc
         run: |
           echo '{ "prefixPath": "./.esy" }' > .esyrc
+      - name: Install esy
+        run: |
+          esy add @opam/zarith
       # Install and build our project with esy
       # Don't forget to set the esy-prefix to the same on we defined in esyrc
       - uses: esy/github-action@master
