@@ -50,22 +50,15 @@ jobs:
       - name: Add esyrc
         run: |
           echo '{ "prefixPath": "./.esy" }' > .esyrc
-      - name: Restoring esy install cache
-        id: esy-install-cache
-        uses: actions/cache@v2
-        with:
-          key: source-${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
-          path: ./.esy/source
-      - name: Run esy install
-        run: esy install --verbosity=debug
-      - name: Restoring esy build cache
-        id: esy-build-cache
-        uses: actions/cache@v2
-        with:
-          key: source-${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
-          path: ./.esy/3_*/i
-      - name: Run esy build
+      # - name: Restoring esy install cache
+      #   id: esy-install-cache
+      #   uses: actions/cache@v2
+      #   with:
+      #     key: source-${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
+      #     path: ./.esy/source
+      - name: Run esy install / build
         run: |
+          esy install --verbosity=debug
           esy build-dependencies --verbosity=debug
           esy build --verbosity=debug
       # Create the NPM package for this platform
