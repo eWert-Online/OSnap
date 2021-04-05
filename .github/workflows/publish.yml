@@ -10,22 +10,12 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        include:
-          - { os: windows-latest, shell: bash }
-          # - { os: ubuntu-latest,  shell: bash  },
-          # - { os: macOS-latest,   shell: bash  },
         os:
           - windows-latest
           # - ubuntu-latest
           # - macOS-latest
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: ${{ matrix.shell }} {0}
     steps:
-      - name: switch git-bash shell to msys2 shell by adding msys2 path to PATH front
-        run: echo "C:\msys64\usr\bin" >> $GITHUB_PATH
-        shell: bash
       # Setup node to install esy
       - uses: actions/setup-node@v2
         with:
@@ -50,7 +40,6 @@ jobs:
       - name: Run esy install / build
         run: |
           esy install -vvv
-          chmod -R 777 .esy
           esy -vvv
       # Create the NPM package for this platform
       - name: Create npm package
