@@ -23,6 +23,8 @@ jobs:
       run:
         shell: ${{ matrix.shell }} {0}
     steps:
+      - run: echo ::set-env name=HOME::$GITHUB_WORKSPACE
+        shell: bash
       # Install MSYS2 and all required libraries (gcc, cmake, ...) on windows
       - uses: msys2/setup-msys2@v2
         if: matrix.os == 'windows-latest'
@@ -46,7 +48,7 @@ jobs:
       # We do this because of this issue with esy: https://github.com/esy/esy/issues/1083
       - name: Add esyrc
         run: |
-          echo '{ "prefixPath": "${GITHUB_WORKSPACE}" }' > .esyrc
+          echo '{ "prefixPath": "~/.esy" }' > .esyrc
       # - name: Restoring esy install cache
       #   id: esy-install-cache
       #   uses: actions/cache@v2
