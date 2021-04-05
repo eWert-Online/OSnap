@@ -46,7 +46,7 @@ jobs:
       # We do this because of this issue with esy: https://github.com/esy/esy/issues/1083
       - name: Add esyrc
         run: |
-          echo '{ "prefixPath": "./.esy" }' > .esyrc
+          echo '{ "prefixPath": "/esycache" }' > .esyrc
       # - name: Restoring esy install cache
       #   id: esy-install-cache
       #   uses: actions/cache@v2
