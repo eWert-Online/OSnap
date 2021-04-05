@@ -50,7 +50,7 @@ jobs:
       - name: Run esy install / build
         run: |
           esy install
-          ls -l .esy
+          ls -l .esy/3______________________________________________________________
           esy
       # Create the NPM package for this platform
       - name: Create npm package
