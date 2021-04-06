@@ -15,19 +15,16 @@
         "esy-libpng",
         "esy-zlib"
       ]
-    },
-    "buildEnv": {
-      "ODOC_SYNTAX": "re"
     }
   },
   "scripts": {
-    "run": "esy x OSnap",
-    "doc": "esy dune build @doc"
+    "run": "esy x osnap"
   },
   "dependencies": {
     "@opam/base64": "3.5.0",
     "@opam/camlimages": "*",
     "@opam/cmdliner": "1.0.4",
+    "@opam/conf-gmp-powm-sec": "2",
     "@opam/fileutils": "0.6.3",
     "@opam/lwt": "5.4.0",
     "@opam/lwt_ppx": "2.0.1",
@@ -39,22 +36,26 @@
     "@opam/websocket-lwt-unix": "2.14",
     "@opam/yojson": "1.7.0",
     "@opam/zarith": "1.11",
-    "@opam/conf-gmp-powm-sec": "2",
-    "@reason-native/console": "jfrolich/reason-native:console.json#08085a4048974b06aaf3aab918b677b39dea3d18",
-    "@reason-native/pastel": "jfrolich/reason-native:pastel.json#08085a4048974b06aaf3aab918b677b39dea3d18",
+    "@reason-native/console": "*",
+    "@reason-native/pastel": "*",
     "odiff": "*"
   },
   "devDependencies": {
     "@opam/reason": ">= 3.6.0 < 4.0.0",
     "@opam/dune": "< 3.0.0",
-    "@opam/merlin": "*",
-    "@opam/ocaml-lsp-server": "1.5.0",
-    "@opam/odoc": "*",
-    "ocaml": "~4.12.0"
+    "@opam/ocaml-lsp-server": "*",
+    "ocaml": "< 4.12.0"
   },
   "resolutions": {
     "@opam/re": "ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017",
-    "odiff": "ewert-online/odiff#d99c584f2e6236d886c4146062db007712fc08ca",
+    "odiff": {
+      "source": "ewert-online/odiff#603204fe4477f05fd401244171ac4ee989ebb89a",
+      "override": {
+        "dependencies": {
+          "ocaml": "< 4.12.0"
+        }
+      }
+    },
     "@opam/camlimages": {
       "source": "git+https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870",
       "override": {
