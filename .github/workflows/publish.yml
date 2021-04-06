@@ -123,4 +123,4 @@ jobs:
       - name: test install
         run: npm -g install ./osnap.tgz
       - name: test binary
-        run: osnap --help
+        run: osnap --help=plain
