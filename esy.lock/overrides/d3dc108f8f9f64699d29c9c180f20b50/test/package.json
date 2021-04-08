@@ -12,6 +12,6 @@
     "install": "cp testinggmp #{self.bin}"
   },
   "dependencies": {
-    "gmp": "esy-packages/esy-gmp#e2a8fab86e6ff2b26637b3249ee149d29b3430dd"
+    "gmp": "esy-packages/esy-gmp"
   }
 }
