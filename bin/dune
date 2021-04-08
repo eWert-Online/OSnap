@@ -1,8 +1,11 @@
 (executable
-  (name Main)
-  (public_name osnap)
-  (libraries
-    OSnap
-    cmdliner
-  )
-)
+ (name Main)
+ (modules Main)
+ (public_name osnap)
+ (libraries OSnap cmdliner))
+
+(executable
+ (name DownloadChromium)
+ (modules DownloadChromium)
+ (public_name download-chromium)
+ (libraries camlzip cmdliner cohttp-lwt-unix lwt))

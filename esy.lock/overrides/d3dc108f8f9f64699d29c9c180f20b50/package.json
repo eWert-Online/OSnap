@@ -2,7 +2,7 @@
   "name": "esy-gmp",
   "version": "6.2.0",
   "description": "GMP packaged for esy",
-  "source": "https://gmplib.org/download/gmp/gmp-6.2.0.tar.xz#052a5411dc74054240eec58132d2cf41211d0ff6",
+  "source": "https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz#0578d48607ec0e272177d175fd1807c30b00fdf2",
   "override": {
     "buildsInSource": true,
     "build": [
