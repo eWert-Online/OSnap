@@ -7,5 +7,5 @@
 (executable
  (name DownloadChromium)
  (modules DownloadChromium)
- (public_name download-chromium)
+ (public_name downloadChromium)
  (libraries camlzip cmdliner cohttp-lwt-unix lwt))
