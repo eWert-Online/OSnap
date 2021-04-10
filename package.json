@@ -51,7 +51,7 @@
     "@opam/reason": ">= 3.6.0 < 4.0.0",
     "@opam/dune": "< 3.0.0",
     "@opam/ocaml-lsp-server": "*",
-    "ocaml": "< 4.12.0"
+    "ocaml": ">= 4.2.0 < 4.11.0"
   },
   "resolutions": {
     "@opam/re": "ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017",
@@ -65,23 +65,16 @@
         }
       }
     },
-    "odiff": {
-      "source": "ewert-online/odiff#603204fe4477f05fd401244171ac4ee989ebb89a",
-      "override": {
-        "dependencies": {
-          "ocaml": "< 4.12.0"
-        }
-      }
-    },
     "@opam/camlimages": {
       "source": "git+https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870",
       "override": {
         "dependencies": {
-          "esy-libpng": "dmtrKovalenko/esy-libpng#a8f4da71d87e5bfbf567f472c0e52c95db90e04d"
+          "esy-libpng": "*"
         }
       }
     },
     "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
-    "esy-libpng": "dmtrKovalenko/esy-libpng#a8f4da71d87e5bfbf567f472c0e52c95db90e04d"
+    "esy-libpng": "dmtrKovalenko/esy-libpng#a8f4da71d87e5bfbf567f472c0e52c95db90e04d",
+    "odiff": "ewert-online/odiff#6f55f9181068e5728662001eac1147352f285863"
   }
 }
