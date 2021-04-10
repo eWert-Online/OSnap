@@ -1,5 +1,5 @@
 {
-  "checksum": "b3ee131eaa9ecb68316642b06ccf040b",
+  "checksum": "18fb4c8fbf64c16d4abbf73391e46b5c",
   "root": "osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -48,7 +48,7 @@
         "@opam/cohttp-lwt-unix@opam:4.0.0@0a9edf2a",
         "@opam/cohttp@opam:4.0.0@79f9f686",
         "@opam/cmdliner@opam:1.0.4@93208aac",
-        "@opam/camlzip@github:xavierleroy/camlzip:camlzip.opam#d81554a31865064b2c5719a53265fd52a6f3d380@aa7c4980",
+        "@opam/camlzip@github:rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195@941c02f2",
         "@opam/camlimages@git:https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870@bdc4ddc0",
         "@opam/base64@opam:3.5.0@827395e3"
       ],
@@ -2980,35 +2980,33 @@
       ],
       "devDependencies": [ "ocaml@4.11.2000@d41d8cd9" ]
     },
-    "@opam/camlzip@github:xavierleroy/camlzip:camlzip.opam#d81554a31865064b2c5719a53265fd52a6f3d380@aa7c4980": {
+    "@opam/camlzip@github:rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195@941c02f2": {
       "id":
-        "@opam/camlzip@github:xavierleroy/camlzip:camlzip.opam#d81554a31865064b2c5719a53265fd52a6f3d380@aa7c4980",
+        "@opam/camlzip@github:rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195@941c02f2",
       "name": "@opam/camlzip",
       "version":
-        "github:xavierleroy/camlzip:camlzip.opam#d81554a31865064b2c5719a53265fd52a6f3d380",
+        "github:rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195",
       "source": {
         "type": "install",
         "source": [
-          "github:xavierleroy/camlzip:camlzip.opam#d81554a31865064b2c5719a53265fd52a6f3d380"
+          "github:rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195"
         ]
       },
       "overrides": [
         {
           "dependencies": {
-            "esy-zlib":
-              "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3"
+            "@opam/dune": "< 3.0.0",
+            "@opam/dune-configurator": "< 3.0.0",
+            "@opam/conf-zlib": "*"
           }
         }
       ],
       "dependencies": [
-        "ocaml@4.11.2000@d41d8cd9",
-        "esy-zlib@github:esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3@d41d8cd9",
-        "@opam/ocamlfind@opam:1.9.1@b748edf6",
-        "@opam/conf-zlib@opam:1@7c31eaf6", "@esy-ocaml/substs@0.0.1@d41d8cd9"
+        "@opam/dune-configurator@opam:2.7.1@96307faa",
+        "@opam/dune@opam:2.7.1@baccb77f", "@opam/conf-zlib@opam:1@7c31eaf6",
+        "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
-      "devDependencies": [
-        "ocaml@4.11.2000@d41d8cd9", "@opam/conf-zlib@opam:1@7c31eaf6"
-      ]
+      "devDependencies": []
     },
     "@opam/camlimages@git:https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870@bdc4ddc0": {
       "id":

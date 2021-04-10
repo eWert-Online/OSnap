@@ -54,15 +54,17 @@
     "ocaml": "< 4.12.0"
   },
   "resolutions": {
+    "@opam/re": "ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017",
     "@opam/camlzip": {
-      "source": "xavierleroy/camlzip:camlzip.opam#d81554a31865064b2c5719a53265fd52a6f3d380",
+      "source": "rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195",
       "override": {
         "dependencies": {
-          "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3"
+          "@opam/dune": "< 3.0.0",
+          "@opam/dune-configurator": "< 3.0.0",
+          "@opam/conf-zlib": "*"
         }
       }
     },
-    "@opam/re": "ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017",
     "odiff": {
       "source": "ewert-online/odiff#603204fe4477f05fd401244171ac4ee989ebb89a",
       "override": {

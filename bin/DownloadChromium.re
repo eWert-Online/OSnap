@@ -66,19 +66,19 @@ let download = (~revision, dir) => {
 
 let extract_zip = source => {
   let extract_entry = (ifile, entry) => {
-    let file = entry.Zip.filename;
-    if (entry.Zip.is_directory && !Sys.file_exists(file)) {
+    let file = entry.Camlzip.Zip.filename;
+    if (entry.Camlzip.Zip.is_directory && !Sys.file_exists(file)) {
       Unix.mkdir(file, 511);
     } else {
-      Zip.copy_entry_to_file(ifile, entry, file);
+      Camlzip.Zip.copy_entry_to_file(ifile, entry, file);
     };
   };
 
   print_endline("Extracting Chromium...");
 
-  let ic = Zip.open_in(source);
-  ic |> Zip.entries |> List.iter(extract_entry(ic));
-  Zip.close_in(ic);
+  let ic = Camlzip.Zip.open_in(source);
+  ic |> Camlzip.Zip.entries |> List.iter(extract_entry(ic));
+  Camlzip.Zip.close_in(ic);
 };
 
 let main = () => {
