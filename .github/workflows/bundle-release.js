@@ -43,8 +43,8 @@ const packageJson = JSON.stringify(
     repository: mainPackageJson.repository,
     scripts: {
       postinstall: rewritePrefix
-        ? "ESY_RELEASE_REWRITE_PREFIX=true node ./postinstall.js"
-        : "node ./postinstall.js",
+        ? "ESY_RELEASE_REWRITE_PREFIX=true node ./postinstall.js && ./bin/downloadChromium"
+        : "node ./postinstall.js && ./bin/downloadChromium",
     },
     bin: bins,
     files: [
