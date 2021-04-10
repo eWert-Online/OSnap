@@ -32,7 +32,7 @@
     "@opam/fileutils": "0.6.3",
     "@opam/lwt": "5.4.0",
     "@opam/lwt_ppx": "2.0.1",
-    "@opam/ocamlfind": "1.9.1",
+    "@opam/ocamlfind": "1.8.1",
     "@opam/ppx_yojson_conv": "v0.14.0",
     "@opam/re": "*",
     "@opam/tls": "0.12.6",
