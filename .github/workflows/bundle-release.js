@@ -43,14 +43,15 @@ const packageJson = JSON.stringify(
     repository: mainPackageJson.repository,
     scripts: {
       postinstall: rewritePrefix
-        ? "ESY_RELEASE_REWRITE_PREFIX=true node ./postinstall.js && ./bin/downloadChromium"
-        : "node ./postinstall.js && ./bin/downloadChromium",
+        ? "ESY_RELEASE_REWRITE_PREFIX=true node ./postinstall.js && node ./download-chromium.js"
+        : "node ./postinstall.js && node ./download-chromium.js",
     },
     bin: bins,
     files: [
       "_export/",
       "bin/",
       "postinstall.js",
+      "download-chromium.js",
       "esyInstallRelease.js",
       "platform-linux/",
       "platform-darwin/",
@@ -89,6 +90,12 @@ console.log("Copying postinstall.js");
 fs.copyFileSync(
   path.join(__dirname, "release-postinstall.js"),
   path.join(__dirname, "..", "..", "_release", "postinstall.js")
+);
+
+console.log("Copying download-chromium.js");
+fs.copyFileSync(
+  path.join(__dirname, "download-chromium.js"),
+  path.join(__dirname, "..", "..", "_release", "download-chromium.js")
 );
 
 console.log("Creating placeholder files");
