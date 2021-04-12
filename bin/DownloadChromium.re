@@ -65,12 +65,28 @@ let download = (~revision, dir) => {
 };
 
 let extract_zip = source => {
-  let extract_entry = (ifile, entry) => {
-    let file = entry.Camlzip.Zip.filename;
-    if (entry.Camlzip.Zip.is_directory && !Sys.file_exists(file)) {
+  let extract_entry = (ifile, entry: Camlzip.Zip.entry) => {
+    let file = entry.filename;
+    if (entry.is_directory && !Sys.file_exists(file)) {
       Unix.mkdir(file, 511);
     } else {
-      Camlzip.Zip.copy_entry_to_file(ifile, entry, file);
+      let oc =
+        open_out_gen([Open_creat, Open_binary, Open_append], 511, file);
+      try(
+        {
+          Camlzip.Zip.copy_entry_to_channel(ifile, entry, oc);
+          close_out(oc);
+          try(Unix.utimes(file, entry.mtime, entry.mtime)) {
+          | Unix.Unix_error(_, _, _)
+          | Invalid_argument(_) => ()
+          };
+        }
+      ) {
+      | x =>
+        close_out(oc);
+        Sys.remove(file);
+        raise(x);
+      };
     };
   };
 

@@ -1,5 +1,7 @@
 open Cmdliner;
 
+Printexc.record_backtrace(true);
+
 let main = (noCreate, noOnly, noSkip) => {
   open Lwt.Syntax;
   let run = {
