@@ -67,7 +67,6 @@ let download = (~revision, dir) => {
 let extract_zip = (~dest="", source) => {
   let extract_entry = (in_file, entry: Camlzip.Zip.entry) => {
     let out_file = Filename.concat(dest, entry.filename);
-    print_endline(out_file);
     if (entry.is_directory && !Sys.file_exists(out_file)) {
       Unix.mkdir(out_file, 511);
     } else {
