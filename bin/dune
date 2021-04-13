@@ -8,4 +8,4 @@
  (name DownloadChromium)
  (modules DownloadChromium)
  (public_name downloadChromium)
- (libraries camlzip cmdliner cohttp-lwt-unix lwt))
+ (libraries OSnap camlzip cohttp-lwt-unix lwt))

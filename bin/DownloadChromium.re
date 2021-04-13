@@ -64,28 +64,29 @@ let download = (~revision, dir) => {
   zip_path |> Lwt.return;
 };
 
-let extract_zip = source => {
-  let extract_entry = (ifile, entry: Camlzip.Zip.entry) => {
-    let file = entry.filename;
-    if (entry.is_directory && !Sys.file_exists(file)) {
-      Unix.mkdir(file, 511);
+let extract_zip = (~dest="", source) => {
+  let extract_entry = (in_file, entry: Camlzip.Zip.entry) => {
+    let out_file = Filename.concat(dest, entry.filename);
+    print_endline(out_file);
+    if (entry.is_directory && !Sys.file_exists(out_file)) {
+      Unix.mkdir(out_file, 511);
     } else {
       let oc =
-        open_out_gen([Open_creat, Open_binary, Open_append], 511, file);
+        open_out_gen([Open_creat, Open_binary, Open_append], 511, out_file);
       try(
         {
-          Camlzip.Zip.copy_entry_to_channel(ifile, entry, oc);
+          Camlzip.Zip.copy_entry_to_channel(in_file, entry, oc);
           close_out(oc);
-          try(Unix.utimes(file, entry.mtime, entry.mtime)) {
+          try(Unix.utimes(out_file, entry.mtime, entry.mtime)) {
           | Unix.Unix_error(_, _, _)
           | Invalid_argument(_) => ()
           };
         }
       ) {
-      | x =>
+      | err =>
         close_out(oc);
-        Sys.remove(file);
-        raise(x);
+        Sys.remove(out_file);
+        raise(err);
       };
     };
   };
@@ -98,15 +99,29 @@ let extract_zip = source => {
 };
 
 let main = () => {
-  let revision = "856583";
+  let revision = OSnap_Browser.Path.get_revision();
+  let extract_path = OSnap_Browser.Path.get_chromium_path();
+
   print_newline();
   print_newline();
-  Lwt_io.with_temp_dir(~prefix="osnap_chromium_", dir => {
-    let* path = dir |> download(~revision);
-    extract_zip(path);
-    print_endline("Done!");
+
+  if (!Sys.file_exists(extract_path) || !Sys.is_directory(extract_path)) {
+    Unix.mkdir(extract_path, 511);
+    Lwt_io.with_temp_dir(~prefix="osnap_chromium_", dir => {
+      let* path = dir |> download(~revision);
+      extract_zip(path, ~dest=extract_path);
+      print_endline("Done!");
+      Lwt.return();
+    });
+  } else {
+    print_endline(
+      Printf.sprintf(
+        "Found Chromium at \"%s\". Skipping Download!",
+        extract_path,
+      ),
+    );
     Lwt.return();
-  });
+  };
 };
 
 Lwt_main.run(main());

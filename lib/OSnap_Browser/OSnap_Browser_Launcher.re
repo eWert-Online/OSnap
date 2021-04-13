@@ -6,13 +6,17 @@ module Websocket = OSnap_Websocket;
 exception Connection_failed;
 
 let make = () => {
-  let assets_path = Sys.getcwd() ++ "/assets/";
+  let base_path = OSnap_Browser_Path.get_chromium_path();
+
   let executable_path =
     switch (OSnap_Browser_Utils.detect_platform()) {
     | "darwin" =>
-      assets_path ++ "chrome-mac/Chromium.app/Contents/MacOS/Chromium"
-    | "linux" => assets_path ++ "chrome-linux/chrome"
-    | "win64" => assets_path ++ "chrome-win/chrome.exe"
+      Filename.concat(
+        base_path,
+        "chrome-mac/Chromium.app/Contents/MacOS/Chromium",
+      )
+    | "linux" => Filename.concat(base_path, "chrome-linux/chrome")
+    | "win64" => Filename.concat(base_path, "chrome-win/chrome.exe")
     | _ => ""
     };
 
@@ -55,26 +59,26 @@ let make = () => {
     ));
 
   let rec get_ws_url = proc => {
-    switch (proc#state) {
-    | Lwt_process.Running =>
-      let%lwt line = proc#stderr |> Lwt_io.read_line;
-      if (OSnap_Browser_Utils.contains_substring(
-            "Cannot start http server for devtools",
-            line,
-          )) {
-        proc#terminate;
-      };
-      if (line
-          |> OSnap_Browser_Utils.contains_substring("DevTools listening on")) {
-        let offset = String.length("DevTools listening on");
-        let len = String.length(line);
-        let socket = String.sub(line, offset, len - offset);
-        socket |> Lwt.return;
-      } else {
-        get_ws_url(proc);
-      };
-    | Lwt_process.Exited(_) => raise(Connection_failed)
-    };
+    OSnap_Browser_Utils.(
+      switch (proc#state) {
+      | Lwt_process.Running =>
+        switch%lwt (Lwt_io.read_line(proc#stderr)) {
+        | exception _ =>
+          proc#terminate;
+          raise(Connection_failed);
+        | line when line |> contains_substring("Cannot start http server") =>
+          proc#terminate;
+          raise(Connection_failed);
+        | line when line |> contains_substring("DevTools listening on") =>
+          let offset = String.length("DevTools listening on");
+          let len = String.length(line);
+          let socket = String.sub(line, offset, len - offset);
+          socket |> Lwt.return;
+        | _ => get_ws_url(proc)
+        }
+      | Lwt_process.Exited(_) => raise(Connection_failed)
+      }
+    );
   };
 
   let%lwt url = get_ws_url(process);

@@ -33,3 +33,11 @@ module Actions: {
 
   let screenshot: (~full_size: bool=?, Target.target) => Lwt.t(string);
 };
+
+module Path: {
+  let get_revision: unit => string;
+
+  let get_folder_name: unit => string;
+
+  let get_chromium_path: unit => string;
+};
