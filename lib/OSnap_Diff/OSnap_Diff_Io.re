@@ -22,24 +22,35 @@ module PNG: ImageIO.ImageIO = {
     Png.save(filename, [], Images.Rgba32(img.image));
   };
 
-  let readImgColor = (x, y, img: ImageIO.img(t)) => {
-    let (bytes, position) = Rgba32.unsafe_access(img.image, x, y);
-
-    (
-      Bytes.unsafe_get(bytes, position) |> Char.code,
-      Bytes.unsafe_get(bytes, position + 1) |> Char.code,
-      Bytes.unsafe_get(bytes, position + 2) |> Char.code,
-      Bytes.unsafe_get(bytes, position + 3) |> Char.code,
-    );
-  };
+  let readImgColor = (x, y, img: ImageIO.img(t)) =>
+    try({
+      let (bytes, position) = Rgba32.unsafe_access(img.image, x, y);
+      let r = Bytes.get(bytes, position + 0) |> Char.code;
+      let g = Bytes.get(bytes, position + 1) |> Char.code;
+      let b = Bytes.get(bytes, position + 2) |> Char.code;
+      let a = Bytes.get(bytes, position + 3) |> Char.code;
+      (r, g, b, a);
+    }) {
+    | _ =>
+      print_endline(
+        Printf.sprintf(
+          "Unable to read x: %i, y: %i from image with dimensions %ix%i",
+          x,
+          y,
+          img.width,
+          img.height,
+        ),
+      );
+      (0, 0, 0, 0);
+    };
 
   let setImgColor = (x, y, (r, g, b), img: ImageIO.img(t)) => {
     let (bytes, position) = Rgba32.unsafe_access(img.image, x, y);
 
-    Bytes.unsafe_set(bytes, position, r |> char_of_int);
-    Bytes.unsafe_set(bytes, position + 1, g |> char_of_int);
-    Bytes.unsafe_set(bytes, position + 2, b |> char_of_int);
-    Bytes.unsafe_set(bytes, position + 3, 255 |> char_of_int);
+    Bytes.set(bytes, position + 0, r |> char_of_int);
+    Bytes.set(bytes, position + 1, g |> char_of_int);
+    Bytes.set(bytes, position + 2, b |> char_of_int);
+    Bytes.set(bytes, position + 3, 255 |> char_of_int);
   };
 
   let freeImage = _ => ();
