@@ -14,7 +14,8 @@
       "includePackages": [
         "osnap",
         "esy-libpng",
-        "esy-zlib"
+        "esy-zlib",
+        "esy-gmp"
       ]
     }
   },
@@ -45,6 +46,7 @@
     "@reason-native/pastel": "*",
     "esy-libpng": "*",
     "esy-zlib": "*",
+    "esy-gmp": "*",
     "odiff": "*"
   },
   "devDependencies": {
@@ -74,6 +76,7 @@
       }
     },
     "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
+    "esy-gmp": "esy-packages/esy-gmp#e27cb300adfb0c0b320c273082c5affafcd225fa",
     "esy-libpng": "dmtrKovalenko/esy-libpng#a8f4da71d87e5bfbf567f472c0e52c95db90e04d",
     "odiff": "ewert-online/odiff#0bb2f2cd16fe6d64b16414d106d4c46c92b6ecfd"
   }
