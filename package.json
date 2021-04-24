@@ -42,18 +42,18 @@
     "@opam/websocket-lwt-unix": "2.14",
     "@opam/yojson": "1.7.0",
     "@opam/zarith": "1.11",
-    "@reason-native/console": "*",
-    "@reason-native/pastel": "*",
+    "@reason-native/console": "jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c",
+    "@reason-native/pastel": "jfrolich/reason-native:pastel.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c",
+    "esy-gmp": "*",
     "esy-libpng": "*",
     "esy-zlib": "*",
-    "esy-gmp": "*",
-    "odiff": "*"
+    "odiff-core": "ewert-online/odiff:odiff-core.opam#43859385306fed40146264aebb8b8faf941e6a87"
   },
   "devDependencies": {
     "@opam/reason": ">= 3.6.0 < 4.0.0",
     "@opam/dune": "< 3.0.0",
     "@opam/ocaml-lsp-server": "*",
-    "ocaml": ">= 4.2.0 < 4.11.0"
+    "ocaml": ">= 4.2.0 < 5.0.0"
   },
   "resolutions": {
     "@opam/re": "ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017",
@@ -77,7 +77,6 @@
     },
     "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
     "esy-gmp": "esy-packages/esy-gmp#e27cb300adfb0c0b320c273082c5affafcd225fa",
-    "esy-libpng": "dmtrKovalenko/esy-libpng#a8f4da71d87e5bfbf567f472c0e52c95db90e04d",
-    "odiff": "ewert-online/odiff#0bb2f2cd16fe6d64b16414d106d4c46c92b6ecfd"
+    "esy-libpng": "esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048"
   }
 }

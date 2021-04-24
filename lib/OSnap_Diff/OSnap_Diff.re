@@ -24,6 +24,7 @@ let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
     ~outputDiffMask=true,
     ~threshold=0.1,
     ~failOnLayoutChange=true,
+    ~antialiasing=true,
     ~diffPixel,
     (),
   )

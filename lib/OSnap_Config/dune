@@ -4,6 +4,7 @@
   (libraries
     str
     re
+    fileutils
     yojson
   )
   (preprocess (pps
