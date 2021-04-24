@@ -51,7 +51,14 @@ let setup = () => {
 
   let%lwt browser = Browser.Launcher.make();
 
-  Lwt.return({config, browser, tests, snapshot_dir, updated_dir, diff_dir});
+  Lwt_result.return({
+    config,
+    browser,
+    tests,
+    snapshot_dir,
+    updated_dir,
+    diff_dir,
+  });
 };
 
 let run = (~noCreate, ~noOnly, ~noSkip, t) => {

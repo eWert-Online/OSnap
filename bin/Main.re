@@ -2,29 +2,55 @@ open Cmdliner;
 
 Printexc.record_backtrace(true);
 
+let print_error = msg => {
+  Console.log(<Pastel color=Red> msg </Pastel>);
+};
+
 let main = (noCreate, noOnly, noSkip) => {
-  open Lwt.Syntax;
+  open Lwt_result.Syntax;
   let run = {
-    let* t = OSnap.setup();
-    let* res =
+    let* t =
+      try(OSnap.setup()) {
+      | Failure(message) =>
+        print_error(message);
+        Lwt_result.fail();
+      | OSnap_Config.Global.Parse_Error(_) =>
+        print_error("Your osnap.config.json is in an invalid format.");
+        Lwt_result.fail();
+      | OSnap_Config.Global.No_Config_Found =>
+        print_error("Unable to find a global config file.");
+        print_error(
+          "Please create a \"osnap.config.json\" at the root of your project.",
+        );
+        Lwt_result.fail();
+      | OSnap_Config.Test.Duplicate_Tests(tests) =>
+        print_error(
+          "Found some tests with duplicate names. Every test has to have a unique name.",
+        );
+        print_error("Please rename the following tests: \n");
+        tests |> List.iter(print_error);
+        Lwt_result.fail();
+      | OSnap_Config.Test.Invalid_format =>
+        print_error("Found some tests with an invalid format.");
+        Lwt_result.fail();
+      | exn => raise(exn)
+      };
+
+    let* () =
       try(OSnap.run(t, ~noCreate, ~noOnly, ~noSkip)) {
       | Failure(message) =>
         print_endline(message);
         Lwt_result.fail();
       | exn => raise(exn)
       };
-    OSnap.teardown(t);
 
-    let exit_code =
-      switch (res) {
-      | Ok () => 0
-      | Error () => 1
-      };
-
-    Lwt.return(exit_code);
+    OSnap.teardown(t) |> Lwt_result.return;
   };
 
-  Lwt_main.run(run);
+  switch (Lwt_main.run(run)) {
+  | Ok () => 0
+  | Error () => 1
+  };
 };
 
 let info =

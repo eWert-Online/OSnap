@@ -7,7 +7,7 @@ type t = {
   diff_dir: string,
 };
 
-let setup: unit => Lwt.t(t);
+let setup: unit => Lwt_result.t(t, 'a);
 
 let run:
   (~noCreate: bool, ~noOnly: bool, ~noSkip: bool, t) =>

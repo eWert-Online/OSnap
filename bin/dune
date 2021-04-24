@@ -2,7 +2,7 @@
  (name Main)
  (modules Main)
  (public_name osnap)
- (libraries OSnap cmdliner))
+ (libraries OSnap console.lib pastel.lib cmdliner))
 
 (executable
  (name DownloadChromium)
