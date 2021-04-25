@@ -107,7 +107,7 @@ The test config files (`**.osnap.json` by default), are used to specify a single
 
 _Keys marked with **\*** are required!_
 
-The smallest possoble test file would look like this:
+The smallest possible test file would look like this:
 
 ```json
 [
