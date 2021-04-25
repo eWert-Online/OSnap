@@ -2,12 +2,12 @@ name: Publish packages to npm
 
 on:
   release:
-    types: [published]
+    types: [prereleased, published]
 
 jobs:
   build-platform:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os:
           - windows-latest
@@ -123,3 +123,26 @@ jobs:
         run: npm -g install ./osnap.tgz
       - name: test binary
         run: npx osnap --help=plain
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [prepare-publish, test-platform]
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org/
+
+      - name: npm publish prerelease
+        if: ${{ github.event.release.prerelease }}
+        run: npm publish ./osnap.tgz --tag=next --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: npm publish
+        if: ${{ !github.event.release.prerelease }}
+        run: npm publish ./osnap.tgz --tag=latest --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
