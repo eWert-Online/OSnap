@@ -1,7 +1,7 @@
 {
-  "name": "osnap",
-  "version": "0.0.1",
-  "description": "A Snapshot tool",
+  "name": "@space-labs/osnap",
+  "version": "1.0.0-alpha+1",
+  "description": "A Snapshot testing tool focusing on speed and ease of use.",
   "license": "MIT",
   "esy": {
     "build": "dune build -p #{self.name}",

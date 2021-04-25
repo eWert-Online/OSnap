@@ -1,5 +1,7 @@
 # OSnap
 
+:warning: **This library is currently in an alpha phase. There may be breaking changes and unexpected errors!** :warning:
+
 OSnap is a snapshot testing tool, which uses Chrome to take screenshots and compares them with a base image taken previously.
 
 If both images are equal, the test passes.

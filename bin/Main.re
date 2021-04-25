@@ -56,7 +56,7 @@ let main = (noCreate, noOnly, noSkip) => {
 let info =
   Term.info(
     "osnap",
-    ~version="0.0.1",
+    ~version="1.0.0-alpha+1",
     ~man=[
       `S(Manpage.s_description),
       `P(
