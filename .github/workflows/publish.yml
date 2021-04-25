@@ -135,6 +135,11 @@ jobs:
           node-version: 14
           registry-url: https://registry.npmjs.org/
 
+      - name: Download release package
+        uses: actions/download-artifact@v2
+        with:
+          name: release-tarball
+
       - name: npm publish prerelease
         if: ${{ github.event.release.prerelease }}
         run: npm publish ./osnap.tgz --tag=next --access=public
