@@ -2,10 +2,14 @@
  (name Main)
  (modules Main)
  (public_name osnap)
- (libraries OSnap console.lib pastel.lib cmdliner))
+ (libraries OSnap console.lib pastel.lib cmdliner)
+ (preprocess
+  (pps lwt_ppx)))
 
 (executable
  (name DownloadChromium)
  (modules DownloadChromium)
  (public_name downloadChromium)
- (libraries OSnap camlzip cohttp-lwt-unix lwt))
+ (libraries OSnap camlzip cohttp-lwt-unix lwt)
+ (preprocess
+  (pps lwt_ppx)))

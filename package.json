@@ -12,7 +12,7 @@
         "downloadChromium": "downloadChromium"
       },
       "includePackages": [
-        "osnap",
+        "root",
         "esy-libpng",
         "esy-zlib",
         "esy-gmp"

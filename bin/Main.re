@@ -10,7 +10,7 @@ let main = (noCreate, noOnly, noSkip) => {
   open Lwt_result.Syntax;
   let run = {
     let* t =
-      try(OSnap.setup()) {
+      try%lwt(OSnap.setup()) {
       | Failure(message) =>
         print_error(message);
         Lwt_result.fail();
@@ -37,9 +37,9 @@ let main = (noCreate, noOnly, noSkip) => {
       };
 
     let* () =
-      try(OSnap.run(t, ~noCreate, ~noOnly, ~noSkip)) {
+      try%lwt(OSnap.run(t, ~noCreate, ~noOnly, ~noSkip)) {
       | Failure(message) =>
-        print_endline(message);
+        print_error(message);
         Lwt_result.fail();
       | exn => raise(exn)
       };

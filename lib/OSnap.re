@@ -61,6 +61,21 @@ let setup = () => {
   });
 };
 
+let test_url = url => {
+  let uri = Uri.of_string(url);
+  (
+    try%lwt(Cohttp_lwt_unix.Client.head(uri)) {
+    | _ =>
+      Cohttp_lwt_unix.Response.make(
+        ~status=`Network_connect_timeout_error,
+        (),
+      )
+      |> Lwt.return
+    }
+  )
+  |> Lwt.map(Cohttp_lwt_unix.Response.status);
+};
+
 let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   let {browser, snapshot_dir, updated_dir, diff_dir, tests, config} = t;
 
@@ -138,6 +153,24 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
        )
     |> List.fast_sort(((_test, _size, exists1), (_test, _size, exists2)) => {
          Bool.compare(exists1, exists2)
+       });
+
+  let%lwt () =
+    tests_to_run
+    |> Lwt_list.iter_s(((test, _size, _exists)) => {
+         let url = config.Config.Global.base_url ++ test.Config.Test.url;
+         test_url(url)
+         |> Lwt.map(
+              fun
+              | `OK => ()
+              | _ => {
+                  raise(
+                    Failure(
+                      Printf.sprintf("Could not connect to url \"%s\"", url),
+                    ),
+                  );
+                },
+            );
        });
 
   let pool =
