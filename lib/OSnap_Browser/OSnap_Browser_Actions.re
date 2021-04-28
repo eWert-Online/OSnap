@@ -42,7 +42,10 @@ let go_to = (~url, target) => {
     |> OSnap_Websocket.send
     |> Lwt.map(Page.Navigate.parse);
 
-  payload.Types.Response.result.Page.Navigate.loaderId |> Lwt.return;
+  switch(payload.Types.Response.result.Page.Navigate.errorText) {
+    | Some(error) => error |> Lwt_result.fail;
+    | None => payload.Types.Response.result.Page.Navigate.loaderId |> Lwt_result.return
+  }
 };
 
 let type_text = (~selector, ~text, target) => {

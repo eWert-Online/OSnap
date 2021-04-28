@@ -61,21 +61,6 @@ let setup = () => {
   });
 };
 
-let test_url = url => {
-  let uri = Uri.of_string(url);
-  (
-    try%lwt(Cohttp_lwt_unix.Client.head(uri)) {
-    | _ =>
-      Cohttp_lwt_unix.Response.make(
-        ~status=`Network_connect_timeout_error,
-        (),
-      )
-      |> Lwt.return
-    }
-  )
-  |> Lwt.map(Cohttp_lwt_unix.Response.status);
-};
-
 let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   let {browser, snapshot_dir, updated_dir, diff_dir, tests, config} = t;
 
@@ -155,24 +140,6 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
          Bool.compare(exists1, exists2)
        });
 
-  let%lwt () =
-    tests_to_run
-    |> Lwt_list.iter_s(((test, _size, _exists)) => {
-         let url = config.Config.Global.base_url ++ test.Config.Test.url;
-         test_url(url)
-         |> Lwt.map(
-              fun
-              | `OK => ()
-              | _ => {
-                  raise(
-                    Failure(
-                      Printf.sprintf("Could not connect to url \"%s\"", url),
-                    ),
-                  );
-                },
-            );
-       });
-
   let pool =
     Lwt_pool.create(max_concurrency, () => Browser.Target.make(browser));
 
@@ -196,7 +163,24 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
              let full_size = config.Config.Global.fullscreen;
 
              let%lwt () = target |> Browser.Actions.set_size(~width, ~height);
-             let%lwt loaderId = target |> Browser.Actions.go_to(~url);
+             let%lwt loaderId =
+               target
+               |> Browser.Actions.go_to(~url)
+               |> Lwt.map(
+                    fun
+                    | Ok(id) => id
+                    | Error(message) =>
+                      raise(
+                        Failure(
+                          Printf.sprintf(
+                            "Could not connect to url \"%s\". \nError was: %s",
+                            url,
+                            message,
+                          ),
+                        ),
+                      ),
+                  );
+
              let%lwt () =
                target |> Browser.Actions.wait_for_network_idle(~loaderId);
 

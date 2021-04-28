@@ -27,7 +27,7 @@ module Actions: {
     (Target.target, ~loaderId: OSnap_CDP.Types.Network.LoaderId.t) =>
     Lwt.t(unit);
 
-  let go_to: (~url: string, Target.target) => Lwt.t(string);
+  let go_to: (~url: string, Target.target) => Lwt_result.t(string, string);
 
   let set_size: (~width: int, ~height: int, Target.target) => Lwt.t(unit);
 

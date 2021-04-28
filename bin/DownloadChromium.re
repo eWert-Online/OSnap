@@ -22,7 +22,7 @@ let detect_platform = () => {
 };
 
 let get_download_url = revision => {
-  let base_path = "https://storage.googleapis.com/chromium-browser-snapshots";
+  let base_path = "http://storage.googleapis.com/chromium-browser-snapshots";
   switch (detect_platform()) {
   | Darwin => base_path ++ "/Mac/" ++ revision ++ "/chrome-mac.zip"
   | Linux => base_path ++ "/Linux_x64/" ++ revision ++ "/chrome-linux.zip"
