@@ -32,7 +32,7 @@ jobs:
           echo '{ "prefixPath": ".esy" }' > .esyrc
       - uses: esy/github-action@master
         with:
-          cache-key: ${{ hashFiles('esy.lock/index.json') }}
+          cache-key: ${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
           esy-prefix: .esy
       # Create the NPM package for this platform
       - name: Create npm package
@@ -141,13 +141,13 @@ jobs:
           name: release-tarball
 
       - name: npm publish prerelease
-        if: ${{ github.event.release.prerelease }}
+        if: ${{ github.event_name == 'release' && github.event.release.prerelease }}
         run: npm publish ./osnap.tgz --tag=next --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: npm publish
-        if: ${{ !github.event.release.prerelease }}
+        if: ${{ github.event_name == 'release' && !github.event.release.prerelease }}
         run: npm publish ./osnap.tgz --tag=latest --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
