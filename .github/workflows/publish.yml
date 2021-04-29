@@ -1,6 +1,9 @@
 name: Publish packages to npm
 
 on:
+  push:
+    branches:
+      - ci
   release:
     types: [prereleased, released]
 
@@ -115,14 +118,17 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 14
+      - uses: actions/checkout@v2
       - name: Download ${{ matrix.os }} release
         uses: actions/download-artifact@v2
         with:
           name: release-tarball
       - name: test install
         run: npm -g install ./osnap.tgz
-      - name: test binary
+      - name: test binary (quick)
         run: npx osnap --help=plain
+      - name: test binary
+        run: npx osnap --config ./test/osnap.config.json
 
   publish:
     runs-on: ubuntu-latest
