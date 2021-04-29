@@ -1,5 +1,5 @@
 {
-  "checksum": "cd80780861f87c961c2bf7acaf22e262",
+  "checksum": "cf9e6ea6c9d17ae4b98aa44581c5815a",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -119,6 +119,7 @@
         "esy-libpng@github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048@d41d8cd9",
         "@reason-native/pastel@github:jfrolich/reason-native:pastel.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c@d41d8cd9",
         "@reason-native/console@github:jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c@d41d8cd9",
+        "@opam/zarith@opam:1.11@6b66cdc1",
         "@opam/yojson@opam:1.7.0@7056d985",
         "@opam/websocket-lwt-unix@opam:2.14@03e9609b",
         "@opam/websocket@opam:2.14@cc2f10b7",
@@ -186,35 +187,35 @@
         "@opam/dune@opam:2.8.5@83fb0224"
       ]
     },
-    "@opam/zarith@opam:1.12@0e3022ef": {
-      "id": "@opam/zarith@opam:1.12@0e3022ef",
+    "@opam/zarith@opam:1.11@6b66cdc1": {
+      "id": "@opam/zarith@opam:1.11@6b66cdc1",
       "name": "@opam/zarith",
-      "version": "opam:1.12",
+      "version": "opam:1.11",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/bf/bf368f3d9e20b6b446d54681afc05a04#md5:bf368f3d9e20b6b446d54681afc05a04",
-          "archive:https://github.com/ocaml/Zarith/archive/release-1.12.tar.gz#md5:bf368f3d9e20b6b446d54681afc05a04"
+          "archive:https://opam.ocaml.org/cache/md5/95/95e8cb358b70f156328c552f1bde8d81#md5:95e8cb358b70f156328c552f1bde8d81",
+          "archive:https://github.com/ocaml/Zarith/archive/release-1.11.tar.gz#md5:95e8cb358b70f156328c552f1bde8d81"
         ],
         "opam": {
           "name": "zarith",
-          "version": "1.12",
-          "path": "esy.lock/opam/zarith.1.12"
+          "version": "1.11",
+          "path": "esy.lock/opam/zarith.1.11"
         }
       },
       "overrides": [
         {
           "opamoverride":
-            "esy.lock/overrides/opam__s__zarith_opam__c__1.12_opam_override"
+            "esy.lock/overrides/opam__s__zarith_opam__c__1.11_opam_override"
         }
       ],
       "dependencies": [
         "ocaml@4.12.0@d41d8cd9", "@opam/ocamlfind@opam:1.9.1@b748edf6",
-        "@opam/conf-gmp@opam:3@a623586f", "@esy-ocaml/substs@0.0.1@d41d8cd9"
+        "@opam/conf-perl@opam:1@402f7201", "@opam/conf-gmp@opam:3@a623586f",
+        "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
-        "ocaml@4.12.0@d41d8cd9", "@opam/ocamlfind@opam:1.9.1@b748edf6",
-        "@opam/conf-gmp@opam:3@a623586f"
+        "ocaml@4.12.0@d41d8cd9", "@opam/conf-gmp@opam:3@a623586f"
       ]
     },
     "@opam/yojson@opam:1.7.0@7056d985": {
@@ -1437,7 +1438,7 @@
       },
       "overrides": [],
       "dependencies": [
-        "ocaml@4.12.0@d41d8cd9", "@opam/zarith@opam:1.12@0e3022ef",
+        "ocaml@4.12.0@d41d8cd9", "@opam/zarith@opam:1.11@6b66cdc1",
         "@opam/sexplib@opam:v0.14.0@f67f18de",
         "@opam/rresult@opam:0.6.0@4b185e72",
         "@opam/ppx_sexp_conv@opam:v0.14.1@5fc4da3c",
@@ -1451,7 +1452,7 @@
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
-        "ocaml@4.12.0@d41d8cd9", "@opam/zarith@opam:1.12@0e3022ef",
+        "ocaml@4.12.0@d41d8cd9", "@opam/zarith@opam:1.11@6b66cdc1",
         "@opam/sexplib@opam:v0.14.0@f67f18de",
         "@opam/rresult@opam:0.6.0@4b185e72",
         "@opam/ppx_sexp_conv@opam:v0.14.1@5fc4da3c",
@@ -2530,6 +2531,23 @@
       ],
       "devDependencies": []
     },
+    "@opam/conf-perl@opam:1@402f7201": {
+      "id": "@opam/conf-perl@opam:1@402f7201",
+      "name": "@opam/conf-perl",
+      "version": "opam:1",
+      "source": {
+        "type": "install",
+        "source": [ "no-source:" ],
+        "opam": {
+          "name": "conf-perl",
+          "version": "1",
+          "path": "esy.lock/opam/conf-perl.1"
+        }
+      },
+      "overrides": [],
+      "dependencies": [ "@esy-ocaml/substs@0.0.1@d41d8cd9" ],
+      "devDependencies": []
+    },
     "@opam/conf-gmp-powm-sec@opam:3@b66b4239": {
       "id": "@opam/conf-gmp-powm-sec@opam:3@b66b4239",
       "name": "@opam/conf-gmp-powm-sec",
@@ -3177,7 +3195,7 @@
       },
       "overrides": [],
       "dependencies": [
-        "ocaml@4.12.0@d41d8cd9", "@opam/zarith@opam:1.12@0e3022ef",
+        "ocaml@4.12.0@d41d8cd9", "@opam/zarith@opam:1.11@6b66cdc1",
         "@opam/stdlib-shims@opam:0.3.0@0d088929",
         "@opam/ptime@opam:0.8.5@0051d642", "@opam/dune@opam:2.8.5@83fb0224",
         "@opam/cstruct@opam:6.0.0@a7534811",
@@ -3185,7 +3203,7 @@
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
-        "ocaml@4.12.0@d41d8cd9", "@opam/zarith@opam:1.12@0e3022ef",
+        "ocaml@4.12.0@d41d8cd9", "@opam/zarith@opam:1.11@6b66cdc1",
         "@opam/stdlib-shims@opam:0.3.0@0d088929",
         "@opam/ptime@opam:0.8.5@0051d642", "@opam/dune@opam:2.8.5@83fb0224",
         "@opam/cstruct@opam:6.0.0@a7534811",

@@ -37,6 +37,7 @@
     "@opam/websocket": "2.14",
     "@opam/websocket-lwt-unix": "2.14",
     "@opam/yojson": "1.7.0",
+    "@opam/zarith": "1.11",
     "@reason-native/console": "jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c",
     "@reason-native/pastel": "jfrolich/reason-native:pastel.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c",
     "esy-libpng": "*",
