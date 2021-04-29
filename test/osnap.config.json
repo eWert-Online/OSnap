@@ -1,0 +1,13 @@
+{
+  "baseUrl": "",
+  "fullScreen": true,
+  "parallelism": 20,
+  "testPattern": "tests/*.osnap.json",
+  "ignorePatterns": ["node_modules", "_esy"],
+  "defaultSizes": [
+    { "width": 1024, "height": 576 },
+    { "width": 768, "height": 432 },
+    { "width": 640, "height": 360 },
+    { "width": 320, "height": 180 }
+  ]
+}

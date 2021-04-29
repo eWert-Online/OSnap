@@ -18,7 +18,8 @@
     }
   },
   "scripts": {
-    "run": "esy x osnap"
+    "run": "esy x osnap",
+    "test": "esy x osnap --config ./test/osnap.config.json"
   },
   "dependencies": {
     "@opam/base64": "3.5.0",
