@@ -6,11 +6,11 @@ let print_error = msg => {
   Console.log(<Pastel color=Red> msg </Pastel>);
 };
 
-let main = (noCreate, noOnly, noSkip) => {
+let main = (noCreate, noOnly, noSkip, config_path) => {
   open Lwt_result.Syntax;
   let run = {
     let* t =
-      try%lwt(OSnap.setup()) {
+      try%lwt(OSnap.setup(~config_path)) {
       | Failure(message) =>
         print_error(message);
         Lwt_result.fail();
@@ -20,7 +20,7 @@ let main = (noCreate, noOnly, noSkip) => {
       | OSnap_Config.Global.No_Config_Found =>
         print_error("Unable to find a global config file.");
         print_error(
-          "Please create a \"osnap.config.json\" at the root of your project.",
+          "Please create a \"osnap.config.json\" at the root of your project or specifiy the location using the --config option.",
         );
         Lwt_result.fail();
       | OSnap_Config.Test.Duplicate_Tests(tests) =>
@@ -82,6 +82,14 @@ let info =
       ],
   );
 
+let config = {
+  let doc = "
+    The relative path to the global config file.
+  ";
+  let default = "";
+  Arg.(value & opt(file, default) & info(["config"], ~doc));
+};
+
 let noCreate = {
   let doc = "
     With this option enabled, new snapshots will not be created, but fail the whole test run instead.
@@ -106,6 +114,6 @@ let noSkip = {
   Arg.(value & flag & info(["no-skip"], ~doc));
 };
 
-let cmd = Term.(const(main) $ noCreate $ noOnly $ noSkip);
+let cmd = Term.(const(main) $ noCreate $ noOnly $ noSkip $ config);
 
 let () = Term.eval((cmd, info)) |> Term.exit_status;

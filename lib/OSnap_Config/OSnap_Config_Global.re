@@ -139,12 +139,8 @@ let parse = path => {
   };
 };
 
-let find = () => {
-  let config_name = "osnap.config.json";
-
-  let base_path = Sys.getcwd();
-
-  let rec scan_dir = segments => {
+let find = (~config_path) => {
+  let rec scan_dir = (~config_name, segments) => {
     let elements =
       segments |> Utils.path_of_segments |> Sys.readdir |> Array.to_list;
 
@@ -164,7 +160,7 @@ let find = () => {
 
       try(
         if (parent_dir |> Sys.is_directory) {
-          scan_dir(parent_dir_segments);
+          scan_dir(~config_name, parent_dir_segments);
         } else {
           None;
         }
@@ -174,9 +170,16 @@ let find = () => {
     };
   };
 
-  let config_path = scan_dir([base_path]);
-  switch (config_path) {
-  | None => raise(No_Config_Found)
-  | Some(paths) => [config_name, ...paths] |> Utils.path_of_segments
+  if (config_path == "") {
+    let config_name = "osnap.config.json";
+    let base_path = Sys.getcwd();
+
+    let config_path = scan_dir(~config_name, [base_path]);
+    switch (config_path) {
+    | None => raise(No_Config_Found)
+    | Some(paths) => [config_name, ...paths] |> Utils.path_of_segments
+    };
+  } else {
+    config_path;
   };
 };

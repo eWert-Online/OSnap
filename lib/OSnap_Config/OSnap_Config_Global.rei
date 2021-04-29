@@ -18,4 +18,4 @@ type t = {
 
 let parse: string => t;
 
-let find: unit => string;
+let find: (~config_path: string) => string;

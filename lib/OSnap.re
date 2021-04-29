@@ -44,8 +44,8 @@ let init_folder_structure = config => {
   (snapshot_dir, updated_dir, diff_dir);
 };
 
-let setup = () => {
-  let config = Config.Global.find() |> Config.Global.parse;
+let setup = (~config_path) => {
+  let config = Config.Global.find(~config_path) |> Config.Global.parse;
   let (snapshot_dir, updated_dir, diff_dir) = init_folder_structure(config);
   let tests = Config.Test.init(config);
 
