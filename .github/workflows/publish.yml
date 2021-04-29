@@ -35,7 +35,7 @@ jobs:
           echo '{ "prefixPath": ".esy" }' > .esyrc
       - uses: esy/github-action@master
         with:
-          cache-key: ${{ hashFiles('esy.lock/index.json') }}
+          cache-key: ${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
           esy-prefix: .esy
       # Create the NPM package for this platform
       - name: Create npm package
