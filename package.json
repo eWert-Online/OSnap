@@ -26,14 +26,14 @@
     "@opam/camlimages": "*",
     "@opam/camlzip": "*",
     "@opam/cmdliner": "1.0.4",
-    "@opam/cohttp": "4.0.0",
-    "@opam/cohttp-lwt-unix": "4.0.0",
     "@opam/fileutils": "0.6.3",
+    "@opam/httpaf": "*",
+    "@opam/httpaf-lwt-unix": "*",
     "@opam/lwt": "5.4.0",
     "@opam/lwt_ppx": "2.0.1",
-    "@opam/ocamlfind": "1.9.1",
     "@opam/ppx_yojson_conv": "v0.14.0",
     "@opam/re": "*",
+    "@opam/tls": "*",
     "@opam/uri": "4.1.0",
     "@opam/websocket": "2.14",
     "@opam/websocket-lwt-unix": "2.14",
@@ -68,6 +68,9 @@
         }
       }
     },
+    "@opam/httpaf": "anmonteiro/httpaf:httpaf.opam#ee3e790669dedfae5210d1431ea7f3e1f346a95e",
+    "@opam/httpaf-lwt": "anmonteiro/httpaf:httpaf-lwt.opam#ee3e790669dedfae5210d1431ea7f3e1f346a95e",
+    "@opam/httpaf-lwt-unix": "anmonteiro/httpaf:httpaf-lwt-unix.opam#ee3e790669dedfae5210d1431ea7f3e1f346a95e",
     "@opam/re": "ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017",
     "esy-libpng": "esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048"
   }
