@@ -1,6 +1,6 @@
 {
   "name": "@space-labs/osnap",
-  "version": "1.0.0-alpha+1",
+  "version": "1.0.0-alpha+2",
   "description": "A Snapshot testing tool focusing on speed and ease of use.",
   "license": "MIT",
   "esy": {
