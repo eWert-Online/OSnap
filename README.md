@@ -47,6 +47,7 @@ After you have created them as explained below, you just have to run `yarn osnap
 ### Global Config
 
 The global config file has to be named `osnap.config.json` and lives in the root folder of your project (where your `package.json` is located).
+If you want to have the config file in a different location, you may specify the `--config` option as a cli option.
 
 The following options are available:
 
@@ -185,6 +186,7 @@ The following cli flags are currently available and should be used mainly in ci 
 | Flag          | Description                                                                                                                                       |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--help`      | Show the help page of OSnap, explaining the cli useage.                                                                                           |
+| `--config`    | The relative path to the global config file. (optional)                                                                                           |
 | `--no-create` | With this option enabled, new snapshots will not be created, but fail the whole test run instead. This option is recommended for ci environments. |
 | `--no-only`   | With this option enabled, the test run will fail, if you have any test with "only" set to true. This option is recommended for ci environments.   |
 | `--no-skip`   | With this option enabled, the test run will fail, if you have any test with "skip" set to true. This option is recommended for ci environments.   |
