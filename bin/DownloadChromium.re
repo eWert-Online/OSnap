@@ -26,7 +26,7 @@ let detect_platform = () => {
 };
 
 let get_download_url = revision => {
-  let base_path = "https://storage.googleapis.com/chromium-browser-snapshots";
+  let base_path = "http://storage.googleapis.com/chromium-browser-snapshots";
   switch (detect_platform()) {
   | Darwin => base_path ++ "/Mac/" ++ revision ++ "/chrome-mac.zip"
   | Linux => base_path ++ "/Linux_x64/" ++ revision ++ "/chrome-linux.zip"
@@ -53,7 +53,7 @@ let download = (~revision, dir) => {
 
   let uri = revision |> get_download_url |> Uri.of_string;
   let host = uri |> Uri.host_with_default(~default="storage.googleapis.com");
-  let port = uri |> Uri.port |> Option.value(~default=443);
+  let port = uri |> Uri.port |> Option.value(~default=80);
   let* addresses =
     Lwt_unix.getaddrinfo(
       host,
@@ -105,13 +105,12 @@ let download = (~revision, dir) => {
   };
 
   let* () = Lwt_unix.connect(socket, List.hd(addresses).Unix.ai_addr);
-  let* connection = Client.TLS.create_connection_with_default(socket);
 
   let request_body =
     uri
     |> Uri.to_string
     |> Request.create(`GET)
-    |> Client.TLS.request(connection, ~error_handler, ~response_handler);
+    |> Client.request(socket, ~error_handler, ~response_handler);
 
   Body.close_writer(request_body);
 

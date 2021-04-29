@@ -27,11 +27,12 @@ description: """
 Cstruct is a library and syntax extension to make it easier to access C-like
 structures directly from OCaml.  It supports both reading and writing to these
 structures, and they are accessed via the `Bigarray` module."""
+x-commit-hash: "8864ed511f9ef051efcf445bdc346b8847de24da"
 url {
   src:
-    "https://github.com/mirage/ocaml-cstruct/releases/download/v5.2.0/cstruct-v5.2.0.tbz"
+    "https://github.com/mirage/ocaml-cstruct/releases/download/v6.0.0/cstruct-v6.0.0.tbz"
   checksum: [
-    "sha256=6bfef3753fab08cc638c07ca39f68d629087768f6a5cfeffc519d42018956a75"
-    "sha512=4e8cb53801980dacb9c9153bada89557ffcd9afaac262592fe6243bec3e76d5d1cfe3babe133a9a32e35ed00d98a4b54d55403e8505cca6a1328be50fadb5f37"
+    "sha256=78a16d2f258cf308e9600374d8fe4ec21cf09e618acf86337663805f90642676"
+    "sha512=9f8be171ec365f04df18cb4c144c9cfb843f6a3190d01006138a7736b80b3012788b9b799d784b9a2bea480f92d635edd138ee8ac619442ca2fb666279d7c2d1"
   ]
 }
