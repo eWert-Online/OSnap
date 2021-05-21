@@ -2,6 +2,8 @@
  (name Main)
  (modules Main)
  (public_name osnap)
+ (flags
+  (:standard -w +A-42-44-48-66-40 -warn-error +A-3-44-66-40))
  (libraries OSnap console.lib pastel.lib cmdliner)
  (preprocess
   (pps lwt_ppx)))
@@ -10,6 +12,8 @@
  (name DownloadChromium)
  (modules DownloadChromium)
  (public_name downloadChromium)
+ (flags
+  (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
  (libraries OSnap camlzip httpaf httpaf-lwt-unix lwt)
  (preprocess
   (pps lwt_ppx)))

@@ -47,10 +47,15 @@
   "devDependencies": {
     "@opam/reason": ">= 3.6.0 < 4.0.0",
     "@opam/dune": "< 3.0.0",
-    "@opam/ocaml-lsp-server": "*",
-    "ocaml": ">= 4.2.0 < 5.0.0"
+    "@opam/ocaml-lsp-server": "1.5.0",
+    "ocaml": "4.12.0"
   },
   "resolutions": {
+    "@opam/mirage-crypto": "mirage/mirage-crypto:mirage-crypto.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
+    "@opam/mirage-crypto-rng": "mirage/mirage-crypto:mirage-crypto-rng.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
+    "@opam/mirage-crypto-pk": "mirage/mirage-crypto:mirage-crypto-pk.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
+    "@opam/mirage-crypto-ec": "mirage/mirage-crypto:mirage-crypto-ec.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
+    "ocaml": "4.12.0-musl.static.flambda",
     "@opam/camlimages": {
       "source": "git+https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870",
       "override": {
