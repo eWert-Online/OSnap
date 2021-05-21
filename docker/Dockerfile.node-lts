@@ -1,0 +1,5 @@
+FROM node:lts
+
+COPY _build /usr/local
+
+RUN downloadChromium

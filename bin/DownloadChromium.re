@@ -109,7 +109,7 @@ let download = (~revision, dir) => {
   let request_body =
     uri
     |> Uri.to_string
-    |> Request.create(`GET)
+    |> Request.create(`GET, ~headers=Headers.of_list([("Host", host)]))
     |> Client.request(socket, ~error_handler, ~response_handler);
 
   Body.close_writer(request_body);

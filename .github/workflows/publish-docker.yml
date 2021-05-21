@@ -1,0 +1,99 @@
+name: Build & Publish docker containers
+
+on:
+  release:
+    types: [prereleased, released]
+  push:
+    branches:
+      - "docker"
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the projects sources
+      - uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build statically linked package
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          tags: osnap:build
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Get package from container
+        run: |
+          docker create -ti --name build osnap:build sh
+          docker cp build:/usr/local ./_build
+          docker rm -f build
+
+      # Temp fix
+      # https://github.com/docker/build-push-action/issues/252
+      # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: static-build
+          path: _build
+
+  publish-containers:
+    needs: build-release
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+          - base
+          - node-lts
+    runs-on: ubuntu-latest
+    steps:
+      # Download artifact
+      - name: Download static build
+        uses: actions/download-artifact@v2
+        with:
+          name: static-build
+          path: _build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Publish prerelease ${{ matrix.container }}
+        # if: ${{ github.event_name == 'release' && github.event.release.prerelease }}
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: docker/Dockerfile.${{ matrix.container }}
+          push: true
+          tags: osnap:${{ matrix.container }}-prerelease
+
+      - name: Build & Publish ${{ matrix.container }}
+        if: ${{ github.event_name == 'release' && !github.event.release.prerelease }}
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: docker/Dockerfile.${{ matrix.container }}
+          push: true
+          tags: osnap:${{ matrix.container }}

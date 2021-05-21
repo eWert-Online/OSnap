@@ -1,0 +1,20 @@
+diff --git a/bin/dune b/bin/dune
+index 431ff56..4482e35 100644
+--- a/bin/dune
++++ b/bin/dune
+@@ -3,6 +3,7 @@
+  (modules Main)
+  (public_name osnap)
+  (flags
++  (-ccopt -static)
+   (:standard -w +A-42-44-48-66-40 -warn-error +A-3-44-66-40))
+  (libraries OSnap console.lib pastel.lib cmdliner)
+  (preprocess
+@@ -13,6 +14,7 @@
+  (modules DownloadChromium)
+  (public_name downloadChromium)
+  (flags
++  (-ccopt -static)
+   (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
+  (libraries OSnap camlzip httpaf httpaf-lwt-unix lwt)
+  (preprocess
