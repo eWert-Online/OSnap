@@ -1,5 +1,5 @@
 {
-  "checksum": "e80a5cb45ee22de728ba49a0e9b91a0d",
+  "checksum": "f70cbb1532b4841e434cd9c6f1e75092",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -18,17 +18,14 @@
       "dependencies": [],
       "devDependencies": []
     },
-    "odiff-core@github:ewert-online/odiff:odiff-core.opam#43859385306fed40146264aebb8b8faf941e6a87@d41d8cd9": {
+    "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#fea16c3@d41d8cd9": {
       "id":
-        "odiff-core@github:ewert-online/odiff:odiff-core.opam#43859385306fed40146264aebb8b8faf941e6a87@d41d8cd9",
+        "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#fea16c3@d41d8cd9",
       "name": "odiff-core",
-      "version":
-        "github:ewert-online/odiff:odiff-core.opam#43859385306fed40146264aebb8b8faf941e6a87",
+      "version": "github:dmtrKovalenko/odiff:odiff-core.opam#fea16c3",
       "source": {
         "type": "install",
-        "source": [
-          "github:ewert-online/odiff:odiff-core.opam#43859385306fed40146264aebb8b8faf941e6a87"
-        ]
+        "source": [ "github:dmtrKovalenko/odiff:odiff-core.opam#fea16c3" ]
       },
       "overrides": [],
       "dependencies": [
@@ -116,7 +113,7 @@
       },
       "overrides": [],
       "dependencies": [
-        "odiff-core@github:ewert-online/odiff:odiff-core.opam#43859385306fed40146264aebb8b8faf941e6a87@d41d8cd9",
+        "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#fea16c3@d41d8cd9",
         "esy-libpng@github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048@d41d8cd9",
         "@reason-native/pastel@github:jfrolich/reason-native:pastel.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c@d41d8cd9",
         "@reason-native/console@github:jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c@d41d8cd9",

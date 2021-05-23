@@ -42,7 +42,7 @@
     "@reason-native/console": "jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c",
     "@reason-native/pastel": "jfrolich/reason-native:pastel.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c",
     "esy-libpng": "*",
-    "odiff-core": "ewert-online/odiff:odiff-core.opam#43859385306fed40146264aebb8b8faf941e6a87"
+    "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#fea16c3"
   },
   "devDependencies": {
     "@opam/reason": ">= 3.6.0 < 4.0.0",

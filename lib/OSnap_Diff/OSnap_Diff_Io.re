@@ -22,7 +22,7 @@ module PNG: ImageIO.ImageIO = {
     Png.save(filename, [], Images.Rgba32(img.image));
   };
 
-  let readImgColor = (x, y, img: ImageIO.img(t)) =>
+  let readDirectPixel = (~x, ~y, img: ImageIO.img(t)) =>
     try({
       let (bytes, position) = Rgba32.unsafe_access(img.image, x, y);
       let r = Bytes.get(bytes, position + 0) |> Char.code;
@@ -43,6 +43,9 @@ module PNG: ImageIO.ImageIO = {
       );
       (0, 0, 0, 0);
     };
+
+  let readImgColor = (x, y, img: ImageIO.img(t)) =>
+    readDirectPixel(~x, ~y, img);
 
   let setImgColor = (x, y, (r, g, b), img: ImageIO.img(t)) => {
     let (bytes, position) = Rgba32.unsafe_access(img.image, x, y);
