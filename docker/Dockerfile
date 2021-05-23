@@ -22,8 +22,5 @@ RUN esy install --ocaml-pkg-name ocaml --ocaml-version 4.12.0-musl.static.flambd
 RUN esy release --static --ocaml-pkg-name ocaml --ocaml-version 4.12.0-musl.static.flambda
 
 RUN yarn global remove esy && \
+  rm -rf /usr/local/share/.cache/yarn && \
   yarn global --prefix=/usr/local --force add /usr/app/_release
-
-FROM alpine:3.12
-
-COPY --from=build /usr/local /usr/local
