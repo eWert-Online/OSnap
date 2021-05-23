@@ -50,10 +50,14 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
+      - name: Tar Artifacts
+        run: |
+          tar -cvf static-build.tar _build
+
       - uses: actions/upload-artifact@v2
         with:
           name: static-build
-          path: _build
+          path: static-build.tar
 
   publish-containers:
     needs: build-release
@@ -66,25 +70,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # Download artifact
-      - name: Download static build
-        uses: actions/download-artifact@v2
+
+      - uses: actions/download-artifact@v2
         with:
           name: static-build
-          path: _build
+          path: .
 
-      - name: List before
+      - name: Extract Artifacts
         run: |
-          ls -lah ./_build/bin
-          ls -lah ./_build/share/.config/yarn/global/node_modules/.bin
-          ls -lah ./_build/share/.config/yarn/global/node_modules/@space-labs/osnap/bin
+          tar -xvf static-build.tar
 
-      - name: Set Permissions
-        run: |
-          find ./_build -not -type d -name "downloadChromium" -exec chmod +x {} \;
-          find ./_build -not -type d -name "osnap" -exec chmod +x {} \;
-
-      - name: List after
+      - name: List binaries
         run: |
           ls -lah ./_build/bin
           ls -lah ./_build/share/.config/yarn/global/node_modules/.bin
