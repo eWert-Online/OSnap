@@ -96,7 +96,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build & Publish ${{ matrix.container }}
-        if: ${{ github.event_name == 'release' && github.event.release.prerelease }}
+        # if: ${{ github.event_name == 'release' && github.event.release.prerelease }}
         uses: docker/build-push-action@v2
         with:
           context: .
