@@ -216,7 +216,7 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
                Lwt_io.close(io);
              } else {
                let dig1 = Digest.file(current_image_path);
-               let dig2 = Digest.string(screenshot ++ "asd");
+               let dig2 = Digest.string(screenshot);
 
                if (Digest.equal(dig1, dig2)) {
                  passed_count := passed_count^ + 1;
