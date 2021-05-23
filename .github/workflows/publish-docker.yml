@@ -78,19 +78,17 @@ jobs:
           ls -lah ./_build/bin
           ls -lah ./_build/share/.config/yarn/global/node_modules/.bin
           ls -lah ./_build/share/.config/yarn/global/node_modules/@space-labs/osnap/bin
-          tree .
 
       - name: Set Permissions
         run: |
-          chmod +x ./_build/**/downloadChromium
-          chmod +x ./_build/**/osnap
+          find ./_build -not -type d -name "downloadChromium" -exec chmod +x {} \;
+          find ./_build -not -type d -name "osnap" -exec chmod +x {} \;
 
       - name: List after
         run: |
           ls -lah ./_build/bin
           ls -lah ./_build/share/.config/yarn/global/node_modules/.bin
           ls -lah ./_build/share/.config/yarn/global/node_modules/@space-labs/osnap/bin
-          tree .
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
