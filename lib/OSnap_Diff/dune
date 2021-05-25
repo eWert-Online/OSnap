@@ -2,6 +2,6 @@
  (name OSnap_Diff)
  (flags
   (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
- (libraries odiff-core lwt camlimages.png fileutils)
+ (libraries odiff-core lwt imagelib imagelib.unix fileutils)
  (preprocess
   (pps lwt_ppx)))

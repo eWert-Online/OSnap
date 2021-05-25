@@ -1,79 +1,85 @@
 open Odiff;
+open Odiff.ImageIO;
+open Bigarray;
 
 module PNG: ImageIO.ImageIO = {
-  type t = Rgba32.t;
+  type t = {
+    image: Image.image,
+    pixel_cache: Array1.t(int, int_elt, c_layout),
+  };
   type row = int;
+
   let readRow = (_, y) => y;
 
-  let loadImage = (filename): Odiff.ImageIO.img(t) => {
-    let camlimage =
-      switch (Images.load(filename, [])) {
-      | Index8(i8img) => Index8.to_rgba32(i8img)
-      | Rgb24(rgba24img) => Rgb24.to_rgba32(rgba24img)
-      | Rgba32(img) => img
-      | Index16(_) => raise(ImageIO.ImageNotLoaded)
-      | Cmyk32(_) => raise(ImageIO.ImageNotLoaded)
-      };
+  let loadImage = (filename): ImageIO.img(t) => {
+    let image = ImageLib_unix.openfile(filename);
+    let width = image.Image.width;
+    let height = image.Image.height;
 
-    {width: camlimage.width, height: camlimage.height, image: camlimage};
+    {
+      width,
+      height,
+      image: {
+        image,
+        pixel_cache: Array1.create(int, c_layout, width * height),
+      },
+    };
   };
 
   let saveImage = (img: ImageIO.img(t), filename) => {
-    Png.save(filename, [], Images.Rgba32(img.image));
+    ImageLib.PNG.write(
+      ImageUtil_unix.chunk_writer_of_path(filename),
+      img.image.image,
+    );
   };
 
-  let readDirectPixel = (~x, ~y, img: ImageIO.img(t)) =>
-    try({
-      let (bytes, position) = Rgba32.unsafe_access(img.image, x, y);
-      let r = Bytes.get(bytes, position + 0) |> Char.code;
-      let g = Bytes.get(bytes, position + 1) |> Char.code;
-      let b = Bytes.get(bytes, position + 2) |> Char.code;
-      let a = Bytes.get(bytes, position + 3) |> Char.code;
-      (r, g, b, a);
-    }) {
-    | _ =>
-      print_endline(
-        Printf.sprintf(
-          "Unable to read x: %i, y: %i from image with dimensions %ix%i",
-          x,
-          y,
-          img.width,
-          img.height,
-        ),
-      );
-      (0, 0, 0, 0);
-    };
+  let readDirectPixel = (~x, ~y, img: ImageIO.img(t)) => {
+    let index = y * img.width + x;
+    let color = Array1.get(img.image.pixel_cache, index);
+    let a = color lsr 24 land 0xFF;
+    let r = color lsr 16 land 0xFF;
+    let g = color lsr 8 land 0xFF;
+    let b = color land 0xFF;
 
-  let readImgColor = (x, y, img: ImageIO.img(t)) =>
-    readDirectPixel(~x, ~y, img);
+    (r, g, b, a);
+  };
+
+  let readImgColor = (x, y, img: ImageIO.img(t)) => {
+    Image.read_rgba(
+      img.image.image,
+      x,
+      y,
+      (r, g, b, a) => {
+        let alpha_channel = (a land 0xFF) lsl 24;
+        let blue_channel = (b land 0xFF) lsl 16;
+        let green_channel = (g land 0xFF) lsl 8;
+        let red_channel = r land 0xFF;
+
+        let color =
+          alpha_channel lor blue_channel lor green_channel lor red_channel;
+        let index = y * img.width + x;
+        Array1.set(img.image.pixel_cache, index, color);
+
+        (r, g, b, a);
+      },
+    );
+  };
 
   let setImgColor = (x, y, (r, g, b), img: ImageIO.img(t)) => {
-    let (bytes, position) = Rgba32.unsafe_access(img.image, x, y);
-
-    Bytes.set(bytes, position + 0, r |> char_of_int);
-    Bytes.set(bytes, position + 1, g |> char_of_int);
-    Bytes.set(bytes, position + 2, b |> char_of_int);
-    Bytes.set(bytes, position + 3, 255 |> char_of_int);
+    Image.write_rgba(img.image.image, x, y, r, g, b, 255);
   };
 
   let freeImage = _ => ();
 
   let makeSameAsLayout = (img: ImageIO.img(t)) => {
+    let image = Image.create_rgb(~alpha=true, img.width, img.height);
+
     {
       ...img,
-      image:
-        Rgba32.make(
-          img.width,
-          img.height,
-          {
-            color: {
-              r: 0,
-              g: 0,
-              b: 0,
-            },
-            alpha: 0,
-          },
-        ),
+      image: {
+        ...img.image,
+        image,
+      },
     };
   };
 };

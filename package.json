@@ -23,13 +23,13 @@
   },
   "dependencies": {
     "@opam/base64": "3.5.0",
-    "@opam/camlimages": "*",
     "@opam/camlzip": "*",
     "@opam/cmdliner": "1.0.4",
     "@opam/conf-gmp-powm-sec": "2",
     "@opam/fileutils": "0.6.3",
     "@opam/httpaf": "0.7.1",
     "@opam/httpaf-lwt-unix": "0.7.1",
+    "@opam/imagelib": "20210511",
     "@opam/lwt": "5.4.0",
     "@opam/lwt_ppx": "2.0.1",
     "@opam/ppx_yojson_conv": "v0.14.0",
@@ -56,14 +56,6 @@
     "@opam/mirage-crypto-pk": "mirage/mirage-crypto:mirage-crypto-pk.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
     "@opam/mirage-crypto-ec": "mirage/mirage-crypto:mirage-crypto-ec.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
     "ocaml": "4.12.0-musl.static.flambda",
-    "@opam/camlimages": {
-      "source": "git+https://gitlab.com/camlspotter/camlimages.git:camlimages.opam#9d8dce704a335b7c568e8d3692fe086b1d084870",
-      "override": {
-        "dependencies": {
-          "esy-libpng": "*"
-        }
-      }
-    },
     "@opam/camlzip": {
       "source": "rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195",
       "override": {

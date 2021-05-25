@@ -5,14 +5,26 @@ type failState =
   | Pixel(int, float)
   | Layout;
 
-let transparent = Color.{
-                    color: {
-                      r: 255,
-                      g: 255,
-                      b: 255,
-                    },
-                    alpha: 0,
-                  };
+let merge_rgba = (src, dst) => {
+  let (src_r, src_g, src_b, src_a) = src;
+  let (dst_r, dst_g, dst_b, dst_a) = dst;
+  if (src_a == 0) {
+    dst;
+  } else if (src_a == 255) {
+    src;
+  } else {
+    let alpha = 255 - src_a;
+    let r =
+      alpha * dst_r * dst_a / 255 + src_r * src_a |> min(255) |> max(0);
+    let g =
+      alpha * dst_g * dst_a / 255 + src_g * src_a |> min(255) |> max(0);
+    let b =
+      alpha * dst_b * dst_a / 255 + src_b * src_a |> min(255) |> max(0);
+    let a = 255 - alpha * (255 - dst_a) / 255 |> min(255) |> max(0);
+
+    (r, g, b, a);
+  };
+};
 
 let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
   let original_image = Io.PNG.loadImage(path1);
@@ -35,79 +47,61 @@ let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
       Result.ok()
     | Layout => Result.error(Layout)
     | Pixel((diff_mask, diffCount, diffPercentage)) => {
-        let original_image: Rgba32.t = Obj.magic(original_image.image);
-        let new_image: Rgba32.t = Obj.magic(new_image.image);
+        let complete_width =
+          original_image.width + diff_mask.width + new_image.width;
+        let complete_height =
+          original_image.height
+          |> max(diff_mask.height)
+          |> max(new_image.height);
+        let complete_image =
+          Image.create_rgb(~alpha=true, complete_width, complete_height);
 
-        let diff_mask: Rgba32.t = Obj.magic(diff_mask.image);
-        let diff_image = Rgba32.copy(original_image);
-        for (x in 0 to diff_image.width - 1) {
-          for (y in 0 to diff_image.height - 1) {
-            let Color.{color, alpha} = Rgba32.get(diff_image, x, y);
-            let mono = min(255, Color.brightness(color) + 50);
-            let mono_color =
-              Color.{
-                color: {
-                  r: mono,
-                  g: mono,
-                  b: mono,
-                },
-                alpha,
+        for (y in 0 to complete_height - 1) {
+          let diff_row = Io.PNG.readRow(diff_mask, y);
+          for (x in 0 to complete_width - 1) {
+            let write = Image.write_rgba(complete_image, x, y);
+            if (x < original_image.width) {
+              if (y < original_image.height) {
+                let (r, g, b, a) =
+                  Io.PNG.readDirectPixel(~x, ~y, original_image);
+                write(r, g, b, a);
               };
+            } else if (x >= original_image.width
+                       - 1
+                       && x < diff_mask.width
+                       + original_image.width) {
+              if (y < diff_mask.height) {
+                let read_x = x - original_image.width;
 
-            mono_color
-            |> Color.Rgba.merge(Rgba32.get(diff_mask, x, y))
-            |> Rgba32.set(diff_image, x, y);
+                let (r, g, b, a) =
+                  Io.PNG.readDirectPixel(~x=read_x, ~y, original_image);
+                let brightness = (r * 54 + g * 182 + b * 19) / 255;
+                let mono = min(255, brightness + 80);
+                let mono = (mono, mono, mono, a);
+
+                let diff_mask_color =
+                  Io.PNG.readImgColor(read_x, diff_row, diff_mask);
+                let (r, g, b, a) = mono |> merge_rgba(diff_mask_color);
+                write(r, g, b, a);
+              };
+            } else if (x >= original_image.width + diff_mask.width) {
+              if (y < new_image.height) {
+                let read_x = x - (original_image.width + diff_mask.width);
+
+                let (r, g, b, a) =
+                  Io.PNG.readDirectPixel(~x=read_x, ~y, new_image);
+                write(r, g, b, a);
+              };
+            } else {
+              ();
+            };
           };
         };
 
-        let complete_image =
-          Rgba32.make(
-            original_image.width + diff_image.width + new_image.width + 2,
-            original_image.height
-            |> max(diff_image.height)
-            |> max(new_image.height),
-            transparent,
-          );
-
-        // Place original image on the completed image
-        Rgba32.blit(
-          original_image,
-          0,
-          0,
+        ImageLib.PNG.write(
+          ImageUtil_unix.chunk_writer_of_path(output),
           complete_image,
-          0,
-          0,
-          original_image.width,
-          original_image.height,
         );
-
-        // Place diff image on the completed image right next to the original image with a space of 1px
-        let destination_x = original_image.width + 1;
-        Rgba32.blit(
-          diff_image,
-          0,
-          0,
-          complete_image,
-          destination_x,
-          0,
-          diff_image.width,
-          diff_image.height,
-        );
-
-        // Place new image on the completed image right next to the diff image with a space of 1px
-        let destination_x = original_image.width + diff_image.width + 2;
-        Rgba32.blit(
-          new_image,
-          0,
-          0,
-          complete_image,
-          destination_x,
-          0,
-          new_image.width,
-          new_image.height,
-        );
-
-        Png.save(output, [], Images.Rgba32(complete_image));
 
         Result.error(Pixel(diffCount, diffPercentage));
       }
