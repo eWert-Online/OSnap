@@ -27,6 +27,7 @@ let make = () => {
         executable_path,
         "about:blank",
         "--headless",
+        "--no-sandbox",
         "--hide-scrollbars",
         "--remote-debugging-port=0",
         "--mute-audio",
