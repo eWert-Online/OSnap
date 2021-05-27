@@ -5,13 +5,59 @@ on:
     types: [prereleased, released]
 
 jobs:
+  build-static:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      # Checkout the projects sources
+      - uses: actions/checkout@v2
+
+      - name: Build statically linked package
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          load: true
+          tags: osnap:build
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Get package from container
+        run: |
+          docker create -ti --name build osnap:build sh
+          docker cp build:/usr/app/_release ./_release
+          docker rm -f build
+
+      # Upload the npm package as an artifact
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ubuntu-latest
+          path: _release/
+
   build-platform:
     strategy:
       fail-fast: false
       matrix:
         os:
           - windows-latest
-          - ubuntu-latest
           - macOS-latest
     runs-on: ${{ matrix.os }}
     steps:
@@ -19,24 +65,30 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 14
+    
       # Install esy globally
       - name: Install esy
         run: |
           npm install -g esy
+    
       # Checkout the projects sources
       - uses: actions/checkout@v2
+    
       # Add an esyrc to set the cache path for esy.
       # We do this because of this issue with esy: https://github.com/esy/esy/issues/1083
       - name: Add esyrc
         run: |
           echo '{ "prefixPath": ".esy" }' > .esyrc
+    
       - uses: esy/github-action@master
         with:
           cache-key: ${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
           esy-prefix: .esy
+    
       # Create the NPM package for this platform
       - name: Create npm package
         run: esy release
+    
       # Upload the npm package as an artifact
       - uses: actions/upload-artifact@v2
         with:
@@ -46,33 +98,39 @@ jobs:
   prepare-publish:
     name: Prepare publish to npm
     needs: build-platform
+    needs: [build-platform, build-static]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v2
         with:
           node-version: 14
           registry-url: https://registry.npmjs.org/
+      
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
           ref: ${{ github.ref }}
           submodules: true
+      
       # Download platform artifacts
       - name: Download Linux release
         uses: actions/download-artifact@v2
         with:
           name: ubuntu-latest
           path: ubuntu-latest
+      
       - name: Download Windows release
         uses: actions/download-artifact@v2
         with:
           name: windows-latest
           path: windows-latest
+      
       - name: Download macOS release
         uses: actions/download-artifact@v2
         with:
           name: macOS-latest
           path: macOS-latest
+      
       # Move artifacts in place
       - name: Move artifacts
         run: |
@@ -82,19 +140,24 @@ jobs:
           cp -a ubuntu-latest/. _release/platform-linux
           cp -a windows-latest/. _release/platform-windows-x64
           cp -a macOS-latest/. _release/platform-darwin
+      
       - name: Prepare package
         run: node .github/workflows/bundle-release.js
+      
       # Create a npm package that can easily be published and tested
       - name: npm pack
         run: npm pack .
         working-directory: _release
+      
       - name: move package
         run: mv _release/*.tgz osnap.tgz
+      
       # Upload artifacts
       - uses: actions/upload-artifact@v2
         with:
           name: release
           path: _release/
+      
       - uses: actions/upload-artifact@v2
         with:
           name: release-tarball
@@ -115,12 +178,15 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 14
+      
       - name: Download ${{ matrix.os }} release
         uses: actions/download-artifact@v2
         with:
           name: release-tarball
+      
       - name: test install
         run: npm -g install ./osnap.tgz
+      
       - name: test binary
         run: npx osnap --help=plain
 
