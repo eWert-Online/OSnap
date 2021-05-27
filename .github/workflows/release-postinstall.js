@@ -9,6 +9,9 @@
  * bits in the right place.
  */
 
+process.env['OCAML_VERSION'] = 'ocaml';
+process.env['OCAML_PKG_NAME'] = '4.12.0-musl.static.flambda';
+
 var path = require("path");
 var cp = require("child_process");
 var fs = require("fs");
