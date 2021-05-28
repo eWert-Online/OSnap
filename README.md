@@ -8,7 +8,7 @@ If both images are equal, the test passes.
 If the images aren't equal, the test fails and OSnap puts the new image into a new **"\_\_updated\_\_"** folder inside of your snapshot folder.
 It also generates a new image inside of a **"\_\_diff\_\_"** folder, which shows the base image (how it looked before), an image with the differing pixels highlighted and the new image side by side.
 
-OSnap mainly focuses on speed and ease of use. A Project with around 1200 snapshots will run in under 2 minutes\*, compared to around 18 minutes it takes other popular snapshot tools to run the same test suite.
+OSnap mainly focuses on speed and ease of use. A Project with around 1200 snapshots will run in under 3 minutes\*, compared to around 18 minutes it takes other popular snapshot tools to run the same test suite.
 
 <small>\* with 20 parallel runners on a 2017 15-inch MacBook Pro.</small>
 
