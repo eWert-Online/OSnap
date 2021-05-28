@@ -5,25 +5,15 @@ type failState =
   | Pixel(int, float)
   | Layout;
 
-let merge_rgba = (src, dst) => {
-  let (src_r, src_g, src_b, src_a) = src;
-  let (dst_r, dst_g, dst_b, dst_a) = dst;
-  if (src_a == 0) {
-    dst;
-  } else if (src_a == 255) {
-    src;
-  } else {
-    let alpha = 255 - src_a;
-    let r =
-      alpha * dst_r * dst_a / 255 + src_r * src_a |> min(255) |> max(0);
-    let g =
-      alpha * dst_g * dst_a / 255 + src_g * src_a |> min(255) |> max(0);
-    let b =
-      alpha * dst_b * dst_a / 255 + src_b * src_a |> min(255) |> max(0);
-    let a = 255 - alpha * (255 - dst_a) / 255 |> min(255) |> max(0);
+type point_rect = {
+  min_x: int,
+  max_x: int,
+  min_y: int,
+  max_y: int,
+};
 
-    (r, g, b, a);
-  };
+let is_in_rect = (x, y, rect) => {
+  x >= rect.min_x && x <= rect.max_x && y >= rect.min_y && y <= rect.max_y;
 };
 
 let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
@@ -47,53 +37,84 @@ let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
       Result.ok()
     | Layout => Result.error(Layout)
     | Pixel((diff_mask, diffCount, diffPercentage)) => {
+        let border_width = 5;
+
         let complete_width =
-          original_image.width + diff_mask.width + new_image.width;
+          original_image.width
+          + border_width
+          + diff_mask.width
+          + border_width
+          + new_image.width;
+
         let complete_height =
           original_image.height
           |> max(diff_mask.height)
           |> max(new_image.height);
+
         let complete_image =
           Image.create_rgb(~alpha=true, complete_width, complete_height);
 
-        for (y in 0 to complete_height - 1) {
-          let diff_row = Io.PNG.readRow(diff_mask, y);
-          for (x in 0 to complete_width - 1) {
-            let write = Image.write_rgba(complete_image, x, y);
-            if (x < original_image.width) {
-              if (y < original_image.height) {
-                let (r, g, b, a) =
-                  Io.PNG.readDirectPixel(~x, ~y, original_image);
-                write(r, g, b, a);
-              };
-            } else if (x >= original_image.width
-                       - 1
-                       && x < diff_mask.width
-                       + original_image.width) {
-              if (y < diff_mask.height) {
-                let read_x = x - original_image.width;
+        let original_rect = {
+          min_x: 1,
+          min_y: 1,
+          max_x: original_image.width,
+          max_y: original_image.height,
+        };
+        let diff_rect = {
+          min_x: original_rect.max_x + border_width + 1,
+          min_y: 1,
+          max_x: original_rect.max_x + border_width + diff_mask.width,
+          max_y: diff_mask.height,
+        };
+        let new_rect = {
+          min_x: diff_rect.max_x + border_width + 1,
+          min_y: 1,
+          max_x: diff_rect.max_x + border_width + new_image.width,
+          max_y: new_image.height,
+        };
 
+        for (y in 1 to complete_height) {
+          for (x in 1 to complete_width) {
+            let write = Image.write_rgba(complete_image, x - 1, y - 1);
+            let is_in_rect = is_in_rect(x, y);
+
+            if (is_in_rect(original_rect)) {
+              let read_x = x - original_rect.min_x;
+              let read_y = y - original_rect.min_y;
+
+              let (r, g, b, a) =
+                Io.PNG.readDirectPixel(~x=read_x, ~y=read_y, original_image);
+
+              write(r, g, b, a);
+            } else if (is_in_rect(diff_rect)) {
+              let read_x = x - diff_rect.min_x;
+              let read_y = y - diff_rect.min_y;
+
+              let (r, g, b, a) =
+                Io.PNG.readDirectPixel(~x=read_x, ~y=read_y, diff_mask);
+
+              if (a != 0) {
+                write(r, g, b, a);
+              } else {
                 let (r, g, b, a) =
-                  Io.PNG.readDirectPixel(~x=read_x, ~y, original_image);
+                  Io.PNG.readDirectPixel(
+                    ~x=read_x,
+                    ~y=read_y,
+                    original_image,
+                  );
                 let brightness = (r * 54 + g * 182 + b * 19) / 255;
                 let mono = min(255, brightness + 80);
-                let mono = (mono, mono, mono, a);
-
-                let diff_mask_color =
-                  Io.PNG.readImgColor(read_x, diff_row, diff_mask);
-                let (r, g, b, a) = mono |> merge_rgba(diff_mask_color);
-                write(r, g, b, a);
+                write(mono, mono, mono, a);
               };
-            } else if (x >= original_image.width + diff_mask.width) {
-              if (y < new_image.height) {
-                let read_x = x - (original_image.width + diff_mask.width);
+            } else if (is_in_rect(new_rect)) {
+              let read_x = x - new_rect.min_x;
+              let read_y = y - new_rect.min_y;
 
-                let (r, g, b, a) =
-                  Io.PNG.readDirectPixel(~x=read_x, ~y, new_image);
-                write(r, g, b, a);
-              };
+              let (r, g, b, a) =
+                Io.PNG.readDirectPixel(~x=read_x, ~y=read_y, new_image);
+              write(r, g, b, a);
             } else {
-              ();
+              write(0, 0, 0, 0);
             };
           };
         };
