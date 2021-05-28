@@ -66,7 +66,14 @@ let diff_message = (~name, ~width, ~height, ~diffCount, ~diffPercentage) => {
   );
 };
 let stats =
-    (~test_count, ~create_count, ~passed_count, ~failed_count, ~skipped_count) => {
+    (
+      ~test_count,
+      ~create_count,
+      ~passed_count,
+      ~failed_count,
+      ~skipped_count,
+      ~seconds,
+    ) => {
   Console.log(
     <Pastel>
       "\n"
@@ -75,7 +82,10 @@ let stats =
       "I did run a total of "
       <Pastel bold=true> {Int.to_string(test_count)} " snapshots" </Pastel>
       " in "
-      <Pastel bold=true> {Float.to_string(Sys.time())} " seconds" </Pastel>
+      <Pastel bold=true>
+        {Printf.sprintf("%.3f", seconds)}
+        " seconds"
+      </Pastel>
       "!"
       "\n\nResults:\n"
       {create_count > 0

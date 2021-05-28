@@ -22,6 +22,7 @@ type t = {
   snapshot_dir: string,
   updated_dir: string,
   diff_dir: string,
+  start_time: float,
 };
 
 let init_folder_structure = config => {
@@ -45,6 +46,7 @@ let init_folder_structure = config => {
 };
 
 let setup = (~config_path) => {
+  let start_time = Unix.gettimeofday();
   let config = Config.Global.find(~config_path) |> Config.Global.parse;
   let (snapshot_dir, updated_dir, diff_dir) = init_folder_structure(config);
   let tests = Config.Test.init(config);
@@ -58,11 +60,20 @@ let setup = (~config_path) => {
     snapshot_dir,
     updated_dir,
     diff_dir,
+    start_time,
   });
 };
 
 let run = (~noCreate, ~noOnly, ~noSkip, t) => {
-  let {browser, snapshot_dir, updated_dir, diff_dir, tests, config} = t;
+  let {
+    browser,
+    snapshot_dir,
+    updated_dir,
+    diff_dir,
+    tests,
+    config,
+    start_time,
+  } = t;
 
   let max_concurrency = config.Config.Global.parallelism;
 
@@ -263,12 +274,16 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
          )
        });
 
+  let end_time = Unix.gettimeofday();
+  let seconds = end_time -. start_time;
+
   Printer.stats(
     ~test_count=List.length(tests_to_run),
     ~create_count=create_count^,
     ~passed_count=passed_count^,
     ~failed_count=failed_count^,
     ~skipped_count=List.length(all_tests) - List.length(tests_to_run),
+    ~seconds,
   );
 
   if (failed_count^ == 0) {

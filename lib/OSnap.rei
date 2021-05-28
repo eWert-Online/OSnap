@@ -5,6 +5,7 @@ type t = {
   snapshot_dir: string,
   updated_dir: string,
   diff_dir: string,
+  start_time: float,
 };
 
 let setup: (~config_path: string) => Lwt_result.t(t, 'a);
