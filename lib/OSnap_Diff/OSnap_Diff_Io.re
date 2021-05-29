@@ -29,6 +29,7 @@ module PNG_Common = {
 
   let makeSameAsLayout = (img: ImageIO.img(t)) => {
     let image = Image.create_rgb(~alpha=true, img.width, img.height);
+    Image.fill_rgb(image, 0, 0, 0, ~alpha=0);
 
     {
       ...img,
