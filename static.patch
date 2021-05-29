@@ -1,5 +1,5 @@
 diff --git a/bin/dune b/bin/dune
-index 431ff56..4482e35 100644
+index ec19a0c..69ca5c3 100644
 --- a/bin/dune
 +++ b/bin/dune
 @@ -3,6 +3,7 @@
@@ -8,9 +8,9 @@ index 431ff56..4482e35 100644
   (flags
 +  (-ccopt -static)
    (:standard -w +A-42-44-48-66-40 -warn-error +A-3-44-66-40))
+  (ocamlopt_flags -O3)
   (libraries OSnap console.lib pastel.lib cmdliner)
-  (preprocess
-@@ -13,6 +14,7 @@
+@@ -14,6 +15,7 @@
   (modules DownloadChromium)
   (public_name downloadChromium)
   (flags
