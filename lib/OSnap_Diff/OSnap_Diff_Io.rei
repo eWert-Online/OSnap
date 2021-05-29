@@ -1,4 +1,3 @@
 open Odiff;
 
-module PNG_File: ImageIO.ImageIO;
-module PNG_String: ImageIO.ImageIO;
+module PNG: ImageIO.ImageIO with type t = Image.image;

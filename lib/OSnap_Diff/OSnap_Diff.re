@@ -1,5 +1,5 @@
 module Io = OSnap_Diff_Io;
-module Diff = Odiff.Diff.MakeDiff(Io.PNG_String, Io.PNG_String);
+module Diff = Odiff.Diff.MakeDiff(Io.PNG, Io.PNG);
 
 type failState =
   | Pixel(int, float)
@@ -25,8 +25,8 @@ let diff =
       ~new_image_data,
       (),
     ) => {
-  let original_image = Io.PNG_String.loadImage(original_image_data);
-  let new_image = Io.PNG_String.loadImage(new_image_data);
+  let original_image = Io.PNG.loadImage(original_image_data);
+  let new_image = Io.PNG.loadImage(new_image_data);
 
   Diff.diff(
     original_image,
@@ -45,6 +45,9 @@ let diff =
       Result.ok()
     | Layout => Result.error(Layout)
     | Pixel((diff_mask, diffCount, diffPercentage)) => {
+        let original_image = original_image.image;
+        let diff_mask = diff_mask.image;
+        let new_image = new_image.image;
         let border_width = 5;
 
         let complete_width =
@@ -90,49 +93,36 @@ let diff =
               let read_x = x - original_rect.min_x;
               let read_y = y - original_rect.min_y;
 
-              let (r, g, b, a) =
-                Io.PNG_String.readDirectPixel(
-                  ~x=read_x,
-                  ~y=read_y,
-                  original_image,
-                );
-
-              write(r, g, b, a);
+              Image.read_rgba(original_image, read_x, read_y, (r, g, b, a) => {
+                write(r, g, b, a)
+              });
             } else if (is_in_rect(diff_rect)) {
               let read_x = x - diff_rect.min_x;
               let read_y = y - diff_rect.min_y;
 
-              let (r, g, b, a) =
-                Io.PNG_String.readDirectPixel(
-                  ~x=read_x,
-                  ~y=read_y,
-                  diff_mask,
-                );
-
-              if (a != 0) {
-                write(r, g, b, a);
-              } else {
-                let (r, g, b, a) =
-                  Io.PNG_String.readDirectPixel(
-                    ~x=read_x,
-                    ~y=read_y,
+              Image.read_rgba(diff_mask, read_x, read_y, (r, g, b, a) =>
+                if (a != 0) {
+                  write(r, g, b, a);
+                } else {
+                  Image.read_rgba(
                     original_image,
+                    read_x,
+                    read_y,
+                    (r, g, b, a) => {
+                      let brightness = (r * 54 + g * 182 + b * 19) / 255;
+                      let mono = min(255, brightness + 80);
+                      write(mono, mono, mono, a);
+                    },
                   );
-                let brightness = (r * 54 + g * 182 + b * 19) / 255;
-                let mono = min(255, brightness + 80);
-                write(mono, mono, mono, a);
-              };
+                }
+              );
             } else if (is_in_rect(new_rect)) {
               let read_x = x - new_rect.min_x;
               let read_y = y - new_rect.min_y;
 
-              let (r, g, b, a) =
-                Io.PNG_String.readDirectPixel(
-                  ~x=read_x,
-                  ~y=read_y,
-                  new_image,
-                );
-              write(r, g, b, a);
+              Image.read_rgba(new_image, read_x, read_y, (r, g, b, a) => {
+                write(r, g, b, a)
+              });
             } else {
               write(0, 0, 0, 0);
             };
