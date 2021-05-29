@@ -1,5 +1,5 @@
 module Io = OSnap_Diff_Io;
-module Diff = Odiff.Diff.MakeDiff(Io.PNG, Io.PNG);
+module Diff = Odiff.Diff.MakeDiff(Io.PNG_String, Io.PNG_String);
 
 type failState =
   | Pixel(int, float)
@@ -16,9 +16,17 @@ let is_in_rect = (x, y, rect) => {
   x >= rect.min_x && x <= rect.max_x && y >= rect.min_y && y <= rect.max_y;
 };
 
-let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
-  let original_image = Io.PNG.loadImage(path1);
-  let new_image = Io.PNG.loadImage(path2);
+let diff =
+    (
+      ~output,
+      ~diffPixel=(255, 0, 0),
+      ~threshold=0,
+      ~original_image_data,
+      ~new_image_data,
+      (),
+    ) => {
+  let original_image = Io.PNG_String.loadImage(original_image_data);
+  let new_image = Io.PNG_String.loadImage(new_image_data);
 
   Diff.diff(
     original_image,
@@ -83,7 +91,11 @@ let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
               let read_y = y - original_rect.min_y;
 
               let (r, g, b, a) =
-                Io.PNG.readDirectPixel(~x=read_x, ~y=read_y, original_image);
+                Io.PNG_String.readDirectPixel(
+                  ~x=read_x,
+                  ~y=read_y,
+                  original_image,
+                );
 
               write(r, g, b, a);
             } else if (is_in_rect(diff_rect)) {
@@ -91,13 +103,17 @@ let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
               let read_y = y - diff_rect.min_y;
 
               let (r, g, b, a) =
-                Io.PNG.readDirectPixel(~x=read_x, ~y=read_y, diff_mask);
+                Io.PNG_String.readDirectPixel(
+                  ~x=read_x,
+                  ~y=read_y,
+                  diff_mask,
+                );
 
               if (a != 0) {
                 write(r, g, b, a);
               } else {
                 let (r, g, b, a) =
-                  Io.PNG.readDirectPixel(
+                  Io.PNG_String.readDirectPixel(
                     ~x=read_x,
                     ~y=read_y,
                     original_image,
@@ -111,7 +127,11 @@ let diff = (~output, ~diffPixel=(255, 0, 0), ~threshold=0, path1, path2) => {
               let read_y = y - new_rect.min_y;
 
               let (r, g, b, a) =
-                Io.PNG.readDirectPixel(~x=read_x, ~y=read_y, new_image);
+                Io.PNG_String.readDirectPixel(
+                  ~x=read_x,
+                  ~y=read_y,
+                  new_image,
+                );
               write(r, g, b, a);
             } else {
               write(0, 0, 0, 0);

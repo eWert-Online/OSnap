@@ -64,6 +64,19 @@ let setup = (~config_path) => {
   });
 };
 
+let save_screenshot = (~path, data) => {
+  let%lwt io = Lwt_io.open_file(~mode=Output, path);
+  let%lwt () = Lwt_io.write(io, data);
+  Lwt_io.close(io);
+};
+
+let read_file_contents = (~path) => {
+  let%lwt io = Lwt_io.open_file(~mode=Input, path);
+  let%lwt data = Lwt_io.read(io);
+  let%lwt () = Lwt_io.close(io);
+  Lwt.return(data);
+};
+
 let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   let {
     browser,
@@ -215,48 +228,41 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
                |> Lwt.map(Base64.decode_exn);
 
              if (create_new) {
-               let%lwt io =
-                 Lwt_io.open_file(
-                   ~mode=Output,
-                   create_new ? current_image_path : new_image_path,
-                 );
-               let%lwt () = Lwt_io.write(io, screenshot);
                create_count := create_count^ + 1;
                passed_count := passed_count^ + 1;
                Printer.created_message(~name=test.name, ~width, ~height);
-               Lwt_io.close(io);
+               save_screenshot(
+                 ~path=create_new ? current_image_path : new_image_path,
+                 screenshot,
+               );
              } else {
-               let dig1 = Digest.file(current_image_path);
-               let dig2 = Digest.string(screenshot);
+               let%lwt original_image_data =
+                 read_file_contents(~path=current_image_path);
 
-               if (Digest.equal(dig1, dig2)) {
+               if (original_image_data == screenshot) {
                  passed_count := passed_count^ + 1;
                  Printer.success_message(~name=test.name, ~width, ~height);
                  Lwt.return();
                } else {
-                 let%lwt io =
-                   Lwt_io.open_file(
-                     ~mode=Output,
-                     create_new ? current_image_path : new_image_path,
-                   );
-                 let%lwt () = Lwt_io.write(io, screenshot);
-                 let%lwt () = Lwt_io.close(io);
-                 switch (
+                 let diff =
                    Diff.diff(
-                     current_image_path,
-                     new_image_path,
                      ~threshold=test.threshold,
                      ~diffPixel=config.Config.Global.diff_pixel_color,
                      ~output=diff_image_path,
-                   )
-                 ) {
+                     ~original_image_data,
+                     ~new_image_data=screenshot,
+                   );
+
+                 switch (diff()) {
                  | Ok () =>
                    passed_count := passed_count^ + 1;
                    FileUtil.rm(~recurse=true, [new_image_path]);
                    Printer.success_message(~name=test.name, ~width, ~height);
+                   Lwt.return();
                  | Error(Layout) =>
                    failed_count := failed_count^ + 1;
                    Printer.layout_message(~name=test.name, ~width, ~height);
+                   save_screenshot(~path=new_image_path, screenshot);
                  | Error(Pixel(diffCount, diffPercentage)) =>
                    failed_count := failed_count^ + 1;
                    Printer.diff_message(
@@ -266,8 +272,8 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
                      ~diffCount,
                      ~diffPercentage,
                    );
+                   save_screenshot(~path=new_image_path, screenshot);
                  };
-                 Lwt.return();
                };
              };
            },

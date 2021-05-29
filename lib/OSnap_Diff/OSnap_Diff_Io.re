@@ -1,25 +1,10 @@
 open Odiff;
-open Odiff.ImageIO;
 
-module PNG: ImageIO.ImageIO = {
+module PNG_Common = {
   type t = {image: Image.image};
   type row = int;
 
   let readRow = (_, y) => y;
-
-  let loadImage = (filename): ImageIO.img(t) => {
-    let image = ImageLib_unix.openfile(filename);
-    let width = image.Image.width;
-    let height = image.Image.height;
-
-    {
-      width,
-      height,
-      image: {
-        image: image,
-      },
-    };
-  };
 
   let saveImage = (img: ImageIO.img(t), filename) => {
     ImageLib.PNG.write(
@@ -47,6 +32,45 @@ module PNG: ImageIO.ImageIO = {
 
     {
       ...img,
+      image: {
+        image: image,
+      },
+    };
+  };
+};
+
+module PNG_File: ImageIO.ImageIO = {
+  include PNG_Common;
+
+  let loadImage = (filename): ImageIO.img(t) => {
+    let image = filename |> ImageLib_unix.openfile;
+
+    let width = image.Image.width;
+    let height = image.Image.height;
+
+    {
+      width,
+      height,
+      image: {
+        image: image,
+      },
+    };
+  };
+};
+
+module PNG_String: ImageIO.ImageIO = {
+  include PNG_Common;
+
+  let loadImage = (data): ImageIO.img(t) => {
+    let image =
+      data |> ImageUtil.chunk_reader_of_string |> ImageLib.PNG.parsefile;
+
+    let width = image.Image.width;
+    let height = image.Image.height;
+
+    {
+      width,
+      height,
       image: {
         image: image,
       },
