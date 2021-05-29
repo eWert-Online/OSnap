@@ -4,6 +4,7 @@
  (public_name osnap)
  (flags
   (:standard -w +A-42-44-48-66-40 -warn-error +A-3-44-66-40))
+ (ocamlopt_flags -O3)
  (libraries OSnap console.lib pastel.lib cmdliner)
  (preprocess
   (pps lwt_ppx)))
