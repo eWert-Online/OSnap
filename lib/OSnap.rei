@@ -13,5 +13,3 @@ let setup: (~config_path: string) => Lwt_result.t(t, 'a);
 let run:
   (~noCreate: bool, ~noOnly: bool, ~noSkip: bool, t) =>
   Lwt_result.t(unit, unit);
-
-let teardown: t => unit;

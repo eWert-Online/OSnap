@@ -109,6 +109,7 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
               let exists = Sys.file_exists(current_image_path);
 
               if (noCreate && !exists) {
+                Browser.Launcher.shutdown(t.browser);
                 raise(
                   Failure(
                     Printf.sprintf(
@@ -128,6 +129,7 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
     |> List.find_all_or_input(((test, _size, _exists)) =>
          if (test.Config.Test.only) {
            if (noOnly) {
+             Browser.Launcher.shutdown(t.browser);
              raise(
                Failure(
                  Printf.sprintf(
@@ -145,6 +147,7 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
     |> List.find_all(((test, (width, height), _exists)) =>
          if (test.Config.Test.skip) {
            if (noSkip) {
+             Browser.Launcher.shutdown(t.browser);
              raise(
                Failure(
                  Printf.sprintf(
@@ -193,16 +196,18 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
                |> Lwt.map(
                     fun
                     | Ok(id) => id
-                    | Error(message) =>
-                      raise(
-                        Failure(
-                          Printf.sprintf(
-                            "Could not connect to url \"%s\". \nError was: %s",
-                            url,
-                            message,
+                    | Error(message) => {
+                        Browser.Launcher.shutdown(t.browser);
+                        raise(
+                          Failure(
+                            Printf.sprintf(
+                              "Could not connect to url \"%s\". \nError was: %s",
+                              url,
+                              message,
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                   );
 
              let%lwt () =
@@ -283,6 +288,8 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   let end_time = Unix.gettimeofday();
   let seconds = end_time -. start_time;
 
+  Browser.Launcher.shutdown(t.browser);
+
   Printer.stats(
     ~test_count=List.length(tests_to_run),
     ~create_count=create_count^,
@@ -297,8 +304,4 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   } else {
     Lwt_result.fail();
   };
-};
-
-let teardown = t => {
-  t.browser |> Browser.Launcher.shutdown;
 };

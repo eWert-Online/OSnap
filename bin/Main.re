@@ -44,7 +44,7 @@ let main = (noCreate, noOnly, noSkip, config_path) => {
       | exn => raise(exn)
       };
 
-    OSnap.teardown(t) |> Lwt_result.return;
+    Lwt_result.return();
   };
 
   switch (Lwt_main.run(run)) {
