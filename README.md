@@ -1,14 +1,8 @@
 # OSnap
 
-:warning: **This library is currently in an alpha phase. There may be breaking changes and unexpected errors!** :warning:
+OSnap is a snapshot testing tool, which mainly focuses on speed and ease of use.
 
-OSnap is a snapshot testing tool, which uses Chrome to take screenshots and compares them with a base image taken previously.
-
-If both images are equal, the test passes.
-If the images aren't equal, the test fails and OSnap puts the new image into a new **"\_\_updated\_\_"** folder inside of your snapshot folder.
-It also generates a new image inside of a **"\_\_diff\_\_"** folder, which shows the base image (how it looked before), an image with the differing pixels highlighted and the new image side by side.
-
-OSnap mainly focuses on speed and ease of use. A Project with around 1200 snapshots will run in under 3 minutes\*, compared to around 18 minutes it takes other popular snapshot tools to run the same test suite.
+A Project with around 1200 snapshots will run in under 3 minutes\*, compared to around 18 minutes it takes other popular snapshot tools to run the same test suite.
 
 <small>\* with 20 parallel runners on a 2017 15-inch MacBook Pro.</small>
 
@@ -215,7 +209,7 @@ The given coordinates are used to create a rectangle.
 The point specified by `(x1, y1)` is the top-left and `(x2, y2)` is the bottom-right corner of the rectangle.
 Everything inside these coordinates is ignored.
 
-Specifying a ignore region by an selector may be done like this:
+Specifying an ignore region by an selector may be done like this:
 
 ```json
 {
@@ -239,6 +233,9 @@ The following cli flags are currently available and should be used mainly in ci 
 
 ## Updating Snapshots
 
+If the images aren't equal, the test fails and OSnap puts the new image into a new **"\_\_updated\_\_"** folder inside of your snapshot folder.
+It also generates a new image inside of a **"\_\_diff\_\_"** folder, which shows the base image (how it looked before), an image with the differing pixels highlighted and the new image side by side.
+
 There is no "update" command to update the snapshots. If the changes shown in the diff image are expected, you just have to move and replace the image from the **"\_\_updated\_\_"** folder into the **"\_\_base_images\_\_"** folder.
 
 ## Credits
@@ -256,4 +253,4 @@ In decending order of priority (top ones are more important):
 - [ ] **Wait for dom events**:
       Maybe we can find a way, to wait for specific events to be triggered on the page. For example: Wait for all animations on the page to complete before taking the screenshot.
 
-If you find a bug or think some feature is missing, don't hesitate to file an issue.
+If you find a bug or think some feature is missing, don't hesitate to submit an issue.
