@@ -19,6 +19,7 @@ OSnap mainly focuses on speed and ease of use. A Project with around 1200 snapsh
   - [Global Config](#global-config)
   - [Test Config](#test-config)
   - [Using Actions](#using-actions)
+  - [Ignore Regions](#ignore-regions)
   - [CLI Flags](#cli-flags)
   - [Updating Snapshots](#updating-snapshots)
 - [Credits](#credits)
@@ -104,6 +105,7 @@ The test config files (`**.osnap.json` by default), are used to specify a single
 | skip        | boolean                          | If set to `true`, this test will be skipped.                                                                         | `false`                                         |
 | threshold   | int                              | The number of pixels allowed to be different, before the test will be marked as failed.                              | _Whatever is specified in the global threshold_ |
 | sizes       | Array<{width: int, height: int}> | An array of sizes (width and height) to run this test in. If this is not specified, the `defaultSizes` will be used. | `[]`                                            |
+| ignore      | Array\<regions>                  | An array of regions to ignore in your screenshot. (Possible options are explained below)                             | `[]`                                            |
 | actions     | Array\<action>                   | An array of actions to run before the screenshot is taken. (Possible options are explained below)                    | `[]`                                            |
 
 _Keys marked with **\*** are required!_
@@ -128,6 +130,15 @@ The smallest possible test file would look like this:
     "url": "/",
     "threshold": 20,
     "sizes": [{ "width": 768, "height": 1024 }],
+    "ignore": [
+      {
+        "x1": 0,
+        "y1": 0,
+        "x2": 100,
+        "y2": 100
+      },
+      { "selector": ".my-animation" }
+    ],
     "actions": [
       { "action": "type", "selector": "#search", "text": "some text to type" },
       { "action": "click", "selector": "#id .class" },
@@ -179,6 +190,41 @@ The currently available actions are `wait`, `click` and `type`. They may be conf
 { "action": "type", "selector": "#search", "text": "some searchword" }
 ```
 
+### Ignore Regions
+
+Sometimes you might want to ignore specific regions, because you know, they will always be different.
+You may either ignore a region by specifying its coordinates (x1, y1) & (x2, y2) or ignore a specific element by its selector.
+It is also possible, to ignore multiple regions, by specifying multiple coordinates and / or selectors.
+
+Ignoring by coordinates can be done in the following way:
+
+```json
+{
+  "ignore": [
+    {
+      "x1": 0,
+      "y1": 0,
+      "x2": 100,
+      "y2": 100
+    }
+  ]
+}
+```
+
+The given coordinates are used to create a rectangle.
+The point specified by `(x1, y1)` is the top-left and `(x2, y2)` is the bottom-right corner of the rectangle.
+Everything inside these coordinates is ignored.
+
+Specifying a ignore region by an selector may be done like this:
+
+```json
+{
+  "ignore": [{ "selector": ".selector" }]
+}
+```
+
+When the element with the given selector is found, everything inside the bounds of the element is ignored.
+
 ## CLI Flags
 
 The following cli flags are currently available and should be used mainly in ci environments.
@@ -205,10 +251,6 @@ Thank you for your work [@dmtrKovalenko](https://github.com/dmtrKovalenko)!
 
 In decending order of priority (top ones are more important):
 
-- [ ] **Official Docker base image**:
-      Snapshot tests are by nature pretty susceptible to the smallest changes in rendering. A huge problem is, that Browsers render (mainly fonts and images) different on different devices and operating systems. For the human eye, this is mostly not noticeable, but for an diffing algorithm, these changes are noticeable and will fail the test. So it is important to always run the tests in the same environment.
-- [ ] **Ignore Regions**:
-      Ignore regions of the snapshot, you know will always be different.
 - [ ] **Listen for network requests**:
       Wait for specific network requests to finish, before taking the screenshot. For example: Wait for a failed login attempt to come back, to screenshot the error state
 - [ ] **Wait for dom events**:

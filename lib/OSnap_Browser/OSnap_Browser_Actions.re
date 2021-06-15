@@ -42,10 +42,11 @@ let go_to = (~url, target) => {
     |> OSnap_Websocket.send
     |> Lwt.map(Page.Navigate.parse);
 
-  switch(payload.Types.Response.result.Page.Navigate.errorText) {
-    | Some(error) => error |> Lwt_result.fail;
-    | None => payload.Types.Response.result.Page.Navigate.loaderId |> Lwt_result.return
-  }
+  switch (payload.Types.Response.result.Page.Navigate.errorText) {
+  | Some(error) => error |> Lwt_result.fail
+  | None =>
+    payload.Types.Response.result.Page.Navigate.loaderId |> Lwt_result.return
+  };
 };
 
 let type_text = (~selector, ~text, target) => {
@@ -110,7 +111,7 @@ let type_text = (~selector, ~text, target) => {
      });
 };
 
-let click = (~selector, target) => {
+let get_quads = (~selector, target) => {
   let sessionId = target.sessionId;
   let%lwt document =
     Dom.GetDocument.make(~sessionId, ())
@@ -137,21 +138,29 @@ let click = (~selector, target) => {
          response.Types.Response.result.Dom.GetContentQuads.quads
        );
 
-  let (x, y) =
-    switch (quads) {
-    | [[x1, y1, x2, _y2, _x3, y2, _x4, _y4, ..._], ..._] =>
-      let top = y1;
-      let bottom = y2;
-      let left = x1;
-      let right = x2;
-      let center_x = left +. (right -. left) /. 2.0;
-      let center_y = top +. (bottom -. top) /. 2.0;
-      (center_x, center_y);
-    | _ => (0.0, 0.0)
-    };
+  switch (quads) {
+  | [[x1, y1, x2, _y2, _x3, y2, _x4, _y4, ..._], ..._] =>
+    Lwt.return(((x1, y1), (x2, y2)))
+  | _ => Lwt.return(((0., 0.), (0., 0.)))
+  };
+};
+
+let click = (~selector, target) => {
+  let sessionId = target.sessionId;
+
+  let%lwt ((x1, y1), (x2, y2)) = get_quads(~selector, target);
+
+  let center_x = x1 +. (x2 -. x1) /. 2.0;
+  let center_y = y1 +. (y2 -. y1) /. 2.0;
 
   let%lwt () =
-    Input.DispatchMouseEvent.make(~sessionId, ~x, ~y, ~type_=`mouseMoved, ())
+    Input.DispatchMouseEvent.make(
+      ~sessionId,
+      ~x=center_x,
+      ~y=center_y,
+      ~type_=`mouseMoved,
+      (),
+    )
     |> OSnap_Websocket.send
     |> Lwt.map(ignore);
 
@@ -162,8 +171,8 @@ let click = (~selector, target) => {
       ~buttons=1,
       ~clickCount=1,
       ~sessionId,
-      ~x,
-      ~y,
+      ~x=center_x,
+      ~y=center_y,
       (),
     )
     |> OSnap_Websocket.send
@@ -176,8 +185,8 @@ let click = (~selector, target) => {
       ~buttons=1,
       ~clickCount=1,
       ~sessionId,
-      ~x,
-      ~y,
+      ~x=center_x,
+      ~y=center_y,
       (),
     )
     |> OSnap_Websocket.send

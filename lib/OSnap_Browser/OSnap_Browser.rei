@@ -16,6 +16,10 @@ module Target: {
 };
 
 module Actions: {
+  let get_quads:
+    (~selector: string, Target.target) =>
+    Lwt.t(((float, float), (float, float)));
+
   let click: (~selector: string, Target.target) => Lwt.t(unit);
 
   let type_text:

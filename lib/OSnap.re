@@ -249,10 +249,27 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
                  Printer.success_message(~name=test.name, ~width, ~height);
                  Lwt.return();
                } else {
+                 let%lwt ignoreRegions =
+                   test.Config.Test.ignore
+                   |> Lwt_list.map_p(region => {
+                        switch (region) {
+                        | Config.Test.Coordinates(a, b) => Lwt.return((a, b))
+                        | Config.Test.Selector(selector) =>
+                          let%lwt ((x1, y1), (x2, y2)) =
+                            target |> Browser.Actions.get_quads(~selector);
+                          let x1 = Int.of_float(x1);
+                          let y1 = Int.of_float(y1);
+                          let x2 = Int.of_float(x2);
+                          let y2 = Int.of_float(y2);
+                          Lwt.return(((x1, y1), (x2, y2)));
+                        }
+                      });
+
                  let diff =
                    Diff.diff(
                      ~threshold=test.threshold,
                      ~diffPixel=config.Config.Global.diff_pixel_color,
+                     ~ignoreRegions,
                      ~output=diff_image_path,
                      ~original_image_data,
                      ~new_image_data=screenshot,

@@ -8,6 +8,10 @@ type action =
   | Type(string, string)
   | Wait(int);
 
+type ignoreType =
+  | Coordinates((int, int), (int, int))
+  | Selector(string);
+
 type t = {
   only: bool,
   skip: bool,
@@ -16,6 +20,7 @@ type t = {
   url: string,
   sizes: list(size),
   actions: list(action),
+  ignore: list(ignoreType),
 };
 
 let parse_size = size => {
@@ -68,6 +73,29 @@ let parse_action = a => {
   };
 };
 
+let parse_ignore = r => {
+  let x1 =
+    r |> Yojson.Basic.Util.member("x1") |> Yojson.Basic.Util.to_int_option;
+  let y1 =
+    r |> Yojson.Basic.Util.member("y1") |> Yojson.Basic.Util.to_int_option;
+  let x2 =
+    r |> Yojson.Basic.Util.member("x2") |> Yojson.Basic.Util.to_int_option;
+  let y2 =
+    r |> Yojson.Basic.Util.member("y2") |> Yojson.Basic.Util.to_int_option;
+
+  let selector =
+    r
+    |> Yojson.Basic.Util.member("selector")
+    |> Yojson.Basic.Util.to_string_option;
+
+  switch (selector, x1, y1, x2, y2) {
+  | (Some(selector), None, None, None, None) => Selector(selector)
+  | (None, Some(x1), Some(y1), Some(x2), Some(y2)) =>
+    Coordinates((x1, y1), (x2, y2))
+  | _ => raise(Invalid_format)
+  };
+};
+
 let parse_single_test = (global_config, test) =>
   try({
     let name =
@@ -115,7 +143,16 @@ let parse_single_test = (global_config, test) =>
         | _ => []
       );
 
-    Result.ok({only, skip, threshold, name, url, sizes, actions});
+    let ignore =
+      test
+      |> Yojson.Basic.Util.member("ignore")
+      |> (
+        fun
+        | `List(list) => List.map(parse_ignore, list)
+        | _ => []
+      );
+
+    Result.ok({only, skip, threshold, name, url, sizes, actions, ignore});
   }) {
   | _ => raise(Invalid_format)
   };

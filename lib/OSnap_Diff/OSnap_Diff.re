@@ -20,6 +20,7 @@ let diff =
     (
       ~output,
       ~diffPixel=(255, 0, 0),
+      ~ignoreRegions=[],
       ~threshold=0,
       ~original_image_data,
       ~new_image_data,
@@ -35,6 +36,7 @@ let diff =
     ~threshold=0.1,
     ~failOnLayoutChange=true,
     ~antialiasing=true,
+    ~ignoreRegions,
     ~diffPixel,
     (),
   )

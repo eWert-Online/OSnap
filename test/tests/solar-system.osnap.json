@@ -1,0 +1,12 @@
+[
+  {
+    "name": "solar-system",
+    "url": "https://3d-solar-system.webflow.io/",
+    "ignore": [
+      {
+        "selector": ".space"
+      }
+    ],
+    "sizes": [{ "width": 1024, "height": 800 }]
+  }
+]
