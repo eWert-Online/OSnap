@@ -5,15 +5,59 @@ type failState =
   | Pixel(int, float)
   | Layout;
 
-type point_rect = {
-  min_x: int,
-  max_x: int,
-  min_y: int,
-  max_y: int,
-};
+let blit = (~dst, ~src, ~offset) => {
+  open Bigarray;
+  let exec = (src, dst) => {
+    let len_src = Array2.dim1(src);
+    let len_dst = Array2.dim1(dst);
 
-let is_in_rect = (x, y, rect) => {
-  x >= rect.min_x && x <= rect.max_x && y >= rect.min_y && y <= rect.max_y;
+    if (len_src > len_dst) {
+      let src = Array2.sub_left(src, offset, len_dst);
+      Array2.blit(src, dst);
+    } else if (len_dst > len_src) {
+      let dst = Array2.sub_left(dst, offset, len_src);
+      Array2.blit(src, dst);
+    } else {
+      Array2.blit(src, dst);
+    };
+  };
+
+  let blit_channel = (src, dst) => {
+    switch (src, dst) {
+    | (Image.Pixmap.Pix8(src), Image.Pixmap.Pix8(dst)) => exec(src, dst)
+    | (Image.Pixmap.Pix16(src), Image.Pixmap.Pix16(dst)) => exec(src, dst)
+    | (Image.Pixmap.Pix8(_a), Image.Pixmap.Pix16(_b)) => ()
+    | (Image.Pixmap.Pix16(_a), Image.Pixmap.Pix8(_b)) => ()
+    };
+  };
+
+  switch (src, dst) {
+  | (Image.Grey(src), Image.Grey(dst)) => blit_channel(src, dst)
+  | (Image.Grey(_), Image.GreyA(_, _)) => ()
+  | (Image.Grey(_), Image.RGB(_, _, _)) => ()
+  | (Image.Grey(_), Image.RGBA(_, _, _, _)) => ()
+  | (Image.GreyA(_, _), Image.Grey(_)) => ()
+  | (Image.GreyA(src1, src2), Image.GreyA(dst1, dst2)) =>
+    blit_channel(src1, dst1);
+    blit_channel(src2, dst2);
+  | (Image.GreyA(_, _), Image.RGB(_, _, _)) => ()
+  | (Image.GreyA(_, _), Image.RGBA(_, _, _, _)) => ()
+  | (Image.RGB(_, _, _), Image.Grey(_)) => ()
+  | (Image.RGB(_, _, _), Image.GreyA(_, _)) => ()
+  | (Image.RGB(src1, src2, src3), Image.RGB(dst1, dst2, dst3)) =>
+    blit_channel(src1, dst1);
+    blit_channel(src2, dst2);
+    blit_channel(src3, dst3);
+  | (Image.RGB(_, _, _), Image.RGBA(_, _, _, _)) => ()
+  | (Image.RGBA(_, _, _, _), Image.Grey(_)) => ()
+  | (Image.RGBA(_, _, _, _), Image.GreyA(_, _)) => ()
+  | (Image.RGBA(_, _, _, _), Image.RGB(_, _, _)) => ()
+  | (Image.RGBA(src1, src2, src3, src4), Image.RGBA(dst1, dst2, dst3, dst4)) =>
+    blit_channel(src1, dst1);
+    blit_channel(src2, dst2);
+    blit_channel(src3, dst3);
+    blit_channel(src4, dst4);
+  };
 };
 
 let diff =
@@ -42,9 +86,7 @@ let diff =
   )
   |> (
     fun
-    | Pixel((_diffImg, diffCount, _diffPercentage))
-        when diffCount <= threshold =>
-      Result.ok()
+    | Pixel((_, diffCount, _)) when diffCount <= threshold => Result.ok()
     | Layout => Result.error(Layout)
     | Pixel((diff_mask, diffCount, diffPercentage)) => {
         let original_image = original_image.image;
@@ -66,70 +108,34 @@ let diff =
 
         let complete_image =
           Image.create_rgb(~alpha=true, complete_width, complete_height);
+        Image.fill_rgb(complete_image, 0, 0, 0, ~alpha=0);
 
-        let original_rect = {
-          min_x: 1,
-          min_y: 1,
-          max_x: original_image.width,
-          max_y: original_image.height,
-        };
-        let diff_rect = {
-          min_x: original_rect.max_x + border_width + 1,
-          min_y: 1,
-          max_x: original_rect.max_x + border_width + diff_mask.width,
-          max_y: diff_mask.height,
-        };
-        let new_rect = {
-          min_x: diff_rect.max_x + border_width + 1,
-          min_y: 1,
-          max_x: diff_rect.max_x + border_width + new_image.width,
-          max_y: new_image.height,
-        };
+        let offset = 0;
+        blit(~src=original_image.pixels, ~dst=complete_image.pixels, ~offset);
 
-        for (y in 1 to complete_height) {
-          for (x in 1 to complete_width) {
-            let write = Image.write_rgba(complete_image, x - 1, y - 1);
-            let is_in_rect = is_in_rect(x, y);
-
-            if (is_in_rect(original_rect)) {
-              let read_x = x - original_rect.min_x;
-              let read_y = y - original_rect.min_y;
-
-              Image.read_rgba(original_image, read_x, read_y, (r, g, b, a) => {
-                write(r, g, b, a)
-              });
-            } else if (is_in_rect(diff_rect)) {
-              let read_x = x - diff_rect.min_x;
-              let read_y = y - diff_rect.min_y;
-
-              Image.read_rgba(diff_mask, read_x, read_y, (r, g, b, a) =>
-                if (a != 0) {
-                  write(r, g, b, a);
-                } else {
-                  Image.read_rgba(
-                    original_image,
-                    read_x,
-                    read_y,
-                    (r, g, b, a) => {
-                      let brightness = (r * 54 + g * 182 + b * 19) / 255;
-                      let mono = min(255, brightness + 80);
-                      write(mono, mono, mono, a);
-                    },
-                  );
-                }
-              );
-            } else if (is_in_rect(new_rect)) {
-              let read_x = x - new_rect.min_x;
-              let read_y = y - new_rect.min_y;
-
-              Image.read_rgba(new_image, read_x, read_y, (r, g, b, a) => {
-                write(r, g, b, a)
-              });
-            } else {
-              write(0, 0, 0, 0);
-            };
+        for (y in 0 to diff_mask.height - 1) {
+          for (x in 0 to diff_mask.width - 1) {
+            Image.read_rgba(diff_mask, x, y, (_r, _g, _b, a) =>
+              if (a != 255) {
+                Image.read_rgba(
+                  original_image,
+                  x,
+                  y,
+                  (r, g, b, a) => {
+                    let brightness = (r * 54 + g * 182 + b * 19) / 255;
+                    let mono = min(255, brightness + 80);
+                    Image.write_rgba(diff_mask, x, y, mono, mono, mono, a);
+                  },
+                );
+              }
+            );
           };
         };
+        let offset = offset + original_image.width + border_width;
+        blit(~src=diff_mask.pixels, ~dst=complete_image.pixels, ~offset);
+
+        let offset = offset + diff_mask.width + border_width;
+        blit(~src=new_image.pixels, ~dst=complete_image.pixels, ~offset);
 
         ImageLib.PNG.write(
           ImageUtil_unix.chunk_writer_of_path(output),
