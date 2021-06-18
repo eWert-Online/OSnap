@@ -3,7 +3,7 @@ open Cmdliner;
 Printexc.record_backtrace(true);
 
 let print_error = msg => {
-  Console.log(<Pastel color=Red> msg </Pastel>);
+  print_endline(<Pastel color=Red> msg </Pastel>);
 };
 
 let main = (noCreate, noOnly, noSkip, config_path) => {

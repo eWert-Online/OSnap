@@ -24,7 +24,9 @@ module PNG = {
   };
 
   let readDirectPixel = (~x, ~y, img: ImageIO.img(t)) => {
-    Image.read_rgba(img.image, x, y, (r, g, b, a) => (r, g, b, a));
+    Image.read_rgba(img.image, x, y, (r, g, b, a) => {
+      Int32.of_int(a lsl 24 + b lsl 16 + g lsl 8 + r)
+    });
   };
 
   let readImgColor = (x, y, img: ImageIO.img(t)) => {

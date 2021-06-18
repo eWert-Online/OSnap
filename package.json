@@ -39,10 +39,9 @@
     "@opam/websocket-lwt-unix": "2.14",
     "@opam/yojson": "1.7.0",
     "@opam/zarith": "1.11",
-    "@reason-native/console": "jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c",
     "@reason-native/pastel": "jfrolich/reason-native:pastel.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c",
     "esy-libpng": "*",
-    "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#d259e398705a17c4ffeda4daef161bd3ea7c9841"
+    "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117"
   },
   "devDependencies": {
     "@opam/reason": ">= 3.6.0 < 4.0.0",

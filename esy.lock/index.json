@@ -1,5 +1,5 @@
 {
-  "checksum": "9a49d4e46a45bbcd8019a4c0737725dd",
+  "checksum": "4fda20ea6c633de14b4005afc1148ea9",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -18,16 +18,16 @@
       "dependencies": [],
       "devDependencies": []
     },
-    "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#d259e398705a17c4ffeda4daef161bd3ea7c9841@d41d8cd9": {
+    "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117@d41d8cd9": {
       "id":
-        "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#d259e398705a17c4ffeda4daef161bd3ea7c9841@d41d8cd9",
+        "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117@d41d8cd9",
       "name": "odiff-core",
       "version":
-        "github:dmtrKovalenko/odiff:odiff-core.opam#d259e398705a17c4ffeda4daef161bd3ea7c9841",
+        "github:dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117",
       "source": {
         "type": "install",
         "source": [
-          "github:dmtrKovalenko/odiff:odiff-core.opam#d259e398705a17c4ffeda4daef161bd3ea7c9841"
+          "github:dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117"
         ]
       },
       "overrides": [],
@@ -116,10 +116,9 @@
       },
       "overrides": [],
       "dependencies": [
-        "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#d259e398705a17c4ffeda4daef161bd3ea7c9841@d41d8cd9",
+        "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117@d41d8cd9",
         "esy-libpng@github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048@d41d8cd9",
         "@reason-native/pastel@github:jfrolich/reason-native:pastel.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c@d41d8cd9",
-        "@reason-native/console@github:jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c@d41d8cd9",
         "@opam/zarith@opam:1.11@6b66cdc1",
         "@opam/yojson@opam:1.7.0@69d87312",
         "@opam/websocket-lwt-unix@opam:2.14@03e9609b",
@@ -129,7 +128,7 @@
         "@opam/ppx_yojson_conv@opam:v0.14.0@13acb3e6",
         "@opam/lwt_ppx@opam:2.0.1@edf5ad68", "@opam/lwt@opam:5.4.0@1ec6dbfd",
         "@opam/imagelib@opam:20210511@d13263f8",
-        "@opam/httpaf-lwt-unix@opam:0.7.1@f48da5af",
+        "@opam/httpaf-lwt-unix@opam:0.7.1@7989947a",
         "@opam/httpaf@opam:0.7.1@787eb3e3",
         "@opam/fileutils@opam:0.6.3@67cadc89",
         "@opam/conf-gmp-powm-sec@opam:2@e6fe9f11",
@@ -168,29 +167,6 @@
         "@opam/reason@opam:3.7.0@494dd52d",
         "@opam/re@github:ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017@d41d8cd9",
         "@opam/dune@opam:2.8.5@01003f12"
-      ]
-    },
-    "@reason-native/console@github:jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c@d41d8cd9": {
-      "id":
-        "@reason-native/console@github:jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c@d41d8cd9",
-      "name": "@reason-native/console",
-      "version":
-        "github:jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c",
-      "source": {
-        "type": "install",
-        "source": [
-          "github:jfrolich/reason-native:console.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c"
-        ]
-      },
-      "overrides": [],
-      "dependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/reason@opam:3.7.0@494dd52d", "@opam/dune@opam:2.8.5@01003f12",
-        "@esy-ocaml/substs@0.0.1@d41d8cd9"
-      ],
-      "devDependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/reason@opam:3.7.0@494dd52d", "@opam/dune@opam:2.8.5@01003f12"
       ]
     },
     "@opam/zarith@opam:1.11@6b66cdc1": {
@@ -256,20 +232,20 @@
         "@opam/dune@opam:2.8.5@01003f12", "@opam/biniou@opam:1.2.1@420bda02"
       ]
     },
-    "@opam/x509@opam:0.13.0@6452793f": {
-      "id": "@opam/x509@opam:0.13.0@6452793f",
+    "@opam/x509@opam:0.14.0@17ea7e88": {
+      "id": "@opam/x509@opam:0.14.0@17ea7e88",
       "name": "@opam/x509",
-      "version": "opam:0.13.0",
+      "version": "opam:0.14.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/sha256/45/4577c2a616bda45cc777869fc44e272397d63a029135a993df8937bcfd6f6c49#sha256:4577c2a616bda45cc777869fc44e272397d63a029135a993df8937bcfd6f6c49",
-          "archive:https://github.com/mirleft/ocaml-x509/releases/download/v0.13.0/x509-v0.13.0.tbz#sha256:4577c2a616bda45cc777869fc44e272397d63a029135a993df8937bcfd6f6c49"
+          "archive:https://opam.ocaml.org/cache/sha256/9b/9b42f34171261b2193ee662f096566c48c48e087949c186c288f90c9b3b9f498#sha256:9b42f34171261b2193ee662f096566c48c48e087949c186c288f90c9b3b9f498",
+          "archive:https://github.com/mirleft/ocaml-x509/releases/download/v0.14.0/x509-v0.14.0.tbz#sha256:9b42f34171261b2193ee662f096566c48c48e087949c186c288f90c9b3b9f498"
         ],
         "opam": {
           "name": "x509",
-          "version": "0.13.0",
-          "path": "esy.lock/opam/x509.0.13.0"
+          "version": "0.14.0",
+          "path": "esy.lock/opam/x509.0.14.0"
         }
       },
       "overrides": [],
@@ -2001,8 +1977,8 @@
         "@opam/base-unix@opam:base@87d0b2eb"
       ]
     },
-    "@opam/httpaf-lwt-unix@opam:0.7.1@f48da5af": {
-      "id": "@opam/httpaf-lwt-unix@opam:0.7.1@f48da5af",
+    "@opam/httpaf-lwt-unix@opam:0.7.1@7989947a": {
+      "id": "@opam/httpaf-lwt-unix@opam:0.7.1@7989947a",
       "name": "@opam/httpaf-lwt-unix",
       "version": "opam:0.7.1",
       "source": {
@@ -3100,7 +3076,7 @@
       "overrides": [],
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/x509@opam:0.13.0@6452793f",
+        "@opam/x509@opam:0.14.0@17ea7e88",
         "@opam/rresult@opam:0.6.0@4b185e72",
         "@opam/ptime@opam:0.8.5@0051d642",
         "@opam/mirage-crypto@github:mirage/mirage-crypto:mirage-crypto.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4@d41d8cd9",
@@ -3111,7 +3087,7 @@
       ],
       "devDependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/x509@opam:0.13.0@6452793f",
+        "@opam/x509@opam:0.14.0@17ea7e88",
         "@opam/rresult@opam:0.6.0@4b185e72",
         "@opam/ptime@opam:0.8.5@0051d642",
         "@opam/mirage-crypto@github:mirage/mirage-crypto:mirage-crypto.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4@d41d8cd9",

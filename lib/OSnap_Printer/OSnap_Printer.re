@@ -12,7 +12,7 @@ let test_name = (~name, ~width, ~height) => {
 };
 
 let created_message = (~name, ~width, ~height) => {
-  Console.log(
+  print_endline(
     <Pastel>
       <Pastel color=Blue bold=true> "CREATE" </Pastel>
       "\t"
@@ -22,7 +22,7 @@ let created_message = (~name, ~width, ~height) => {
 };
 
 let skipped_message = (~name, ~width, ~height) => {
-  Console.log(
+  print_endline(
     <Pastel>
       <Pastel color=Yellow bold=true> "SKIP" </Pastel>
       "\t"
@@ -32,7 +32,7 @@ let skipped_message = (~name, ~width, ~height) => {
 };
 
 let success_message = (~name, ~width, ~height) => {
-  Console.log(
+  print_endline(
     <Pastel>
       <Pastel color=Green bold=true> "PASS" </Pastel>
       "\t"
@@ -42,7 +42,7 @@ let success_message = (~name, ~width, ~height) => {
 };
 
 let layout_message = (~name, ~width, ~height) => {
-  Console.log(
+  print_endline(
     <Pastel>
       <Pastel color=Red bold=true> "FAIL" </Pastel>
       "\t"
@@ -53,7 +53,7 @@ let layout_message = (~name, ~width, ~height) => {
 };
 
 let diff_message = (~name, ~width, ~height, ~diffCount, ~diffPercentage) => {
-  Console.log(
+  print_endline(
     <Pastel>
       <Pastel color=Red bold=true> "FAIL" </Pastel>
       "\t"
@@ -74,7 +74,7 @@ let stats =
       ~skipped_count,
       ~seconds,
     ) => {
-  Console.log(
+  print_endline(
     <Pastel>
       "\n"
       "\n"
