@@ -1,21 +1,22 @@
-<p align="center">
-  <img width="600" src="./logo.png"/>
-</p>
-
-<h1 align="center"> OSnap </h1>
-<h3 align="center"> The speedy and easy to use Snapshot Testing tool for your project! </h3>
-
 <div align="center">
-    <img src="https://forthebadge.com/images/badges/made-with-reason.svg" alt="made with reason">
-    <img src="https://forthebadge.com/images/badges/built-with-love.svg" alt="<3"/>
+  <img width="600" src="./logo.png"/>
 </div>
 
-<div align="center">
+<h3 align="center"> The speedy and easy to use Snapshot Testing tool for your project! </h3>
+<p align="center">
   A Project with around 1200 snapshots will run in under 3 minutes*, <br />
   compared to around 18 minutes it takes other popular snapshot tools to run the same test suite.
-
-  <small>* with 20 parallel runners on a 2017 15-inch MacBook Pro.</small>
+</p>
+<div align="center">
+  <i align="center">* with 20 parallel runners on a 2017 15-inch MacBook Pro.</i>
 </div>
+<br />
+<div align="center">
+    <img src="https://forthebadge.com/images/badges/built-with-love.svg" alt="<3"/>
+    <img src="https://forthebadge.com/images/badges/made-with-reason.svg" alt="made with reason">
+</div>
+
+<br />
 
 # Table of contents
 
@@ -28,7 +29,8 @@
   - [CLI Flags](#cli-flags)
   - [Updating Snapshots](#updating-snapshots)
 - [Credits](#credits)
-- [Todos](#some-things-we-still-want-to-add)
+
+<br />
 
 # How do I install it?
 
@@ -44,11 +46,22 @@ or
 npm install @space-labs/osnap --save-dev
 ```
 
+or **(the preferred way)** use one of the official Docker images at https://hub.docker.com/u/osnap.
+
+**NOTICE:** <br />
+We do recommend using a Docker Container to run the tests, because snapshot tests are by nature pretty susceptible to the smallest changes in rendering. <br />
+The biggest problem is, that Browsers render (mainly fonts and images) differently on different devices and operating systems. For the human eye, this is mostly not noticeable, but for an diffing algorithm, these changes are noticeable and will fail the test. <br />
+So it is important to always run the tests in the same environment.
+
+<br />
+
 # How do I use it?
 
 Before you can run your first test suite, OSnap needs to be configured. To do this, you need at least two files. The global config file and at least one test file.
 
 After you have created them as explained below, you just have to run `yarn osnap`, `npx osnap` or create a npm script running `osnap` with the optional [cli flags](#cli-flags) available.
+
+<br />
 
 ### Global Config
 
@@ -97,6 +110,8 @@ _Keys marked with **\*** are required!_
   }
 }
 ```
+
+<br />
 
 ### Test Config
 
@@ -153,6 +168,8 @@ The smallest possible test file would look like this:
 ]
 ```
 
+<br />
+
 ### Using Actions
 
 As seen in the full example above, you are able to run some actions, before the screenshot will be taken.
@@ -195,6 +212,8 @@ The currently available actions are `wait`, `click` and `type`. They may be conf
 { "action": "type", "selector": "#search", "text": "some searchword" }
 ```
 
+<br />
+
 ### Ignore Regions
 
 Sometimes you might want to ignore specific regions, because you know, they will always be different.
@@ -230,6 +249,8 @@ Specifying an ignore region by an selector may be done like this:
 
 When the element with the given selector is found, everything inside the bounds of the element is ignored.
 
+<br />
+
 ## CLI Flags
 
 The following cli flags are currently available and should be used mainly in ci environments.
@@ -242,6 +263,8 @@ The following cli flags are currently available and should be used mainly in ci 
 | `--no-only`   | With this option enabled, the test run will fail, if you have any test with "only" set to true. This option is recommended for ci environments.   |
 | `--no-skip`   | With this option enabled, the test run will fail, if you have any test with "skip" set to true. This option is recommended for ci environments.   |
 
+<br />
+
 ## Updating Snapshots
 
 If the images aren't equal, the test fails and OSnap puts the new image into a new **"\_\_updated\_\_"** folder inside of your snapshot folder.
@@ -249,13 +272,17 @@ It also generates a new image inside of a **"\_\_diff\_\_"** folder, which shows
 
 There is no "update" command to update the snapshots. If the changes shown in the diff image are expected, you just have to move and replace the image from the **"\_\_updated\_\_"** folder into the **"\_\_base_images\_\_"** folder.
 
+<br />
+
 ## Credits
 
 **[ODiff](https://github.com/dmtrKovalenko/odiff):**
 ODiff inspired the name of this library and is used as the underlying diffing algorithm.
 Thank you for your work [@dmtrKovalenko](https://github.com/dmtrKovalenko)!
 
-## Some things we still want to add:
+<br />
+
+## Some things we may want to add:
 
 In decending order of priority (top ones are more important):
 
