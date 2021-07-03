@@ -286,6 +286,8 @@ Thank you for your work [@dmtrKovalenko](https://github.com/dmtrKovalenko)!
 
 In decending order of priority (top ones are more important):
 
+- [ ] **Add cleanup command**:
+      Remove base images which are not used anymore, because the test file was removed.
 - [ ] **Listen for network requests**:
       Wait for specific network requests to finish, before taking the screenshot. For example: Wait for a failed login attempt to come back, to screenshot the error state
 - [ ] **Wait for dom events**:
