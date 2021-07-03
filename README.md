@@ -1,12 +1,21 @@
 <p align="center">
-  <img width="800" src="./docs/OSnap.png"/>
+  <img width="600" src="./logo.png"/>
 </p>
 
-OSnap is a snapshot testing tool, which mainly focuses on speed and ease of use.
+<h1 align="center"> OSnap </h1>
+<h3 align="center"> The speedy and easy to use Snapshot Testing tool for your project! </h3>
 
-A Project with around 1200 snapshots will run in under 3 minutes\*, compared to around 18 minutes it takes other popular snapshot tools to run the same test suite.
+<div align="center">
+    <img src="https://forthebadge.com/images/badges/made-with-reason.svg" alt="made with reason">
+    <img src="https://forthebadge.com/images/badges/built-with-love.svg" alt="<3"/>
+</div>
 
-<small>\* with 20 parallel runners on a 2017 15-inch MacBook Pro.</small>
+<div align="center">
+  A Project with around 1200 snapshots will run in under 3 minutes*, <br />
+  compared to around 18 minutes it takes other popular snapshot tools to run the same test suite.
+
+  <small>* with 20 parallel runners on a 2017 15-inch MacBook Pro.</small>
+</div>
 
 # Table of contents
 
