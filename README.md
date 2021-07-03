@@ -1,4 +1,6 @@
-# OSnap
+<p align="center">
+  <img width="800" src="./docs/OSnap.png"/>
+</p>
 
 OSnap is a snapshot testing tool, which mainly focuses on speed and ease of use.
 
