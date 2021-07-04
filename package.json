@@ -1,6 +1,6 @@
 {
   "name": "@space-labs/osnap",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "The speedy and easy to use snapshot testing tool for your project!",
   "license": "MIT",
   "repository": {
@@ -46,6 +46,7 @@
     "@opam/base64": "3.5.0",
     "@opam/camlzip": "*",
     "@opam/cmdliner": "1.0.4",
+    "@opam/conf-gmp-powm-sec": "2",
     "@opam/fileutils": "0.6.3",
     "@opam/httpaf": "0.7.1",
     "@opam/httpaf-lwt-unix": "0.7.1",
@@ -58,6 +59,7 @@
     "@opam/websocket": "2.14",
     "@opam/websocket-lwt-unix": "2.14",
     "@opam/yojson": "1.7.0",
+    "@opam/zarith": "1.11",
     "@reason-native/pastel": "jfrolich/reason-native:pastel.opam#3e338dcfdb91416a22758a819b2d64f472a34e1c",
     "esy-libpng": "*",
     "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117"
