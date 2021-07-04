@@ -190,11 +190,11 @@ let find =
     |> List.map(pattern => pattern |> Re.Glob.glob |> Re.compile);
 
   let is_ignored = path => {
-    ignore_patterns |> List.find_opt(Re.execp(_, path)) |> Option.is_some;
+    ignore_patterns |> List.exists(Re.execp(_, path));
   };
 
   FileUtil.find(
-    Custom(path => Re.execp(pattern, path) && !is_ignored(path)),
+    Custom(path => !is_ignored(path) && Re.execp(pattern, path)),
     root_path,
     (acc, curr) => [curr, ...acc],
     [],
