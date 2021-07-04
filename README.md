@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="600" src="./logo.png"/>
+  <img width="600" src="https://github.com/eWert-Online/OSnap/blob/7cdbcbde65529aac9db22a6fc113af2913d6a2a6/logo.png"/>
 </div>
 
 <h3 align="center"> The speedy and easy to use Snapshot Testing tool for your project! </h3>
