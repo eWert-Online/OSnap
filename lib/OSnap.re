@@ -77,6 +77,9 @@ let read_file_contents = (~path) => {
   Lwt.return(data);
 };
 
+let get_filename = (name, width, height) =>
+  Printf.sprintf("/%s_%ix%i.png", name, width, height);
+
 let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   let {
     browser,
@@ -94,9 +97,6 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   let passed_count = ref(0);
   let failed_count = ref(0);
   let test_count = ref(0);
-
-  let get_filename = (name, width, height) =>
-    Printf.sprintf("/%s_%ix%i.png", name, width, height);
 
   let all_tests =
     tests
@@ -321,4 +321,58 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   } else {
     Lwt_result.fail();
   };
+};
+
+let cleanup = (~config_path) => {
+  print_newline();
+  let config = Config.Global.find(~config_path) |> Config.Global.parse;
+  let (snapshot_dir, _updated_dir, _diff_dir) =
+    init_folder_structure(config);
+  let tests = Config.Test.init(config);
+
+  let test_file_paths =
+    tests
+    |> List.map(test => {
+         test.Config.Test.sizes
+         |> List.filter_map(size => {
+              let (width, height) = size;
+              let filename = get_filename(test.name, width, height);
+              let current_image_path = snapshot_dir ++ filename;
+              let exists = Sys.file_exists(current_image_path);
+
+              if (exists) {
+                Some(current_image_path);
+              } else {
+                None;
+              };
+            })
+       })
+    |> List.flatten;
+
+  let files_to_delete =
+    FileUtil.ls(snapshot_dir)
+    |> List.find_all(file => !List.mem(file, test_file_paths));
+  let num_files_to_delete = List.length(files_to_delete);
+
+  if (num_files_to_delete > 0) {
+    print_endline(
+      Pastel.bold @@
+      Printf.sprintf("Deleting %i files...\n", num_files_to_delete),
+    );
+    files_to_delete
+    |> List.iter(file => {
+         FileUtil.rm([file]);
+         print_endline(Pastel.dim @@ Printf.sprintf("Deleted %s", file));
+       });
+
+    print_endline(Pastel.bold @@ Pastel.green @@ "\nDone!");
+  } else {
+    print_endline(
+      Pastel.bold @@ Pastel.green @@ "Everything clean. No files to remove!",
+    );
+  };
+
+  print_newline();
+
+  Result.ok();
 };

@@ -10,6 +10,8 @@ type t = {
 
 let setup: (~config_path: string) => Lwt_result.t(t, 'a);
 
+let cleanup: (~config_path: string) => Result.t(unit, unit);
+
 let run:
   (~noCreate: bool, ~noOnly: bool, ~noSkip: bool, t) =>
   Lwt_result.t(unit, unit);

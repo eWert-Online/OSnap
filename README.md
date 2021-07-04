@@ -28,6 +28,7 @@
   - [Ignore Regions](#ignore-regions)
   - [CLI Flags](#cli-flags)
   - [Updating Snapshots](#updating-snapshots)
+  - [Cleanup](#cleanup-command)
 - [Credits](#credits)
 
 <br />
@@ -274,6 +275,27 @@ There is no "update" command to update the snapshots. If the changes shown in th
 
 <br />
 
+## Cleanup Command
+
+The cleanup command removes all base images which are not used anymore.
+This may happen, because you deleted or renamed a test file.
+
+You may add the `--config` option, if your config file is not in the default location.
+
+**Useage:**
+
+```
+osnap cleanup
+```
+
+or
+
+```
+osnap cleanup --config [PATH TO CONFIG]
+```
+
+<br />
+
 ## Credits
 
 **[ODiff](https://github.com/dmtrKovalenko/odiff):**
@@ -286,8 +308,6 @@ Thank you for your work [@dmtrKovalenko](https://github.com/dmtrKovalenko)!
 
 In decending order of priority (top ones are more important):
 
-- [ ] **Add cleanup command**:
-      Remove base images which are not used anymore, because the test file was removed.
 - [ ] **Listen for network requests**:
       Wait for specific network requests to finish, before taking the screenshot. For example: Wait for a failed login attempt to come back, to screenshot the error state
 - [ ] **Wait for dom events**:
