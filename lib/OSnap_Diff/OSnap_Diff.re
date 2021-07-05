@@ -7,18 +7,16 @@ type failState =
 
 let blit = (~dst, ~src, ~offset) => {
   open Bigarray;
+
   let exec = (src, dst) => {
     let len_src = Array2.dim1(src);
-    let len_dst = Array2.dim1(dst);
 
-    if (len_src > len_dst) {
-      let src = Array2.sub_left(src, offset, len_dst);
-      Array2.blit(src, dst);
-    } else if (len_dst > len_src) {
-      let dst = Array2.sub_left(dst, offset, len_src);
-      Array2.blit(src, dst);
-    } else {
-      Array2.blit(src, dst);
+    for (i in 0 to len_src - 1) {
+      let src = Array2.slice_left(src, i);
+      let dst =
+        Array1.sub(Array2.slice_left(dst, i + offset), 0, Array1.dim(src));
+
+      Array1.blit(src, dst);
     };
   };
 
