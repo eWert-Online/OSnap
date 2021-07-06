@@ -146,6 +146,11 @@ jobs:
       - name: Prepare package
         run: node .github/workflows/bundle-release.js
 
+      - name: Increment nightly version
+        if: ${{ github.event_name != 'release' }}
+        working-directory: _release
+        run: npm version --allow-same-version=true --commit-hooks=false --git-tag-version=false --preid=nightly prerelease
+
       # Create a npm package that can easily be published and tested
       - name: npm pack
         run: npm pack .
