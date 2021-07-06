@@ -1,6 +1,9 @@
 name: Publish packages to npm
 
 on:
+  push:
+    branches:
+      - master
   release:
     types: [prereleased, released]
 
@@ -205,8 +208,13 @@ jobs:
         with:
           name: release-tarball
 
+      - name: npm publish nightly
+        run: npm publish ./osnap.tgz --tag=nightly --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: npm publish prerelease
-        if: ${{ github.event_name == 'release' && github.event.release.prerelease }}
+        if: ${{ github.event_name == 'release' }}
         run: npm publish ./osnap.tgz --tag=next --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

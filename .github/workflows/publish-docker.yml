@@ -1,6 +1,9 @@
 name: Build & Publish docker containers
 
 on:
+  push:
+    branches:
+      - master
   release:
     types: [prereleased, released]
 
@@ -106,7 +109,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & Publish ${{ matrix.container }}
+      - name: Build & Publish Nightly ${{ matrix.container }}
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: docker/Dockerfile.${{ matrix.container }}
+          push: true
+          tags: osnap/${{ matrix.container }}:nightly
+
+      - name: Build & Publish Next ${{ matrix.container }}
         if: ${{ github.event_name == 'release' }}
         uses: docker/build-push-action@v2
         with:
