@@ -158,7 +158,7 @@ let parse_single_test = (global_config, test) =>
   };
 
 let parse = (global_config, path) => {
-  let config = OSnap_Config_Utils.get_file_contents(path);
+  let config = OSnap_Utils.get_file_contents(path);
 
   try({
     let json = config |> Yojson.Basic.from_string;

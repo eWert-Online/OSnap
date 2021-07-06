@@ -17,7 +17,7 @@ exception Parse_Error(string);
 exception No_Config_Found;
 
 let parse = path => {
-  let config = OSnap_Config_Utils.get_file_contents(path);
+  let config = OSnap_Utils.get_file_contents(path);
 
   try({
     let json = config |> Yojson.Basic.from_string;

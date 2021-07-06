@@ -5,34 +5,9 @@ open Httpaf_lwt_unix;
 
 Printexc.record_backtrace(true);
 
-type platform =
-  | Win32
-  | Win64
-  | Darwin
-  | Linux;
-
-let detect_platform = () => {
-  let win = Sys.win32 || Sys.cygwin;
-
-  switch (win, Sys.word_size) {
-  | (true, 64) => Win64
-  | (true, _) => Win32
-  | (false, _) =>
-    let ic = Unix.open_process_in("uname");
-    let uname = input_line(ic);
-    let () = close_in(ic);
-
-    if (uname == "Darwin") {
-      Darwin;
-    } else {
-      Linux;
-    };
-  };
-};
-
 let get_download_url = revision => {
   let base_path = "http://storage.googleapis.com/chromium-browser-snapshots";
-  switch (detect_platform()) {
+  switch (OSnap.Utils.detect_platform()) {
   | Darwin => base_path ++ "/Mac/" ++ revision ++ "/chrome-mac.zip"
   | Linux => base_path ++ "/Linux_x64/" ++ revision ++ "/chrome-linux.zip"
   | Win64 => base_path ++ "/Win_x64/" ++ revision ++ "/chrome-win.zip"

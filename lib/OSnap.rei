@@ -1,3 +1,5 @@
+module Utils = OSnap_Utils;
+
 type t = {
   config: OSnap_Config.Global.t,
   browser: OSnap_Browser.t,

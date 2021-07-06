@@ -4,6 +4,8 @@ module Browser = OSnap_Browser;
 module Diff = OSnap_Diff;
 module Printer = OSnap_Printer;
 
+module Utils = OSnap_Utils;
+
 module List = {
   include List;
 
