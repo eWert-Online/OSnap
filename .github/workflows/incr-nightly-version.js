@@ -1,6 +1,6 @@
 const { execSync } = require("child_process");
 const path = require("path");
-const fs = require("fs-extra");
+const fs = require("fs");
 
 const args = process.argv.slice(2);
 
