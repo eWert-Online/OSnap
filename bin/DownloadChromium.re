@@ -13,15 +13,20 @@ type platform =
 
 let detect_platform = () => {
   let win = Sys.win32 || Sys.cygwin;
-  let ic = Unix.open_process_in("uname");
-  let uname = input_line(ic);
-  let () = close_in(ic);
 
-  switch (win, Sys.word_size, uname) {
-  | (true, 64, _) => Win64
-  | (true, _, _) => Win32
-  | (false, _, "Darwin") => Darwin
-  | _ => Linux
+  switch (win, Sys.word_size) {
+  | (true, 64) => Win64
+  | (true, _) => Win32
+  | (false, _) =>
+    let ic = Unix.open_process_in("uname");
+    let uname = input_line(ic);
+    let () = close_in(ic);
+
+    if (uname == "Darwin") {
+      Darwin;
+    } else {
+      Linux;
+    };
   };
 };
 
