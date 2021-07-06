@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - ci
   release:
     types: [prereleased, released]
 
@@ -166,9 +165,8 @@ jobs:
         run: node .github/workflows/bundle-release.js
 
       - name: Increment nightly version
-        if: ${{ github.event_name != 'release' }}
-        working-directory: _release
-        run: npm version --allow-same-version=true --commit-hooks=false --git-tag-version=false --preid=nightly prerelease
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        run: node ./.github/workflows/incr-nightly-version.js ./_release/package.json
 
       # Create a npm package that can easily be published and tested
       - name: npm pack
@@ -233,6 +231,7 @@ jobs:
           name: release-tarball
 
       - name: npm publish nightly
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         run: npm publish ./osnap.tgz --tag=nightly --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -293,6 +292,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build & Publish Nightly ${{ matrix.container }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         uses: docker/build-push-action@v2
         with:
           context: .
