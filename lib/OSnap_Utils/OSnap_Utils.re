@@ -32,8 +32,22 @@ let get_file_contents = filename => {
 };
 
 let contains_substring = (~search, str) => {
-  let re = Str.regexp_string(search);
-  try(Str.search_forward(re, str, 0) >= 0) {
-  | Not_found => false
+  let search_length = String.length(search);
+  let len = String.length(str);
+  try(
+    {
+      for (i in 0 to len - search_length) {
+        let j = ref(0);
+        while (str.[i + j^] == search.[j^]) {
+          incr(j);
+          if (j^ == search_length) {
+            raise(Exit);
+          };
+        };
+      };
+      false;
+    }
+  ) {
+  | Exit => true
   };
 };
