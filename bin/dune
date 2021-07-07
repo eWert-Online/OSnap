@@ -5,7 +5,16 @@
  (flags
   (:standard -w +A-42-44-48-66-40 -warn-error +A-3-44-66-40))
  (ocamlopt_flags -O3)
- (libraries OSnap pastel.lib cmdliner)
+ (libraries
+  OSnap
+  cmdliner
+  fmt
+  fmt.cli
+  fmt.tty
+  logs
+  logs.cli
+  logs.fmt
+  pastel.lib)
  (preprocess
   (pps lwt_ppx)))
 
@@ -15,6 +24,7 @@
  (public_name downloadChromium)
  (flags
   (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
+ (ocamlopt_flags -O3)
  (libraries OSnap camlzip httpaf httpaf-lwt-unix lwt)
  (preprocess
   (pps lwt_ppx)))

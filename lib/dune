@@ -3,6 +3,6 @@
  (flags
   (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
  (ocamlopt_flags -O3)
- (libraries OSnap_Diff OSnap_Printer OSnap_Config OSnap_Browser)
+ (libraries OSnap_Diff OSnap_Printer OSnap_Logger OSnap_Config OSnap_Browser)
  (preprocess
   (pps lwt_ppx)))

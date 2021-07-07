@@ -1,5 +1,5 @@
 {
-  "checksum": "85dfbcf0ab5b6cbfa23d7df4d8274831",
+  "checksum": "efc947639711953cca3b8b07306653d6",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -127,6 +127,7 @@
         "@opam/re@github:ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017@d41d8cd9",
         "@opam/ppx_yojson_conv@opam:v0.14.0@13acb3e6",
         "@opam/lwt_ppx@opam:2.0.2@d18729de", "@opam/lwt@opam:5.4.1@37ffbe37",
+        "@opam/logs@opam:0.7.0@1d03143e",
         "@opam/imagelib@opam:20210511@d13263f8",
         "@opam/httpaf-lwt-unix@opam:0.7.1@7989947a",
         "@opam/httpaf@opam:0.7.1@787eb3e3",

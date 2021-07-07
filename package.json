@@ -11,6 +11,9 @@
     "name": "Torben Ewert",
     "email": "torben@ewert-online.com"
   },
+  "bugs": {
+    "url": "https://github.com/eWert-Online/OSnap/issues"
+  },
   "keywords": [
     "testing",
     "diff",
@@ -51,6 +54,7 @@
     "@opam/httpaf": "0.7.1",
     "@opam/httpaf-lwt-unix": "0.7.1",
     "@opam/imagelib": "20210511",
+    "@opam/logs": "0.7.0",
     "@opam/lwt": "5.4.1",
     "@opam/lwt_ppx": "2.0.2",
     "@opam/ppx_yojson_conv": "v0.14.0",

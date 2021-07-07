@@ -2,6 +2,16 @@ open Cmdliner;
 
 Printexc.record_backtrace(true);
 
+let setup_log = {
+  let init = (style_renderer, level) => {
+    Fmt_tty.setup_std_outputs(~style_renderer?, ());
+    Logs.set_level(level);
+    Logs.set_reporter(Logs_fmt.reporter());
+  };
+
+  Term.(const(init) $ Fmt_cli.style_renderer() $ Logs_cli.level());
+};
+
 let print_error = msg => {
   print_endline(<Pastel color=Red> msg </Pastel>);
 };
@@ -39,11 +49,11 @@ let default_cmd = {
     Arg.(value & flag & info(["no-skip"], ~doc));
   };
 
-  let exec = (noCreate, noOnly, noSkip, config_path) => {
+  let exec = (noCreate, noOnly, noSkip, config_path, ()) => {
     open Lwt_result.Syntax;
     let run = {
       let* t =
-        try%lwt(OSnap.setup(~config_path)) {
+        try%lwt(OSnap.setup(~config_path, ~noCreate, ~noOnly, ~noSkip)) {
         | Failure(message) =>
           print_error(message);
           Lwt_result.fail();
@@ -70,7 +80,7 @@ let default_cmd = {
         };
 
       let* () =
-        try%lwt(OSnap.run(t, ~noCreate, ~noOnly, ~noSkip)) {
+        try%lwt(OSnap.run(t)) {
         | Failure(message) =>
           print_error(message);
           Lwt_result.fail();
@@ -87,7 +97,7 @@ let default_cmd = {
   };
 
   (
-    Term.(const(exec) $ noCreate $ noOnly $ noSkip $ config),
+    Term.(const(exec) $ noCreate $ noOnly $ noSkip $ config $ setup_log),
     Term.info(
       "osnap",
       ~man=[
