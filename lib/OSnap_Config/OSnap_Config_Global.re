@@ -17,6 +17,8 @@ exception Parse_Error(string);
 exception No_Config_Found;
 
 let parse = path => {
+  let debug = OSnap_Logger.debug(~header="Config.Global.parse");
+
   let config = OSnap_Utils.get_file_contents(path);
 
   try({
@@ -27,17 +29,23 @@ let parse = path => {
       |> Yojson.Basic.Util.member("baseUrl")
       |> Yojson.Basic.Util.to_string;
 
+    debug(Printf.sprintf("baseUrl is set to %S", base_url));
+
     let fullscreen =
       json
       |> Yojson.Basic.Util.member("fullScreen")
       |> Yojson.Basic.Util.to_bool_option
       |> Option.value(~default=false);
 
+    debug(Printf.sprintf("fullScreen is set to %b", fullscreen));
+
     let threshold =
       json
       |> Yojson.Basic.Util.member("threshold")
       |> Yojson.Basic.Util.to_int_option
       |> Option.value(~default=0);
+
+    debug(Printf.sprintf("threshold is set to %i", threshold));
 
     let default_sizes =
       json
@@ -52,6 +60,8 @@ let parse = path => {
              item
              |> Yojson.Basic.Util.member("width")
              |> Yojson.Basic.Util.to_int;
+
+           debug(Printf.sprintf("adding default size %ix%i", width, height));
            (width, height);
          });
 
@@ -61,12 +71,18 @@ let parse = path => {
       |> Yojson.Basic.Util.to_string_option
       |> Option.value(~default="__snapshots__");
 
+    debug(
+      Printf.sprintf("snapshot directory is set to %s", snapshot_directory),
+    );
+
     let parallelism =
       json
       |> Yojson.Basic.Util.member("parallelism")
       |> Yojson.Basic.Util.to_int_option
-      |> Option.value(~default=3)
+      |> Option.value(~default=8)
       |> max(1);
+
+    debug(Printf.sprintf("parallelism is set to %i", parallelism));
 
     let root_path =
       String.sub(
@@ -74,6 +90,8 @@ let parse = path => {
         0,
         String.length(path) - String.length("osnap.config.json"),
       );
+
+    debug(Printf.sprintf("setting root path to %s", root_path));
 
     let ignore_patterns =
       json
@@ -84,11 +102,24 @@ let parse = path => {
         | _ => ["**/node_modules/**"]
       );
 
+    debug(
+      Printf.sprintf(
+        "ignore_patterns are set to %s",
+        List.fold_left(
+          (curr, acc) => acc ++ " " ++ curr,
+          "",
+          ignore_patterns,
+        ),
+      ),
+    );
+
     let test_pattern =
       json
       |> Yojson.Basic.Util.member("testPattern")
       |> Yojson.Basic.Util.to_string_option
       |> Option.value(~default="**/*.osnap.json");
+
+    debug(Printf.sprintf("test pattern is set to %s", test_pattern));
 
     let diff_pixel_color =
       json
@@ -119,6 +150,9 @@ let parse = path => {
           raise(Parse_Error("diffPixelColor does not have a correct format"))
       );
 
+    let (r, g, b) = diff_pixel_color;
+    debug(Printf.sprintf("diff pixel color is set to %i,%i,%i", r, g, b));
+
     {
       root_path,
       threshold,
@@ -137,28 +171,40 @@ let parse = path => {
 };
 
 let find = (~config_path) => {
+  let debug = OSnap_Logger.debug(~header="Config.Global.find");
+
   let rec scan_dir = (~config_name, segments) => {
-    let elements =
-      segments |> Utils.path_of_segments |> Sys.readdir |> Array.to_list;
+    let current_path = segments |> OSnap_Utils.path_of_segments;
+    let elements = current_path |> Sys.readdir |> Array.to_list;
+
+    debug(Printf.sprintf("looking for %S in %S", config_name, current_path));
 
     let files =
       elements
       |> List.find_all(el => {
-           let path = Utils.path_of_segments([el, ...segments]);
+           let path = OSnap_Utils.path_of_segments([el, ...segments]);
            let is_direcoty = path |> Sys.is_directory;
            !is_direcoty;
          });
+
+    debug(
+      Printf.sprintf("found %i files in this directory", List.length(files)),
+    );
     let exists = files |> List.exists(file => file == config_name);
     if (exists) {
       Some(segments);
     } else {
       let parent_dir_segments = ["..", ...segments];
-      let parent_dir = parent_dir_segments |> Utils.path_of_segments;
+      let parent_dir = parent_dir_segments |> OSnap_Utils.path_of_segments;
+
+      debug("did not find a config file in this directory");
 
       try(
         if (parent_dir |> Sys.is_directory) {
+          debug("looking in parent directory");
           scan_dir(~config_name, parent_dir_segments);
         } else {
+          debug("there is no parent directory anymore");
           None;
         }
       ) {
@@ -171,12 +217,22 @@ let find = (~config_path) => {
     let config_name = "osnap.config.json";
     let base_path = Sys.getcwd();
 
+    debug(
+      Printf.sprintf("looking for %S in %S and up.", config_name, base_path),
+    );
+
     let config_path = scan_dir(~config_name, [base_path]);
     switch (config_path) {
-    | None => raise(No_Config_Found)
-    | Some(paths) => [config_name, ...paths] |> Utils.path_of_segments
+    | None =>
+      debug("no config file was found");
+      raise(No_Config_Found);
+    | Some(paths) =>
+      let path = [config_name, ...paths] |> OSnap_Utils.path_of_segments;
+      debug(Printf.sprintf("found config file at %S", path));
+      path;
     };
   } else {
+    debug(Printf.sprintf("using provided config path %S", config_path));
     config_path;
   };
 };

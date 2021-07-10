@@ -3,6 +3,7 @@ module Browser = OSnap_Browser;
 
 module Diff = OSnap_Diff;
 module Printer = OSnap_Printer;
+module Logger = OSnap_Logger;
 
 module Utils = OSnap_Utils;
 
@@ -19,46 +20,139 @@ module List = {
 
 type t = {
   config: Config.Global.t,
-  browser: Browser.t,
-  tests: list(Config.Test.t),
+  all_tests: list((Config.Test.t, (int, int), bool)),
+  tests_to_run: list((Config.Test.t, (int, int), bool)),
   snapshot_dir: string,
   updated_dir: string,
   diff_dir: string,
   start_time: float,
 };
 
+let get_filename = (name, width, height) =>
+  Printf.sprintf("/%s_%ix%i.png", name, width, height);
+
 let init_folder_structure = config => {
+  let debug = Logger.debug(~header="SETUP");
+
   let base_path =
     config.Config.Global.root_path ++ config.Config.Global.snapshot_directory;
 
+  debug("initializing folder structure in " ++ base_path);
+
   let snapshot_dir = base_path ++ "/__base_images__";
   if (!Sys.file_exists(snapshot_dir)) {
+    debug("creating base images folder at " ++ snapshot_dir);
     FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), snapshot_dir);
   };
 
   let updated_dir = base_path ++ "/__updated__";
+  debug("(re)creating " ++ updated_dir);
   FileUtil.rm(~recurse=true, [updated_dir]);
   FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), updated_dir);
 
   let diff_dir = base_path ++ "/__diff__";
+  debug("(re)creating " ++ diff_dir);
   FileUtil.rm(~recurse=true, [diff_dir]);
   FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), diff_dir);
 
   (snapshot_dir, updated_dir, diff_dir);
 };
 
-let setup = (~config_path) => {
-  let start_time = Unix.gettimeofday();
-  let config = Config.Global.find(~config_path) |> Config.Global.parse;
-  let (snapshot_dir, updated_dir, diff_dir) = init_folder_structure(config);
-  let tests = Config.Test.init(config);
+let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
+  let debug = Logger.debug(~header="SETUP");
 
-  let%lwt browser = Browser.Launcher.make();
+  let start_time = Unix.gettimeofday();
+
+  debug("looking for global config file");
+  let config = Config.Global.find(~config_path);
+  debug("found global config file at " ++ config);
+  debug("parsing config file");
+  let config = config |> Config.Global.parse;
+  let (snapshot_dir, updated_dir, diff_dir) = init_folder_structure(config);
+  debug("looking for test files");
+  let tests = Config.Test.init(config);
+  debug(Printf.sprintf("found %i test files", List.length(tests)));
+
+  debug("collecting test sizes to run");
+  let all_tests =
+    tests
+    |> List.map(test => {
+         test.Config.Test.sizes
+         |> List.map(size => {
+              let (width, height) = size;
+              let filename = get_filename(test.name, width, height);
+              let current_image_path = snapshot_dir ++ filename;
+              let exists = Sys.file_exists(current_image_path);
+
+              if (noCreate && !exists) {
+                raise(
+                  Failure(
+                    Printf.sprintf(
+                      "Flag --no-create is set. Cannot create new images for %s.",
+                      test.Config.Test.name,
+                    ),
+                  ),
+                );
+              };
+              (test, size, exists);
+            })
+       })
+    |> List.flatten;
+
+  debug("checking for \"only\" flags");
+  let tests_to_run =
+    all_tests
+    |> List.find_all_or_input(((test, _size, _exists)) =>
+         if (test.Config.Test.only) {
+           if (noOnly) {
+             raise(
+               Failure(
+                 Printf.sprintf(
+                   "Flag --no-only is set, but test %s still has only set to true.",
+                   test.Config.Test.name,
+                 ),
+               ),
+             );
+           };
+           true;
+         } else {
+           false;
+         }
+       );
+
+  debug("checking for \"skip\" flags");
+  let tests_to_run =
+    tests_to_run
+    |> List.find_all(((test, (width, height), _exists)) =>
+         if (test.Config.Test.skip) {
+           if (noSkip) {
+             raise(
+               Failure(
+                 Printf.sprintf(
+                   "Flag --no-skip is set, but test %s still has skip set to true.",
+                   test.Config.Test.name,
+                 ),
+               ),
+             );
+           };
+           Printer.skipped_message(~name=test.name, ~width, ~height);
+           false;
+         } else {
+           true;
+         }
+       );
+
+  debug("setting test priority");
+  let tests_to_run =
+    tests_to_run
+    |> List.fast_sort(((_test, _size, exists1), (_test, _size, exists2)) => {
+         Bool.compare(exists1, exists2)
+       });
 
   Lwt_result.return({
     config,
-    browser,
-    tests,
+    all_tests,
+    tests_to_run,
     snapshot_dir,
     updated_dir,
     diff_dir,
@@ -79,16 +173,14 @@ let read_file_contents = (~path) => {
   Lwt.return(data);
 };
 
-let get_filename = (name, width, height) =>
-  Printf.sprintf("/%s_%ix%i.png", name, width, height);
-
-let run = (~noCreate, ~noOnly, ~noSkip, t) => {
+let run = t => {
+  let debug = Logger.debug(~header="RUN");
   let {
-    browser,
     snapshot_dir,
     updated_dir,
     diff_dir,
-    tests,
+    all_tests,
+    tests_to_run,
     config,
     start_time,
   } = t;
@@ -100,75 +192,10 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   let failed_count = ref(0);
   let test_count = ref(0);
 
-  let all_tests =
-    tests
-    |> List.map(test => {
-         test.Config.Test.sizes
-         |> List.map(size => {
-              let (width, height) = size;
-              let filename = get_filename(test.name, width, height);
-              let current_image_path = snapshot_dir ++ filename;
-              let exists = Sys.file_exists(current_image_path);
+  debug("launching browser");
+  let%lwt browser = Browser.Launcher.make();
 
-              if (noCreate && !exists) {
-                Browser.Launcher.shutdown(t.browser);
-                raise(
-                  Failure(
-                    Printf.sprintf(
-                      "Flag --no-create is set. Cannot create new images for %s.",
-                      test.Config.Test.name,
-                    ),
-                  ),
-                );
-              };
-              (test, size, exists);
-            })
-       })
-    |> List.flatten;
-
-  let tests_to_run =
-    all_tests
-    |> List.find_all_or_input(((test, _size, _exists)) =>
-         if (test.Config.Test.only) {
-           if (noOnly) {
-             Browser.Launcher.shutdown(t.browser);
-             raise(
-               Failure(
-                 Printf.sprintf(
-                   "Flag --no-only is set, but test %s still has only set to true.",
-                   test.Config.Test.name,
-                 ),
-               ),
-             );
-           };
-           true;
-         } else {
-           false;
-         }
-       )
-    |> List.find_all(((test, (width, height), _exists)) =>
-         if (test.Config.Test.skip) {
-           if (noSkip) {
-             Browser.Launcher.shutdown(t.browser);
-             raise(
-               Failure(
-                 Printf.sprintf(
-                   "Flag --no-skip is set, but test %s still has skip set to true.",
-                   test.Config.Test.name,
-                 ),
-               ),
-             );
-           };
-           Printer.skipped_message(~name=test.name, ~width, ~height);
-           false;
-         } else {
-           true;
-         }
-       )
-    |> List.fast_sort(((_test, _size, exists1), (_test, _size, exists2)) => {
-         Bool.compare(exists1, exists2)
-       });
-
+  debug("creating pool of runners");
   let pool =
     Lwt_pool.create(max_concurrency, () => Browser.Target.make(browser));
 
@@ -199,11 +226,11 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
                     fun
                     | Ok(id) => id
                     | Error(message) => {
-                        Browser.Launcher.shutdown(t.browser);
+                        Browser.Launcher.shutdown(browser);
                         raise(
                           Failure(
                             Printf.sprintf(
-                              "Could not connect to url \"%s\". \nError was: %s",
+                              "Could not connect to url %S. \nError was: %S",
                               url,
                               message,
                             ),
@@ -307,7 +334,7 @@ let run = (~noCreate, ~noOnly, ~noSkip, t) => {
   let end_time = Unix.gettimeofday();
   let seconds = end_time -. start_time;
 
-  Browser.Launcher.shutdown(t.browser);
+  Browser.Launcher.shutdown(browser);
 
   Printer.stats(
     ~test_count=List.length(tests_to_run),

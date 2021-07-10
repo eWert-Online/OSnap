@@ -24,16 +24,20 @@ type t = {
 };
 
 let parse_size = size => {
+  let debug = OSnap_Logger.debug(~header="Config.Test.parse_size");
   let width =
     size |> Yojson.Basic.Util.member("width") |> Yojson.Basic.Util.to_int;
 
   let height =
     size |> Yojson.Basic.Util.member("height") |> Yojson.Basic.Util.to_int;
 
+  debug(Printf.sprintf("size is set to %ix%i", width, height));
+
   (width, height);
 };
 
 let parse_action = a => {
+  let debug = OSnap_Logger.debug(~header="Config.Test.parse_action");
   let action =
     a |> Yojson.Basic.Util.member("action") |> Yojson.Basic.Util.to_string;
 
@@ -54,26 +58,53 @@ let parse_action = a => {
 
   switch (action) {
   | "click" =>
+    debug("found click action");
     switch (selector) {
-    | None => raise(Invalid_format)
-    | Some(selector) => Click(selector)
-    }
+    | None =>
+      debug("no selector for click action provided");
+      raise(Invalid_format);
+    | Some(selector) =>
+      debug(Printf.sprintf("click selector is %S", selector));
+      Click(selector);
+    };
   | "type" =>
+    debug("found type action");
     switch (selector, text) {
-    | (None, _) => raise(Invalid_format)
-    | (_, None) => raise(Invalid_format)
-    | (Some(selector), Some(text)) => Type(selector, text)
-    }
+    | (None, _) =>
+      debug("no selector for type action provided");
+      raise(Invalid_format);
+    | (_, None) =>
+      debug("no text for type action provided");
+      raise(Invalid_format);
+    | (Some(selector), Some(text)) =>
+      debug(
+        Printf.sprintf(
+          "type action selector is %S with text %S",
+          selector,
+          text,
+        ),
+      );
+      Type(selector, text);
+    };
   | "wait" =>
+    debug("found wait action");
     switch (timeout) {
-    | None => raise(Invalid_format)
-    | Some(timeout) => Wait(timeout)
-    }
-  | _ => raise(Invalid_format)
+    | None =>
+      debug("no timeout provided");
+      raise(Invalid_format);
+    | Some(timeout) =>
+      debug(Printf.sprintf("timeout for wait action is %i", timeout));
+      Wait(timeout);
+    };
+  | action =>
+    debug(Printf.sprintf("found unknown action %S", action));
+    raise(Invalid_format);
   };
 };
 
 let parse_ignore = r => {
+  let debug = OSnap_Logger.debug(~header="Config.Test.parse_ignore");
+
   let x1 =
     r |> Yojson.Basic.Util.member("x1") |> Yojson.Basic.Util.to_int_option;
   let y1 =
@@ -89,17 +120,25 @@ let parse_ignore = r => {
     |> Yojson.Basic.Util.to_string_option;
 
   switch (selector, x1, y1, x2, y2) {
-  | (Some(selector), None, None, None, None) => Selector(selector)
+  | (Some(selector), None, None, None, None) =>
+    debug(Printf.sprintf("using selector %S", selector));
+    Selector(selector);
   | (None, Some(x1), Some(y1), Some(x2), Some(y2)) =>
-    Coordinates((x1, y1), (x2, y2))
+    debug(
+      Printf.sprintf("using coordinates (%i,%i),(%i,%i)", x1, y1, x2, y2),
+    );
+    Coordinates((x1, y1), (x2, y2));
   | _ => raise(Invalid_format)
   };
 };
 
-let parse_single_test = (global_config, test) =>
+let parse_single_test = (global_config, test) => {
+  let debug = OSnap_Logger.debug(~header="Config.Test.parse");
   try({
     let name =
       test |> Yojson.Basic.Util.member("name") |> Yojson.Basic.Util.to_string;
+
+    debug(Printf.sprintf("name: %S", name));
 
     let only =
       test
@@ -107,11 +146,15 @@ let parse_single_test = (global_config, test) =>
       |> Yojson.Basic.Util.to_bool_option
       |> Option.value(~default=false);
 
+    debug(Printf.sprintf("only: %b", only));
+
     let skip =
       test
       |> Yojson.Basic.Util.member("skip")
       |> Yojson.Basic.Util.to_bool_option
       |> Option.value(~default=false);
+
+    debug(Printf.sprintf("skip: %b", only));
 
     let threshold =
       test
@@ -119,16 +162,26 @@ let parse_single_test = (global_config, test) =>
       |> Yojson.Basic.Util.to_int_option
       |> Option.value(~default=global_config.OSnap_Config_Global.threshold);
 
+    debug(Printf.sprintf("threshold: %i", threshold));
+
     let url =
       test |> Yojson.Basic.Util.member("url") |> Yojson.Basic.Util.to_string;
+
+    debug(Printf.sprintf("url: %s", url));
 
     let sizes =
       test
       |> Yojson.Basic.Util.member("sizes")
       |> (
         fun
-        | `List(list) => Some(List.map(parse_size, list))
-        | _ => None
+        | `List(list) => {
+            debug("parsing sizes");
+            Some(List.map(parse_size, list));
+          }
+        | _ => {
+            debug("no sizes present. using default sizes");
+            None;
+          }
       )
       |> Option.value(
            ~default=global_config.OSnap_Config_Global.default_sizes,
@@ -139,7 +192,10 @@ let parse_single_test = (global_config, test) =>
       |> Yojson.Basic.Util.member("actions")
       |> (
         fun
-        | `List(list) => List.map(parse_action, list)
+        | `List(list) => {
+            debug("parsing actions");
+            List.map(parse_action, list);
+          }
         | _ => []
       );
 
@@ -148,7 +204,10 @@ let parse_single_test = (global_config, test) =>
       |> Yojson.Basic.Util.member("ignore")
       |> (
         fun
-        | `List(list) => List.map(parse_ignore, list)
+        | `List(list) => {
+            debug("parsing ignore regions");
+            List.map(parse_ignore, list);
+          }
         | _ => []
       );
 
@@ -156,9 +215,12 @@ let parse_single_test = (global_config, test) =>
   }) {
   | _ => raise(Invalid_format)
   };
+};
 
 let parse = (global_config, path) => {
+  let debug = OSnap_Logger.debug(~header="Config.Test.parse");
   let config = OSnap_Utils.get_file_contents(path);
+  debug(Printf.sprintf("parsing test file %S", path));
 
   try({
     let json = config |> Yojson.Basic.from_string;
@@ -181,17 +243,40 @@ let parse = (global_config, path) => {
 
 let find =
     (~root_path="/", ~pattern="**/*.osnap.json", ~ignore_patterns=[], ()) => {
+  let debug = OSnap_Logger.debug(~header="Config.Test.find");
+
+  debug(Printf.sprintf("looking for test files matching %S", pattern));
+
   let pattern = pattern |> Re.Glob.glob |> Re.compile;
   let ignore_patterns =
     ignore_patterns
-    |> List.map(pattern => pattern |> Re.Glob.glob |> Re.compile);
+    |> List.map(pattern => {
+         debug(Printf.sprintf("adding %S to ignore patterns", pattern));
+         pattern |> Re.Glob.glob |> Re.compile;
+       });
 
   let is_ignored = path => {
-    ignore_patterns |> List.exists(Re.execp(_, path));
+    let ignored = ignore_patterns |> List.exists(Re.execp(_, path));
+    if (ignored) {
+      debug(Printf.sprintf("ignoring %S", path));
+    };
+    ignored;
   };
 
   FileUtil.find(
-    Custom(path => !is_ignored(path) && Re.execp(pattern, path)),
+    Custom(
+      path =>
+        if (!is_ignored(path)) {
+          let matches = Re.execp(pattern, path);
+          debug(Printf.sprintf("checking: %S", path));
+          if (matches) {
+            debug(Printf.sprintf("matched:  %S", path));
+          };
+          matches;
+        } else {
+          false;
+        },
+    ),
     root_path,
     (acc, curr) => [curr, ...acc],
     [],
@@ -199,6 +284,9 @@ let find =
 };
 
 let init = config => {
+  let debug = OSnap_Logger.debug(~header="Config.Test.init");
+
+  debug("looking for test files");
   let tests =
     find(
       ~root_path=config.OSnap_Config_Global.root_path,
@@ -209,11 +297,19 @@ let init = config => {
     |> List.map(parse(config))
     |> List.flatten;
 
+  debug("looking for duplicate names in test files");
   let duplicates =
-    tests |> Utils.find_duplicates(t => t.name) |> List.map(t => t.name);
+    tests
+    |> OSnap_Utils.find_duplicates(t => t.name)
+    |> List.map(t => {
+         debug(Printf.sprintf("found test with duplicate name %S", t.name));
+         t.name;
+       });
 
   if (List.length(duplicates) != 0) {
     raise(Duplicate_Tests(duplicates));
+  } else {
+    debug("did not find duplicates");
   };
 
   tests;
