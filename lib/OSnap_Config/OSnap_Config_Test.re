@@ -210,7 +210,7 @@ let init = config => {
     |> List.flatten;
 
   let duplicates =
-    tests |> Utils.find_duplicates(t => t.name) |> List.map(t => t.name);
+    tests |> OSnap_Utils.find_duplicates(t => t.name) |> List.map(t => t.name);
 
   if (List.length(duplicates) != 0) {
     raise(Duplicate_Tests(duplicates));

@@ -1,3 +1,4 @@
+module Logger = OSnap_Logger;
 module Utils = OSnap_Utils;
 
 type t;

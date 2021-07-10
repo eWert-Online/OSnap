@@ -2,4 +2,4 @@
  (name OSnap_Logger)
  (flags
   (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
- (libraries logs logs.lwt fmt))
+ (libraries fmt fmt.cli fmt.tty logs logs.cli logs.fmt))

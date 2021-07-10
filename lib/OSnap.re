@@ -32,26 +32,26 @@ let get_filename = (name, width, height) =>
   Printf.sprintf("/%s_%ix%i.png", name, width, height);
 
 let init_folder_structure = config => {
-  let log = Logger.log(~header="SETUP");
+  let debug = Logger.debug(~header="SETUP");
 
   let base_path =
     config.Config.Global.root_path ++ config.Config.Global.snapshot_directory;
 
-  log("initializing folder structure in " ++ base_path);
+  debug("initializing folder structure in " ++ base_path);
 
   let snapshot_dir = base_path ++ "/__base_images__";
   if (!Sys.file_exists(snapshot_dir)) {
-    log("creating base images folder at " ++ snapshot_dir);
+    debug("creating base images folder at " ++ snapshot_dir);
     FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), snapshot_dir);
   };
 
   let updated_dir = base_path ++ "/__updated__";
-  log("(re)creating " ++ updated_dir);
+  debug("(re)creating " ++ updated_dir);
   FileUtil.rm(~recurse=true, [updated_dir]);
   FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), updated_dir);
 
   let diff_dir = base_path ++ "/__diff__";
-  log("(re)creating " ++ diff_dir);
+  debug("(re)creating " ++ diff_dir);
   FileUtil.rm(~recurse=true, [diff_dir]);
   FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), diff_dir);
 
@@ -59,21 +59,21 @@ let init_folder_structure = config => {
 };
 
 let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
-  let log = Logger.log(~header="SETUP");
+  let debug = Logger.debug(~header="SETUP");
 
   let start_time = Unix.gettimeofday();
 
-  log("looking for global config file");
+  debug("looking for global config file");
   let config = Config.Global.find(~config_path);
-  log("found global config file at " ++ config);
-  log("parsing config file");
+  debug("found global config file at " ++ config);
+  debug("parsing config file");
   let config = config |> Config.Global.parse;
   let (snapshot_dir, updated_dir, diff_dir) = init_folder_structure(config);
-  log("looking for test files");
+  debug("looking for test files");
   let tests = Config.Test.init(config);
-  log(Printf.sprintf("found %i test files", List.length(tests)));
+  debug(Printf.sprintf("found %i test files", List.length(tests)));
 
-  log("collecting test sizes to run");
+  debug("collecting test sizes to run");
   let all_tests =
     tests
     |> List.map(test => {
@@ -99,7 +99,7 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
        })
     |> List.flatten;
 
-  log("checking for \"only\" flags");
+  debug("checking for \"only\" flags");
   let tests_to_run =
     all_tests
     |> List.find_all_or_input(((test, _size, _exists)) =>
@@ -120,7 +120,7 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
          }
        );
 
-  log("checking for \"skip\" flags");
+  debug("checking for \"skip\" flags");
   let tests_to_run =
     tests_to_run
     |> List.find_all(((test, (width, height), _exists)) =>
@@ -142,7 +142,7 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
          }
        );
 
-  log("setting test priority");
+  debug("setting test priority");
   let tests_to_run =
     tests_to_run
     |> List.fast_sort(((_test, _size, exists1), (_test, _size, exists2)) => {
@@ -174,7 +174,7 @@ let read_file_contents = (~path) => {
 };
 
 let run = t => {
-  let log = Logger.log(~header="RUN");
+  let debug = Logger.debug(~header="RUN");
   let {
     snapshot_dir,
     updated_dir,
@@ -192,10 +192,10 @@ let run = t => {
   let failed_count = ref(0);
   let test_count = ref(0);
 
-  log("launching browser");
+  debug("launching browser");
   let%lwt browser = Browser.Launcher.make();
 
-  log("creating pool of runners");
+  debug("creating pool of runners");
   let pool =
     Lwt_pool.create(max_concurrency, () => Browser.Target.make(browser));
 
