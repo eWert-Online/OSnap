@@ -29,7 +29,7 @@ let parse = path => {
       |> Yojson.Basic.Util.member("baseUrl")
       |> Yojson.Basic.Util.to_string;
 
-    debug(Printf.sprintf("baseUrl is set to \"%s\"", base_url));
+    debug(Printf.sprintf("baseUrl is set to %S", base_url));
 
     let fullscreen =
       json
@@ -177,13 +177,7 @@ let find = (~config_path) => {
     let current_path = segments |> OSnap_Utils.path_of_segments;
     let elements = current_path |> Sys.readdir |> Array.to_list;
 
-    debug(
-      Printf.sprintf(
-        "looking for \"%s\" in \"%s\"",
-        config_name,
-        current_path,
-      ),
-    );
+    debug(Printf.sprintf("looking for %S in %S", config_name, current_path));
 
     let files =
       elements
@@ -224,11 +218,7 @@ let find = (~config_path) => {
     let base_path = Sys.getcwd();
 
     debug(
-      Printf.sprintf(
-        "looking for \"%s\" in \"%s\" and up.",
-        config_name,
-        base_path,
-      ),
+      Printf.sprintf("looking for %S in %S and up.", config_name, base_path),
     );
 
     let config_path = scan_dir(~config_name, [base_path]);
@@ -238,11 +228,11 @@ let find = (~config_path) => {
       raise(No_Config_Found);
     | Some(paths) =>
       let path = [config_name, ...paths] |> OSnap_Utils.path_of_segments;
-      debug(Printf.sprintf("found config file at \"%s\"", path));
+      debug(Printf.sprintf("found config file at %S", path));
       path;
     };
   } else {
-    debug(Printf.sprintf("using provided config path \"%s\"", config_path));
+    debug(Printf.sprintf("using provided config path %S", config_path));
     config_path;
   };
 };

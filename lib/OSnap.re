@@ -230,7 +230,7 @@ let run = t => {
                         raise(
                           Failure(
                             Printf.sprintf(
-                              "Could not connect to url \"%s\". \nError was: %s",
+                              "Could not connect to url %S. \nError was: %S",
                               url,
                               message,
                             ),
