@@ -1,5 +1,0 @@
-FROM alpine:latest
-
-COPY _build /usr/local
-
-RUN downloadChromium
