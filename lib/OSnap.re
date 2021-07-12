@@ -207,7 +207,7 @@ let run = t => {
          Lwt_pool.use(
            pool,
            target => {
-             test_count := test_count^ + 1;
+             incr(test_count);
              let filename = get_filename(test.name, width, height);
              let current_image_path = snapshot_dir ++ filename;
              let new_image_path = updated_dir ++ filename;
@@ -262,8 +262,8 @@ let run = t => {
                |> Lwt.map(Base64.decode_exn);
 
              if (create_new) {
-               create_count := create_count^ + 1;
-               passed_count := passed_count^ + 1;
+               incr(create_count);
+               incr(passed_count);
                Printer.created_message(~name=test.name, ~width, ~height);
                save_screenshot(
                  ~path=create_new ? current_image_path : new_image_path,
@@ -274,7 +274,7 @@ let run = t => {
                  read_file_contents(~path=current_image_path);
 
                if (original_image_data == screenshot) {
-                 passed_count := passed_count^ + 1;
+                 incr(passed_count);
                  Printer.success_message(~name=test.name, ~width, ~height);
                  Lwt.return();
                } else {
@@ -306,16 +306,16 @@ let run = t => {
 
                  switch (diff()) {
                  | Ok () =>
-                   passed_count := passed_count^ + 1;
+                   incr(passed_count);
                    FileUtil.rm(~recurse=true, [new_image_path]);
                    Printer.success_message(~name=test.name, ~width, ~height);
                    Lwt.return();
                  | Error(Layout) =>
-                   failed_count := failed_count^ + 1;
+                   incr(failed_count);
                    Printer.layout_message(~name=test.name, ~width, ~height);
                    save_screenshot(~path=new_image_path, screenshot);
                  | Error(Pixel(diffCount, diffPercentage)) =>
-                   failed_count := failed_count^ + 1;
+                   incr(failed_count);
                    Printer.diff_message(
                      ~name=test.name,
                      ~width,

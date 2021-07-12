@@ -157,9 +157,8 @@ module Request = {
   let id = ref(0);
 
   let id = () => {
-    let new_id = id^ + 1;
-    id := new_id;
-    new_id;
+    incr(id);
+    id^;
   };
 
   [@deriving yojson]
