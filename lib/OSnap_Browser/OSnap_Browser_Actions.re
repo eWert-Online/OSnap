@@ -36,7 +36,9 @@ let wait_for_network_idle = (target, ~loaderId) => {
 };
 
 let go_to = (~url, target) => {
+  let debug = OSnap_Logger.debug(~header="Browser.go_to");
   let sessionId = target.sessionId;
+  debug(Printf.sprintf("session %S \n\t navigationg to %S", sessionId, url));
   let%lwt payload =
     Page.Navigate.make(url, ~sessionId)
     |> OSnap_Websocket.send
@@ -196,8 +198,17 @@ let click = (~selector, target) => {
 };
 
 let set_size = (~width, ~height, target) => {
+  let debug = OSnap_Logger.debug(~header="Browser.set_size");
   let sessionId = target.sessionId;
 
+  debug(
+    Printf.sprintf(
+      "session %S \n\t setting size to %ix%i",
+      sessionId,
+      width,
+      height,
+    ),
+  );
   let%lwt _ =
     Emulation.SetDeviceMetricsOverride.make(
       ~sessionId,
@@ -222,8 +233,8 @@ let screenshot = (~full_size=false, target) => {
         |> OSnap_Websocket.send
         |> Lwt.map(Page.GetLayoutMetrics.parse)
         |> Lwt.map(response => response.Types.Response.result);
-      let width = metrics.contentSize.width;
-      let height = metrics.contentSize.height;
+      let width = metrics.cssContentSize.width;
+      let height = metrics.cssContentSize.height;
 
       Lwt.return(
         Some(Types.Page.Viewport.{x: 0, y: 0, width, height, scale: 1}),
@@ -238,6 +249,7 @@ let screenshot = (~full_size=false, target) => {
       ~sessionId,
       ~clip?,
       ~captureBeyondViewport=true,
+      ~fromSurface=true,
       (),
     )
     |> OSnap_Websocket.send

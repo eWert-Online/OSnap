@@ -5,6 +5,7 @@
  (libraries
   OSnap_CDP
   OSnap_Utils
+  OSnap_Logger
   OSnap_Websocket
   camlzip
   httpaf

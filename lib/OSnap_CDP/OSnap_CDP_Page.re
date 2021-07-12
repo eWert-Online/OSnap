@@ -98,6 +98,8 @@ module CaptureScreenshot = {
 };
 
 module GetLayoutMetrics = {
+  let debug = OSnap_Logger.debug(~header="CDP.Page.GetLayoutMetrics");
+
   [@deriving yojson]
   type params;
 
@@ -109,17 +111,22 @@ module GetLayoutMetrics = {
     layoutViewport: Page.LayoutViewport.t,
     visualViewport: Page.VisualViewport.t,
     contentSize: DOM.Rect.t,
+    cssLayoutViewport: Page.LayoutViewport.t,
+    cssVisualViewport: Page.VisualViewport.t,
+    cssContentSize: DOM.Rect.t,
   };
 
   [@deriving yojson]
   type response = Response.t(result);
 
-  let parse = response =>
+  let parse = response => {
+    debug(Printf.sprintf("parsing %S", response));
     try(response |> Yojson.Safe.from_string |> response_of_yojson) {
     | _ as exn =>
       print_endline("Error parsing GetLayoutMetrics!");
       raise(exn);
     };
+  };
 
   let make = (~sessionId=?, ()) => {
     Request.make("Page.getLayoutMetrics", ~sessionId?)
