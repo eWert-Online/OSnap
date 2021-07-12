@@ -1,5 +1,5 @@
 diff --git a/bin/dune b/bin/dune
-index fdc0fd1..32c2808 100644
+index d9bfe66..a67e1c7 100644
 --- a/bin/dune
 +++ b/bin/dune
 @@ -3,6 +3,7 @@
@@ -9,4 +9,4 @@ index fdc0fd1..32c2808 100644
 +  (-ccopt -static)
    (:standard -w +A-42-44-48-66-40 -warn-error +A-3-44-66-40))
   (ocamlopt_flags -O3)
-  (libraries OSnap cmdliner fmt fmt.cli fmt.tty logs logs.cli logs.fmt)
+  (libraries OSnap cmdliner fmt logs logs.cli logs.fmt)
