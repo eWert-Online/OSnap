@@ -353,6 +353,7 @@ let run = t => {
 };
 
 let cleanup = (~config_path) => {
+  open Fmt;
   print_newline();
   let config = Config.Global.find(~config_path) |> Config.Global.parse;
   let (snapshot_dir, _updated_dir, _diff_dir) =
@@ -384,20 +385,27 @@ let cleanup = (~config_path) => {
   let num_files_to_delete = List.length(files_to_delete);
 
   if (num_files_to_delete > 0) {
-    print_endline(
-      Pastel.bold @@
+    Fmt.pr(
+      "%a @.",
+      styled(`Bold, string),
       Printf.sprintf("Deleting %i files...\n", num_files_to_delete),
     );
     files_to_delete
     |> List.iter(file => {
          FileUtil.rm([file]);
-         print_endline(Pastel.dim @@ Printf.sprintf("Deleted %s", file));
+         Fmt.pr(
+           "%a @.",
+           styled(`Faint, string),
+           Printf.sprintf("Deleted %s", file),
+         );
        });
 
-    print_endline(Pastel.bold @@ Pastel.green @@ "\nDone!");
+    Fmt.pr("\n%a @.", styled(`Bold, styled(`Green, string)), "Done!");
   } else {
-    print_endline(
-      Pastel.bold @@ Pastel.green @@ "Everything clean. No files to remove!",
+    Fmt.pr(
+      "%a @.",
+      styled(`Bold, styled(`Green, string)),
+      "Everything clean. No files to remove!",
     );
   };
 

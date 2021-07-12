@@ -1,6 +1,7 @@
 open Cmdliner;
 
 Printexc.record_backtrace(true);
+Fmt.set_style_renderer(Fmt.stdout, `Ansi_tty);
 
 let setup_log = {
   Term.(
@@ -9,7 +10,7 @@ let setup_log = {
 };
 
 let print_error = msg => {
-  print_endline(<Pastel color=Red> msg </Pastel>);
+  Fmt.pr("%a @.", Fmt.styled(`Red, Fmt.string), msg);
 };
 
 let config = {
