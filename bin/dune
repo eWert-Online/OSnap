@@ -8,14 +8,3 @@
  (libraries OSnap cmdliner fmt fmt.cli fmt.tty logs logs.cli logs.fmt)
  (preprocess
   (pps lwt_ppx)))
-
-(executable
- (name DownloadChromium)
- (modules DownloadChromium)
- (public_name downloadChromium)
- (flags
-  (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
- (ocamlopt_flags -O3)
- (libraries OSnap camlzip httpaf httpaf-lwt-unix lwt)
- (preprocess
-  (pps lwt_ppx)))

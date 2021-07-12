@@ -181,6 +181,45 @@ let cleanup_cmd = {
   );
 };
 
-let cmds = [cleanup_cmd];
+let download_chromium_cmd = {
+  let exec = () => {
+    let run = {
+      try%lwt(OSnap.download_chromium()) {
+      | Failure(message) =>
+        print_error(message);
+        Lwt_result.fail();
+      | exn => raise(exn)
+      };
+    };
+
+    switch (Lwt_main.run(run)) {
+    | Ok () => 0
+    | Error () => 1
+    };
+  };
+
+  (
+    Term.(const(exec) $ const()),
+    Term.info(
+      "download-chromium",
+      ~man=[
+        `S(Manpage.s_description),
+        `P(
+          "
+          The download-chromium command downloads the latest compatible version of chromium.
+          ",
+        ),
+      ],
+      ~exits=
+        Term.[
+          exit_info(0, ~doc="on success"),
+          exit_info(124, ~doc="on command line parsing errors."),
+          exit_info(125, ~doc="on unexpected internal errors."),
+        ],
+    ),
+  );
+};
+
+let cmds = [cleanup_cmd, download_chromium_cmd];
 
 let () = Term.eval_choice(default_cmd, cmds) |> Term.exit_status;

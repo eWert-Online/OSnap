@@ -32,8 +32,7 @@
     "buildDev": "dune build --promote-install-files --root . --only-package osnap",
     "release": {
       "bin": {
-        "osnap": "osnap",
-        "downloadChromium": "downloadChromium"
+        "osnap": "osnap"
       },
       "includePackages": [
         "root",

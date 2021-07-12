@@ -10,3 +10,5 @@ let setup:
 let cleanup: (~config_path: string) => Result.t(unit, unit);
 
 let run: t => Lwt_result.t(unit, unit);
+
+let download_chromium: unit => Lwt_result.t(unit, unit);

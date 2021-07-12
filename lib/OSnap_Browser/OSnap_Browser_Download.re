@@ -3,11 +3,9 @@ open Lwt.Syntax;
 open Httpaf;
 open Httpaf_lwt_unix;
 
-Printexc.record_backtrace(true);
-
 let get_download_url = revision => {
   let base_path = "http://storage.googleapis.com/chromium-browser-snapshots";
-  switch (OSnap.Utils.detect_platform()) {
+  switch (OSnap_Utils.detect_platform()) {
   | Darwin => base_path ++ "/Mac/" ++ revision ++ "/chrome-mac.zip"
   | Linux => base_path ++ "/Linux_x64/" ++ revision ++ "/chrome-linux.zip"
   | Win64 => base_path ++ "/Win_x64/" ++ revision ++ "/chrome-win.zip"
@@ -133,9 +131,9 @@ let extract_zip = (~dest="", source) => {
   Camlzip.Zip.close_in(ic);
 };
 
-let main = () => {
-  let revision = OSnap_Browser.Path.get_revision();
-  let extract_path = OSnap_Browser.Path.get_chromium_path();
+let download = () => {
+  let revision = OSnap_Browser_Path.get_revision();
+  let extract_path = OSnap_Browser_Path.get_chromium_path();
 
   print_newline();
   print_newline();
@@ -146,7 +144,7 @@ let main = () => {
       let* path = dir |> download(~revision);
       extract_zip(path, ~dest=extract_path);
       print_endline("Done!");
-      Lwt.return();
+      Lwt_result.return();
     });
   } else {
     print_endline(
@@ -155,8 +153,6 @@ let main = () => {
         extract_path,
       ),
     );
-    Lwt.return();
+    Lwt_result.return();
   };
 };
-
-Lwt_main.run(main());

@@ -405,3 +405,5 @@ let cleanup = (~config_path) => {
 
   Result.ok();
 };
+
+let download_chromium = OSnap_Browser.Download.download;

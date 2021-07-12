@@ -2,7 +2,7 @@ FROM centos:8
 
 COPY _build /usr/local
 
-RUN downloadChromium
+RUN osnap download-chromium
 
 RUN yum install wget -y && \
   wget http://mirror.centos.org/centos/7/os/x86_64/Packages/ipa-gothic-fonts-003.03-5.el7.noarch.rpm && \
