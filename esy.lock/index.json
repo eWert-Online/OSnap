@@ -1,5 +1,5 @@
 {
-  "checksum": "4363ab423982763f80ddd393868e1af6",
+  "checksum": "69322195eff6e574819c8c7434a67133",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -151,10 +151,11 @@
         "@opam/lwt_ppx@opam:2.0.2@d18729de", "@opam/lwt@opam:5.4.1@37ffbe37",
         "@opam/logs@opam:0.7.0@1d03143e",
         "@opam/imagelib@opam:20210511@d13263f8",
-        "@opam/httpaf-lwt-unix@opam:0.7.1@7989947a",
-        "@opam/httpaf@opam:0.7.1@787eb3e3", "@opam/fmt@opam:0.8.9@e0843a5b",
+        "@opam/fmt@opam:0.8.9@e0843a5b",
         "@opam/fileutils@opam:0.6.3@67cadc89",
         "@opam/conf-gmp-powm-sec@opam:2@e6fe9f11",
+        "@opam/cohttp-lwt-unix@opam:4.0.0@44a340bb",
+        "@opam/cohttp@opam:4.0.0@6ec2ddbb",
         "@opam/cmdliner@opam:1.0.4@93208aac",
         "@opam/camlzip@github:rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195@941c02f2",
         "@opam/base64@opam:3.5.0@827395e3"
@@ -1939,71 +1940,6 @@
         "@opam/base-unix@opam:base@87d0b2eb"
       ]
     },
-    "@opam/httpaf-lwt-unix@opam:0.7.1@7989947a": {
-      "id": "@opam/httpaf-lwt-unix@opam:0.7.1@7989947a",
-      "name": "@opam/httpaf-lwt-unix",
-      "version": "opam:0.7.1",
-      "source": {
-        "type": "install",
-        "source": [
-          "archive:https://opam.ocaml.org/cache/md5/8c/8c8b199d0553f02fb361cf52c57c0412#md5:8c8b199d0553f02fb361cf52c57c0412",
-          "archive:https://github.com/inhabitedtype/httpaf/archive/0.7.1.tar.gz#md5:8c8b199d0553f02fb361cf52c57c0412"
-        ],
-        "opam": {
-          "name": "httpaf-lwt-unix",
-          "version": "0.7.1",
-          "path": "esy.lock/opam/httpaf-lwt-unix.0.7.1"
-        }
-      },
-      "overrides": [],
-      "dependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/httpaf@opam:0.7.1@787eb3e3",
-        "@opam/faraday-lwt-unix@opam:0.8.1@e733b134",
-        "@opam/dune@opam:2.9.0@489e77a9", "@esy-ocaml/substs@0.0.1@d41d8cd9"
-      ],
-      "devDependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/httpaf@opam:0.7.1@787eb3e3",
-        "@opam/faraday-lwt-unix@opam:0.8.1@e733b134",
-        "@opam/dune@opam:2.9.0@489e77a9"
-      ]
-    },
-    "@opam/httpaf@opam:0.7.1@787eb3e3": {
-      "id": "@opam/httpaf@opam:0.7.1@787eb3e3",
-      "name": "@opam/httpaf",
-      "version": "opam:0.7.1",
-      "source": {
-        "type": "install",
-        "source": [
-          "archive:https://opam.ocaml.org/cache/md5/8c/8c8b199d0553f02fb361cf52c57c0412#md5:8c8b199d0553f02fb361cf52c57c0412",
-          "archive:https://github.com/inhabitedtype/httpaf/archive/0.7.1.tar.gz#md5:8c8b199d0553f02fb361cf52c57c0412"
-        ],
-        "opam": {
-          "name": "httpaf",
-          "version": "0.7.1",
-          "path": "esy.lock/opam/httpaf.0.7.1"
-        }
-      },
-      "overrides": [],
-      "dependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/result@opam:1.5@1c6a6533",
-        "@opam/faraday@opam:0.8.1@3e04a493",
-        "@opam/dune@opam:2.9.0@489e77a9",
-        "@opam/bigstringaf@opam:0.8.0@6a362afb",
-        "@opam/angstrom@opam:0.15.0@105656d9",
-        "@esy-ocaml/substs@0.0.1@d41d8cd9"
-      ],
-      "devDependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/result@opam:1.5@1c6a6533",
-        "@opam/faraday@opam:0.8.1@3e04a493",
-        "@opam/dune@opam:2.9.0@489e77a9",
-        "@opam/bigstringaf@opam:0.8.0@6a362afb",
-        "@opam/angstrom@opam:0.15.0@105656d9"
-      ]
-    },
     "@opam/gmap@opam:0.3.0@5c009abd": {
       "id": "@opam/gmap@opam:0.3.0@5c009abd",
       "name": "@opam/gmap",
@@ -2151,96 +2087,6 @@
         "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/base-unix@opam:base@87d0b2eb",
         "@opam/base-bytes@opam:base@19d0c2ff"
-      ]
-    },
-    "@opam/faraday-lwt-unix@opam:0.8.1@e733b134": {
-      "id": "@opam/faraday-lwt-unix@opam:0.8.1@e733b134",
-      "name": "@opam/faraday-lwt-unix",
-      "version": "opam:0.8.1",
-      "source": {
-        "type": "install",
-        "source": [
-          "archive:https://opam.ocaml.org/cache/md5/51/51b97f082af4679e3b428a03c3b657de#md5:51b97f082af4679e3b428a03c3b657de",
-          "archive:https://github.com/inhabitedtype/faraday/archive/0.8.1.tar.gz#md5:51b97f082af4679e3b428a03c3b657de"
-        ],
-        "opam": {
-          "name": "faraday-lwt-unix",
-          "version": "0.8.1",
-          "path": "esy.lock/opam/faraday-lwt-unix.0.8.1"
-        }
-      },
-      "overrides": [],
-      "dependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/lwt@opam:5.4.1@37ffbe37",
-        "@opam/faraday-lwt@opam:0.8.1@5a6331d0",
-        "@opam/dune@opam:2.9.0@489e77a9",
-        "@opam/base-unix@opam:base@87d0b2eb",
-        "@esy-ocaml/substs@0.0.1@d41d8cd9"
-      ],
-      "devDependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/lwt@opam:5.4.1@37ffbe37",
-        "@opam/faraday-lwt@opam:0.8.1@5a6331d0",
-        "@opam/dune@opam:2.9.0@489e77a9",
-        "@opam/base-unix@opam:base@87d0b2eb"
-      ]
-    },
-    "@opam/faraday-lwt@opam:0.8.1@5a6331d0": {
-      "id": "@opam/faraday-lwt@opam:0.8.1@5a6331d0",
-      "name": "@opam/faraday-lwt",
-      "version": "opam:0.8.1",
-      "source": {
-        "type": "install",
-        "source": [
-          "archive:https://opam.ocaml.org/cache/md5/51/51b97f082af4679e3b428a03c3b657de#md5:51b97f082af4679e3b428a03c3b657de",
-          "archive:https://github.com/inhabitedtype/faraday/archive/0.8.1.tar.gz#md5:51b97f082af4679e3b428a03c3b657de"
-        ],
-        "opam": {
-          "name": "faraday-lwt",
-          "version": "0.8.1",
-          "path": "esy.lock/opam/faraday-lwt.0.8.1"
-        }
-      },
-      "overrides": [],
-      "dependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/faraday@opam:0.8.1@3e04a493",
-        "@opam/dune@opam:2.9.0@489e77a9", "@esy-ocaml/substs@0.0.1@d41d8cd9"
-      ],
-      "devDependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/faraday@opam:0.8.1@3e04a493",
-        "@opam/dune@opam:2.9.0@489e77a9"
-      ]
-    },
-    "@opam/faraday@opam:0.8.1@3e04a493": {
-      "id": "@opam/faraday@opam:0.8.1@3e04a493",
-      "name": "@opam/faraday",
-      "version": "opam:0.8.1",
-      "source": {
-        "type": "install",
-        "source": [
-          "archive:https://opam.ocaml.org/cache/md5/51/51b97f082af4679e3b428a03c3b657de#md5:51b97f082af4679e3b428a03c3b657de",
-          "archive:https://github.com/inhabitedtype/faraday/archive/0.8.1.tar.gz#md5:51b97f082af4679e3b428a03c3b657de"
-        ],
-        "opam": {
-          "name": "faraday",
-          "version": "0.8.1",
-          "path": "esy.lock/opam/faraday.0.8.1"
-        }
-      },
-      "overrides": [],
-      "dependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/dune@opam:2.9.0@489e77a9",
-        "@opam/bigstringaf@opam:0.8.0@6a362afb",
-        "@esy-ocaml/substs@0.0.1@d41d8cd9"
-      ],
-      "devDependencies": [
-        "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/dune@opam:2.9.0@489e77a9",
-        "@opam/bigstringaf@opam:0.8.0@6a362afb"
       ]
     },
     "@opam/eqaf@opam:0.7@5e2a7277": {

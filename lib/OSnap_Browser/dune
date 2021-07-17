@@ -8,8 +8,8 @@
   OSnap_Websocket
   cdp
   camlzip
-  httpaf
-  httpaf-lwt-unix
+  cohttp
+  cohttp-lwt-unix
   lwt)
  (preprocess
   (pps lwt_ppx)))

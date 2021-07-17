@@ -1,7 +1,4 @@
-open Lwt.Syntax;
-
-open Httpaf;
-open Httpaf_lwt_unix;
+open Cohttp_lwt_unix;
 
 let get_download_url = revision => {
   let base_path = "http://storage.googleapis.com/chromium-browser-snapshots";
@@ -16,6 +13,8 @@ let get_download_url = revision => {
 };
 
 let download = (~revision, dir) => {
+  open Lwt.Syntax;
+
   let zip_path = Filename.concat(dir, "chromium.zip");
   let* io = Lwt_io.open_file(~mode=Output, zip_path);
 
@@ -26,76 +25,26 @@ let download = (~revision, dir) => {
     ),
   );
 
-  let (finished, notify_finished) = Lwt.wait();
-  let socket = Lwt_unix.socket(Unix.PF_INET, Unix.SOCK_STREAM, 0);
-
   let uri = revision |> get_download_url |> Uri.of_string;
-  let host = uri |> Uri.host_with_default(~default="storage.googleapis.com");
-  let port = uri |> Uri.port |> Option.value(~default=80);
-  let* addresses =
-    Lwt_unix.getaddrinfo(
-      host,
-      Int.to_string(port),
-      [Unix.(AI_FAMILY(PF_INET))],
+
+  let* (response, body) = Client.get(uri);
+
+  switch (response) {
+  | {status: `OK, _} =>
+    let* () =
+      Cohttp_lwt.Body.to_stream(body) |> Lwt_stream.iter_s(Lwt_io.write(io));
+    let* () = Lwt_io.close(io);
+    zip_path |> Lwt_result.return;
+  | response =>
+    let* () = Lwt_io.close(io);
+    Format.fprintf(
+      Format.err_formatter,
+      "Chrome could not be downloaded:\n%a\n%!",
+      Response.pp_hum,
+      response,
     );
-
-  let error_handler = error => {
-    switch (error) {
-    | `Exn(exn) =>
-      print_endline("Chrome could not be downloaded");
-      Printexc.to_string(exn) |> print_endline;
-      exit(1);
-    | `Invalid_response_body_length(_response) =>
-      print_endline("Chrome could not be downloaded");
-      exit(1);
-    | `Malformed_response(string) =>
-      print_endline(
-        "Chrome could not be downloaded. Malformed Response: \n" ++ string,
-      );
-      exit(1);
-    };
+    Lwt_result.fail();
   };
-
-  let response_handler = (response, response_body) => {
-    let on_eof = Lwt.wakeup_later(notify_finished);
-
-    let rec on_read = (bs, ~off, ~len) => {
-      Lwt.async(() => {
-        Bigstringaf.substring(~off, ~len, bs)
-        |> Lwt_io.write(io)
-        |> Lwt.map(() => Body.schedule_read(response_body, ~on_read, ~on_eof))
-      });
-    };
-
-    switch (response) {
-    | {Response.status: `OK, _} =>
-      Body.schedule_read(response_body, ~on_read, ~on_eof)
-    | response =>
-      print_endline("Chrome could not be downloaded:");
-      Format.fprintf(
-        Format.err_formatter,
-        "%a\n%!",
-        Response.pp_hum,
-        response,
-      );
-      exit(1);
-    };
-  };
-
-  let* () = Lwt_unix.connect(socket, List.hd(addresses).Unix.ai_addr);
-
-  let request_body =
-    uri
-    |> Uri.to_string
-    |> Request.create(`GET, ~headers=Headers.of_list([("Host", host)]))
-    |> Client.request(socket, ~error_handler, ~response_handler);
-
-  Body.close_writer(request_body);
-
-  let* () = finished;
-  let* () = Lwt_io.close(io);
-
-  zip_path |> Lwt.return;
 };
 
 let extract_zip = (~dest="", source) => {
@@ -132,6 +81,8 @@ let extract_zip = (~dest="", source) => {
 };
 
 let download = () => {
+  open Lwt_result.Syntax;
+
   let revision = OSnap_Browser_Path.get_revision();
   let extract_path = OSnap_Browser_Path.get_chromium_path();
 
