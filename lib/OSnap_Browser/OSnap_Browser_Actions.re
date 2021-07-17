@@ -1,15 +1,20 @@
 open Cdp;
 open OSnap_Browser_Target;
 
-let wait_for = (~event, target) => {
+let wait_for = (~timeout=?, ~look_behind=?, ~event, target) => {
   let sessionId = target.sessionId;
   let (p, resolver) = Lwt.wait();
-  let callback = (_, remove) => {
+  let callback = (data, remove) => {
     remove();
-    Lwt.wakeup_later(resolver, ());
+    Lwt.wakeup_later(resolver, Result.ok(data));
   };
-  OSnap_Websocket.listen(~event, ~sessionId, callback);
-  p;
+  OSnap_Websocket.listen(~event, ~look_behind?, ~sessionId, callback);
+  switch (timeout) {
+  | None => p
+  | Some(t) =>
+    let timeout = Lwt_unix.sleep(t /. 1000.) |> Lwt.map(Result.error);
+    Lwt.pick([timeout, p]);
+  };
 };
 
 let wait_for_network_idle = (target, ~loaderId) => {
@@ -64,7 +69,7 @@ let type_text = (~selector, ~text, target) => {
   let%lwt document =
     GetDocument.(
       Request.make(~sessionId, ~params=Params.make())
-    |> OSnap_Websocket.send
+      |> OSnap_Websocket.send
       |> Lwt.map(Response.parse)
       |> Lwt.map(response => response.Response.result)
     );
@@ -72,10 +77,10 @@ let type_text = (~selector, ~text, target) => {
   let%lwt node =
     QuerySelector.(
       Request.make(
-      ~sessionId,
+        ~sessionId,
         ~params=Params.make(~nodeId=document.root.nodeId, ~selector, ()),
-    )
-    |> OSnap_Websocket.send
+      )
+      |> OSnap_Websocket.send
       |> Lwt.map(Response.parse)
       |> Lwt.map(response => response.Response.result)
     );
@@ -83,57 +88,73 @@ let type_text = (~selector, ~text, target) => {
   let%lwt () =
     Focus.(
       Request.make(~sessionId, ~params=Params.make(~nodeId=node.nodeId, ()))
-    |> OSnap_Websocket.send
+      |> OSnap_Websocket.send
       |> Lwt.map(ignore)
     );
 
-
-  List.init(String.length(text), String.get(text))
-  |> Lwt_list.iter_s(char => {
-       let definition: option(OSnap_Browser_KeyDefinition.t) =
-         OSnap_Browser_KeyDefinition.make(char);
-       switch (definition) {
-       | Some(def) =>
-         let%lwt () =
+  let%lwt () =
+    List.init(String.length(text), String.get(text))
+    |> Lwt_list.iter_s(char => {
+         let definition: option(OSnap_Browser_KeyDefinition.t) =
+           OSnap_Browser_KeyDefinition.make(char);
+         switch (definition) {
+         | Some(def) =>
+           let%lwt () =
              Commands.Input.DispatchKeyEvent.(
                Request.make(
-             ~sessionId,
+                 ~sessionId,
                  ~params=
                    Params.make(
                      ~type_="keyDown",
                      ~windowsVirtualKeyCode=
                        Float.of_int(Option.value(def.keyCode, ~default=0)),
-             ~key=def.key,
-             ~code=def.code,
-             ~text=def.text,
-             ~unmodifiedText=def.text,
+                     ~key=def.key,
+                     ~code=def.code,
+                     ~text=def.text,
+                     ~unmodifiedText=def.text,
                      ~location=Float.of_int(def.location),
-             ~isKeypad=def.location == 3,
-             (),
+                     ~isKeypad=def.location == 3,
+                     (),
                    ),
-           )
-           |> OSnap_Websocket.send
+               )
+               |> OSnap_Websocket.send
                |> Lwt.map(ignore)
              );
 
            Commands.Input.DispatchKeyEvent.(
              Request.make(
-           ~sessionId,
+               ~sessionId,
                ~params=
                  Params.make(
                    ~type_="keyUp",
-           ~key=def.key,
-           ~code=def.code,
+                   ~key=def.key,
+                   ~code=def.code,
                    ~location=Float.of_int(def.location),
-           (),
+                   (),
                  ),
-         )
-         |> OSnap_Websocket.send
+             )
+             |> OSnap_Websocket.send
              |> Lwt.map(ignore)
            );
-       | None => Lwt.return()
-       };
-     });
+         | None => Lwt.return()
+         };
+       });
+
+  let%lwt wait_result =
+    wait_for(
+      ~event="Page.frameNavigated",
+      ~look_behind=false,
+      ~timeout=1000.,
+      target,
+    );
+
+  switch (wait_result) {
+  | Error () => Lwt.return()
+  | Ok(data) =>
+    let event_data = Cdp.Events.Page.FrameNavigated.parse(data);
+    let loaderId = event_data.params.frame.loaderId;
+    wait_for_network_idle(target, ~loaderId);
+  };
 };
 
 let get_quads = (~selector, target) => {
@@ -143,7 +164,7 @@ let get_quads = (~selector, target) => {
   let%lwt document =
     GetDocument.(
       Request.make(~sessionId, ~params=Params.make())
-    |> OSnap_Websocket.send
+      |> OSnap_Websocket.send
       |> Lwt.map(Response.parse)
       |> Lwt.map(response => response.Response.result)
     );
@@ -151,10 +172,10 @@ let get_quads = (~selector, target) => {
   let%lwt node =
     QuerySelector.(
       Request.make(
-      ~sessionId,
+        ~sessionId,
         ~params=Params.make(~nodeId=document.root.nodeId, ~selector, ()),
-    )
-    |> OSnap_Websocket.send
+      )
+      |> OSnap_Websocket.send
       |> Lwt.map(Response.parse)
       |> Lwt.map(response => response.Response.result)
     );
@@ -162,10 +183,10 @@ let get_quads = (~selector, target) => {
   let%lwt quads =
     GetContentQuads.(
       Request.make(~sessionId, ~params=Params.make(~nodeId=node.nodeId, ()))
-    |> OSnap_Websocket.send
+      |> OSnap_Websocket.send
       |> Lwt.map(Response.parse)
       |> Lwt.map(response => response.Response.result.quads)
-       );
+    );
 
   switch (quads) {
   | [[x1, y1, x2, _y2, _x3, y2, _x4, _y4, ..._], ..._] =>
@@ -186,10 +207,10 @@ let click = (~selector, target) => {
   let%lwt () =
     DispatchMouseEvent.(
       Request.make(
-      ~sessionId,
+        ~sessionId,
         ~params=Params.make(~x, ~y, ~type_="mouseMoved", ()),
-    )
-    |> OSnap_Websocket.send
+      )
+      |> OSnap_Websocket.send
       |> Lwt.map(ignore)
     );
 
@@ -200,15 +221,15 @@ let click = (~selector, target) => {
         ~params=
           Params.make(
             ~type_="mousePressed",
-      ~button="left",
+            ~button="left",
             ~buttons=1.,
             ~clickCount=1.,
             ~x,
             ~y,
-      (),
+            (),
           ),
-    )
-    |> OSnap_Websocket.send
+      )
+      |> OSnap_Websocket.send
       |> Lwt.map(ignore)
     );
 
@@ -219,20 +240,33 @@ let click = (~selector, target) => {
         ~params=
           Params.make(
             ~type_="mouseReleased",
-      ~button="left",
+            ~button="left",
             ~buttons=1.,
             ~clickCount=1.,
             ~x,
             ~y,
-      (),
+            (),
           ),
-    )
-    |> OSnap_Websocket.send
+      )
+      |> OSnap_Websocket.send
       |> Lwt.map(ignore)
     );
 
+  let%lwt wait_result =
+    wait_for(
+      ~event="Page.frameNavigated",
+      ~look_behind=false,
+      ~timeout=1000.,
+      target,
+    );
 
-  Lwt.return();
+  switch (wait_result) {
+  | Error () => Lwt.return()
+  | Ok(data) =>
+    let event_data = Cdp.Events.Page.FrameNavigated.parse(data);
+    let loaderId = event_data.params.frame.loaderId;
+    wait_for_network_idle(target, ~loaderId);
+  };
 };
 
 let set_size = (~width, ~height, target) => {
@@ -252,16 +286,16 @@ let set_size = (~width, ~height, target) => {
   let%lwt _ =
     SetDeviceMetricsOverride.(
       Request.make(
-      ~sessionId,
+        ~sessionId,
         ~params=
           Params.make(
             ~width=Float.of_int(width),
             ~height=Float.of_int(height),
             ~deviceScaleFactor=1.,
-      ~mobile=false,
-      (),
+            ~mobile=false,
+            (),
           ),
-    )
+      )
       |> OSnap_Websocket.send
     );
 
@@ -278,7 +312,7 @@ let screenshot = (~full_size=false, target) => {
       let%lwt metrics =
         GetLayoutMetrics.(
           Request.make(~sessionId)
-        |> OSnap_Websocket.send
+          |> OSnap_Websocket.send
           |> Lwt.map(Response.parse)
           |> Lwt.map(response => response.Response.result)
         );
@@ -299,14 +333,14 @@ let screenshot = (~full_size=false, target) => {
         ~sessionId,
         ~params=
           Params.make(
-      ~format="png",
-      ~clip?,
-      ~captureBeyondViewport=true,
-      ~fromSurface=true,
-      (),
+            ~format="png",
+            ~clip?,
+            ~captureBeyondViewport=true,
+            ~fromSurface=true,
+            (),
           ),
-    )
-    |> OSnap_Websocket.send
+      )
+      |> OSnap_Websocket.send
       |> Lwt.map(Response.parse)
     );
 

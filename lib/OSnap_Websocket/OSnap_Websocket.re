@@ -148,7 +148,7 @@ let send = message => {
   p;
 };
 
-let listen = (~event, ~sessionId, handler) => {
+let listen = (~look_behind=true, ~event, ~sessionId, handler) => {
   let key = event ++ sessionId;
   let stored_listeners = Hashtbl.find_opt(listeners, key);
   switch (stored_listeners) {
@@ -156,16 +156,18 @@ let listen = (~event, ~sessionId, handler) => {
   | Some(stored) => Hashtbl.replace(listeners, key, [handler, ...stored])
   };
 
-  Hashtbl.find_all(events, key)
-  |> List.iter(event => {
-       handler(
-         event,
-         () => {
-           Hashtbl.remove(listeners, key);
-           Hashtbl.remove(events, key);
-         },
-       )
-     });
+  if (look_behind) {
+    Hashtbl.find_all(events, key)
+    |> List.iter(event => {
+         handler(
+           event,
+           () => {
+             Hashtbl.remove(listeners, key);
+             Hashtbl.remove(events, key);
+           },
+         )
+       });
+  };
 };
 
 let close = () => {

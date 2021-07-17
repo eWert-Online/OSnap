@@ -25,7 +25,9 @@ module Actions: {
   let type_text:
     (~selector: string, ~text: string, Target.target) => Lwt.t(unit);
 
-  let wait_for: (~event: string, Target.target) => Lwt.t(unit);
+  let wait_for:
+    (~timeout: float=?, ~look_behind: bool=?, ~event: string, Target.target) =>
+    Lwt.t(result(string, unit));
 
   let wait_for_network_idle:
     (Target.target, ~loaderId: Cdp.Types.Network.LoaderId.t) => Lwt.t(unit);
