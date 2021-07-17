@@ -1,6 +1,5 @@
 open OSnap_Browser_Types;
 
-module CDP = OSnap_CDP;
 module Websocket = OSnap_Websocket;
 
 exception Connection_failed;
@@ -93,12 +92,12 @@ let make = () => {
   let _ = Websocket.connect(url);
 
   let%lwt browserContextId =
-    CDP.Target.CreateBrowserContext.make()
-    |> Websocket.send
-    |> Lwt.map(CDP.Target.CreateBrowserContext.parse)
-    |> Lwt.map(response => {
-         response.CDP.Types.Response.result.CDP.Target.CreateBrowserContext.browserContextId
-       });
+    Cdp.Commands.Target.CreateBrowserContext.(
+      Request.make(~sessionId=?None, ~params=Params.make())
+      |> Websocket.send
+      |> Lwt.map(Response.parse)
+      |> Lwt.map(response => {response.Response.result.browserContextId})
+    );
 
   Lwt.return({ws: url, process, browserContextId});
 };

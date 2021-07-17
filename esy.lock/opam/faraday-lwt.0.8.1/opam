@@ -18,6 +18,6 @@ depends: [
 ]
 synopsis: "Lwt support for Faraday"
 url {
-  src: "https://github.com/inhabitedtype/faraday/archive/0.7.3.tar.gz"
-  checksum: "md5=1e6d8f5950d099c6ad9ae0e960fe17a9"
+  src: "https://github.com/inhabitedtype/faraday/archive/0.8.1.tar.gz"
+  checksum: "md5=51b97f082af4679e3b428a03c3b657de"
 }

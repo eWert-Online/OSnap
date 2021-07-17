@@ -1,3 +1,10 @@
+let id = ref(0);
+
+let id = () => {
+  incr(id);
+  id^;
+};
+
 let close_requests = Queue.create();
 let pending_requests = Queue.create();
 let sent_requests = Hashtbl.create(10);
@@ -17,12 +24,16 @@ let call_event_handlers = (key, message) => {
   );
 };
 
+let debug_send = OSnap_Logger.debug(~header="Websocket >>>");
+let debug_recieve = OSnap_Logger.debug(~header="Websocket <<<");
+
 let websocket_handler = (recv, send) => {
   let close = () => {
     Websocket.Frame.close(1002) |> send;
   };
 
   let send_payload = payload => {
+    debug_send(payload);
     Websocket.Frame.create(~content=payload, ()) |> send;
   };
 
@@ -53,6 +64,9 @@ let websocket_handler = (recv, send) => {
     | Text
     | Binary =>
       let response = frame.Websocket.Frame.content;
+      debug_recieve(
+        String.sub(response, 0, min(String.length(response), 800)),
+      );
       let id =
         response
         |> Yojson.Safe.from_string
@@ -127,12 +141,8 @@ let connect = url => {
 };
 
 let send = message => {
-  let key =
-    message
-    |> Yojson.Safe.from_string
-    |> Yojson.Safe.Util.member("id")
-    |> Yojson.Safe.Util.to_int;
-
+  let key = id();
+  let message = message(key);
   let (p, resolver) = Lwt.wait();
   pending_requests |> Queue.add((key, message, resolver));
   p;

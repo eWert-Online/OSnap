@@ -8,8 +8,8 @@ module Launcher: {
 
 module Target: {
   type target = {
-    targetId: OSnap_CDP.Types.Target.TargetId.t,
-    sessionId: OSnap_CDP.Types.Target.SessionId.t,
+    targetId: Cdp.Types.Target.TargetID.t,
+    sessionId: Cdp.Types.Target.SessionID.t,
   };
 
   let make: t => Lwt.t(target);
@@ -28,8 +28,7 @@ module Actions: {
   let wait_for: (~event: string, Target.target) => Lwt.t(unit);
 
   let wait_for_network_idle:
-    (Target.target, ~loaderId: OSnap_CDP.Types.Network.LoaderId.t) =>
-    Lwt.t(unit);
+    (Target.target, ~loaderId: Cdp.Types.Network.LoaderId.t) => Lwt.t(unit);
 
   let go_to: (~url: string, Target.target) => Lwt_result.t(string, string);
 

@@ -2,6 +2,13 @@
  (name OSnap_Websocket)
  (flags
   (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
- (libraries uri lwt lwt.unix yojson websocket websocket-lwt-unix)
+ (libraries
+  OSnap_Logger
+  uri
+  lwt
+  lwt.unix
+  yojson
+  websocket
+  websocket-lwt-unix)
  (preprocess
   (pps lwt_ppx)))

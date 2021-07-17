@@ -1,7 +1,0 @@
-(library
- (name OSnap_CDP)
- (flags
-  (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
- (libraries OSnap_Logger yojson)
- (preprocess
-  (pps ppx_yojson_conv)))

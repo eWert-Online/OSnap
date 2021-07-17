@@ -3,6 +3,6 @@ let listen:
 
 let close: unit => Lwt.t(unit);
 
-let send: string => Lwt.t(string);
+let send: (int => string) => Lwt.t(string);
 
 let connect: string => Lwt.t(unit);

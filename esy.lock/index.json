@@ -1,5 +1,5 @@
 {
-  "checksum": "39b54b129320fc9efa28888315481061",
+  "checksum": "4363ab423982763f80ddd393868e1af6",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -105,6 +105,28 @@
       "dependencies": [],
       "devDependencies": []
     },
+    "cdp@github:eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e@d41d8cd9": {
+      "id":
+        "cdp@github:eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e@d41d8cd9",
+      "name": "cdp",
+      "version":
+        "github:eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e",
+      "source": {
+        "type": "install",
+        "source": [
+          "github:eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [
+        "@opam/yojson@opam:1.7.0@69d87312",
+        "@opam/reason@opam:3.7.0@494dd52d",
+        "@opam/ppx_yojson_conv@opam:v0.14.0@13acb3e6",
+        "@opam/fileutils@opam:0.6.3@67cadc89",
+        "@opam/cmdliner@opam:1.0.4@93208aac"
+      ],
+      "devDependencies": []
+    },
     "@space-labs/osnap@link-dev:./package.json": {
       "id": "@space-labs/osnap@link-dev:./package.json",
       "name": "@space-labs/osnap",
@@ -118,6 +140,7 @@
       "dependencies": [
         "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117@d41d8cd9",
         "esy-libpng@github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048@d41d8cd9",
+        "cdp@github:eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e@d41d8cd9",
         "@opam/zarith@opam:1.11@6b66cdc1",
         "@opam/yojson@opam:1.7.0@69d87312",
         "@opam/websocket-lwt-unix@opam:2.14@03e9609b",
@@ -1936,13 +1959,13 @@
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/httpaf@opam:0.7.1@787eb3e3",
-        "@opam/faraday-lwt-unix@opam:0.7.3@e0ae04f9",
+        "@opam/faraday-lwt-unix@opam:0.8.1@e733b134",
         "@opam/dune@opam:2.9.0@489e77a9", "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/httpaf@opam:0.7.1@787eb3e3",
-        "@opam/faraday-lwt-unix@opam:0.7.3@e0ae04f9",
+        "@opam/faraday-lwt-unix@opam:0.8.1@e733b134",
         "@opam/dune@opam:2.9.0@489e77a9"
       ]
     },
@@ -1966,7 +1989,7 @@
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/result@opam:1.5@1c6a6533",
-        "@opam/faraday@opam:0.7.3@18c4d732",
+        "@opam/faraday@opam:0.8.1@3e04a493",
         "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/bigstringaf@opam:0.8.0@6a362afb",
         "@opam/angstrom@opam:0.15.0@105656d9",
@@ -1975,7 +1998,7 @@
       "devDependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/result@opam:1.5@1c6a6533",
-        "@opam/faraday@opam:0.7.3@18c4d732",
+        "@opam/faraday@opam:0.8.1@3e04a493",
         "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/bigstringaf@opam:0.8.0@6a362afb",
         "@opam/angstrom@opam:0.15.0@105656d9"
@@ -2130,27 +2153,27 @@
         "@opam/base-bytes@opam:base@19d0c2ff"
       ]
     },
-    "@opam/faraday-lwt-unix@opam:0.7.3@e0ae04f9": {
-      "id": "@opam/faraday-lwt-unix@opam:0.7.3@e0ae04f9",
+    "@opam/faraday-lwt-unix@opam:0.8.1@e733b134": {
+      "id": "@opam/faraday-lwt-unix@opam:0.8.1@e733b134",
       "name": "@opam/faraday-lwt-unix",
-      "version": "opam:0.7.3",
+      "version": "opam:0.8.1",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/1e/1e6d8f5950d099c6ad9ae0e960fe17a9#md5:1e6d8f5950d099c6ad9ae0e960fe17a9",
-          "archive:https://github.com/inhabitedtype/faraday/archive/0.7.3.tar.gz#md5:1e6d8f5950d099c6ad9ae0e960fe17a9"
+          "archive:https://opam.ocaml.org/cache/md5/51/51b97f082af4679e3b428a03c3b657de#md5:51b97f082af4679e3b428a03c3b657de",
+          "archive:https://github.com/inhabitedtype/faraday/archive/0.8.1.tar.gz#md5:51b97f082af4679e3b428a03c3b657de"
         ],
         "opam": {
           "name": "faraday-lwt-unix",
-          "version": "0.7.3",
-          "path": "esy.lock/opam/faraday-lwt-unix.0.7.3"
+          "version": "0.8.1",
+          "path": "esy.lock/opam/faraday-lwt-unix.0.8.1"
         }
       },
       "overrides": [],
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/lwt@opam:5.4.1@37ffbe37",
-        "@opam/faraday-lwt@opam:0.7.3@612dbe66",
+        "@opam/faraday-lwt@opam:0.8.1@5a6331d0",
         "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/base-unix@opam:base@87d0b2eb",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
@@ -2158,53 +2181,53 @@
       "devDependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/lwt@opam:5.4.1@37ffbe37",
-        "@opam/faraday-lwt@opam:0.7.3@612dbe66",
+        "@opam/faraday-lwt@opam:0.8.1@5a6331d0",
         "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/base-unix@opam:base@87d0b2eb"
       ]
     },
-    "@opam/faraday-lwt@opam:0.7.3@612dbe66": {
-      "id": "@opam/faraday-lwt@opam:0.7.3@612dbe66",
+    "@opam/faraday-lwt@opam:0.8.1@5a6331d0": {
+      "id": "@opam/faraday-lwt@opam:0.8.1@5a6331d0",
       "name": "@opam/faraday-lwt",
-      "version": "opam:0.7.3",
+      "version": "opam:0.8.1",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/1e/1e6d8f5950d099c6ad9ae0e960fe17a9#md5:1e6d8f5950d099c6ad9ae0e960fe17a9",
-          "archive:https://github.com/inhabitedtype/faraday/archive/0.7.3.tar.gz#md5:1e6d8f5950d099c6ad9ae0e960fe17a9"
+          "archive:https://opam.ocaml.org/cache/md5/51/51b97f082af4679e3b428a03c3b657de#md5:51b97f082af4679e3b428a03c3b657de",
+          "archive:https://github.com/inhabitedtype/faraday/archive/0.8.1.tar.gz#md5:51b97f082af4679e3b428a03c3b657de"
         ],
         "opam": {
           "name": "faraday-lwt",
-          "version": "0.7.3",
-          "path": "esy.lock/opam/faraday-lwt.0.7.3"
+          "version": "0.8.1",
+          "path": "esy.lock/opam/faraday-lwt.0.8.1"
         }
       },
       "overrides": [],
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/faraday@opam:0.7.3@18c4d732",
+        "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/faraday@opam:0.8.1@3e04a493",
         "@opam/dune@opam:2.9.0@489e77a9", "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/faraday@opam:0.7.3@18c4d732",
+        "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/faraday@opam:0.8.1@3e04a493",
         "@opam/dune@opam:2.9.0@489e77a9"
       ]
     },
-    "@opam/faraday@opam:0.7.3@18c4d732": {
-      "id": "@opam/faraday@opam:0.7.3@18c4d732",
+    "@opam/faraday@opam:0.8.1@3e04a493": {
+      "id": "@opam/faraday@opam:0.8.1@3e04a493",
       "name": "@opam/faraday",
-      "version": "opam:0.7.3",
+      "version": "opam:0.8.1",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/1e/1e6d8f5950d099c6ad9ae0e960fe17a9#md5:1e6d8f5950d099c6ad9ae0e960fe17a9",
-          "archive:https://github.com/inhabitedtype/faraday/archive/0.7.3.tar.gz#md5:1e6d8f5950d099c6ad9ae0e960fe17a9"
+          "archive:https://opam.ocaml.org/cache/md5/51/51b97f082af4679e3b428a03c3b657de#md5:51b97f082af4679e3b428a03c3b657de",
+          "archive:https://github.com/inhabitedtype/faraday/archive/0.8.1.tar.gz#md5:51b97f082af4679e3b428a03c3b657de"
         ],
         "opam": {
           "name": "faraday",
-          "version": "0.7.3",
-          "path": "esy.lock/opam/faraday.0.7.3"
+          "version": "0.8.1",
+          "path": "esy.lock/opam/faraday.0.8.1"
         }
       },
       "overrides": [],
