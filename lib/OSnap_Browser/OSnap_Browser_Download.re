@@ -1,17 +1,5 @@
 open Cohttp_lwt_unix;
 
-let get_download_url = revision => {
-  let base_path = "http://storage.googleapis.com/chromium-browser-snapshots";
-  switch (OSnap_Utils.detect_platform()) {
-  | Darwin => base_path ++ "/Mac/" ++ revision ++ "/chrome-mac.zip"
-  | Linux => base_path ++ "/Linux_x64/" ++ revision ++ "/chrome-linux.zip"
-  | Win64 => base_path ++ "/Win_x64/" ++ revision ++ "/chrome-win.zip"
-  | Win32 =>
-    print_endline("Error: x86 is currently not supported on Windows");
-    exit(1);
-  };
-};
-
 let download = (~revision, dir) => {
   open Lwt.Syntax;
 
@@ -25,7 +13,29 @@ let download = (~revision, dir) => {
     ),
   );
 
-  let uri = revision |> get_download_url |> Uri.of_string;
+  let uri =
+    Uri.make(
+      ~scheme="http",
+      ~host="storage.googleapis.com",
+      ~port=80,
+      ~path=
+        switch (OSnap_Utils.detect_platform()) {
+        | Darwin =>
+          "/chromium-browser-snapshots/Mac/" ++ revision ++ "/chrome-mac.zip"
+        | Linux =>
+          "/chromium-browser-snapshots/Linux_x64/"
+          ++ revision
+          ++ "/chrome-linux.zip"
+        | Win64 =>
+          "/chromium-browser-snapshots/Win_x64/"
+          ++ revision
+          ++ "/chrome-win.zip"
+        | Win32 =>
+          print_endline("Error: x86 is currently not supported on Windows");
+          exit(1);
+        },
+      (),
+    );
 
   let* (response, body) = Client.get(uri);
 
