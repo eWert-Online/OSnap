@@ -19,9 +19,9 @@ module List = {
 };
 
 type t = {
-  config: Config.Global.t,
-  all_tests: list((Config.Test.t, (int, int), bool)),
-  tests_to_run: list((Config.Test.t, (int, int), bool)),
+  config: Config.Types.global,
+  all_tests: list((Config.Types.test, Config.Types.size, bool)),
+  tests_to_run: list((Config.Types.test, Config.Types.size, bool)),
   snapshot_dir: string,
   updated_dir: string,
   diff_dir: string,
@@ -32,10 +32,10 @@ let get_filename = (name, width, height) =>
   Printf.sprintf("/%s_%ix%i.png", name, width, height);
 
 let init_folder_structure = config => {
+  open Config.Types;
   let debug = Logger.debug(~header="SETUP");
 
-  let base_path =
-    config.Config.Global.root_path ++ config.Config.Global.snapshot_directory;
+  let base_path = config.root_path ++ config.snapshot_directory;
 
   debug("initializing folder structure in " ++ base_path);
 
@@ -59,6 +59,8 @@ let init_folder_structure = config => {
 };
 
 let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
+  open Config.Types;
+
   let debug = Logger.debug(~header="SETUP");
 
   let start_time = Unix.gettimeofday();
@@ -77,9 +79,9 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
   let all_tests =
     tests
     |> List.map(test => {
-         test.Config.Test.sizes
+         test.sizes
          |> List.map(size => {
-              let (width, height) = size;
+              let {name: _size_name, width, height} = size;
               let filename = get_filename(test.name, width, height);
               let current_image_path = snapshot_dir ++ filename;
               let exists = Sys.file_exists(current_image_path);
@@ -89,7 +91,7 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
                   Failure(
                     Printf.sprintf(
                       "Flag --no-create is set. Cannot create new images for %s.",
-                      test.Config.Test.name,
+                      test.name,
                     ),
                   ),
                 );
@@ -103,13 +105,13 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
   let tests_to_run =
     all_tests
     |> List.find_all_or_input(((test, _size, _exists)) =>
-         if (test.Config.Test.only) {
+         if (test.only) {
            if (noOnly) {
              raise(
                Failure(
                  Printf.sprintf(
                    "Flag --no-only is set, but test %s still has only set to true.",
-                   test.Config.Test.name,
+                   test.name,
                  ),
                ),
              );
@@ -123,14 +125,14 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
   debug("checking for \"skip\" flags");
   let tests_to_run =
     tests_to_run
-    |> List.find_all(((test, (width, height), _exists)) =>
-         if (test.Config.Test.skip) {
+    |> List.find_all(((test, {width, height, _}, _exists)) =>
+         if (test.skip) {
            if (noSkip) {
              raise(
                Failure(
                  Printf.sprintf(
                    "Flag --no-skip is set, but test %s still has skip set to true.",
-                   test.Config.Test.name,
+                   test.name,
                  ),
                ),
              );
@@ -174,6 +176,8 @@ let read_file_contents = (~path) => {
 };
 
 let run = t => {
+  open Config.Types;
+
   let debug = Logger.debug(~header="RUN");
   let {
     snapshot_dir,
@@ -185,8 +189,6 @@ let run = t => {
     start_time,
   } = t;
 
-  let max_concurrency = config.Config.Global.parallelism;
-
   let create_count = ref(0);
   let passed_count = ref(0);
   let failed_count = ref(0);
@@ -197,13 +199,20 @@ let run = t => {
 
   debug("creating pool of runners");
   let pool =
-    Lwt_pool.create(max_concurrency, () => Browser.Target.make(browser));
+    Lwt_pool.create(config.parallelism, () => Browser.Target.make(browser));
 
   let%lwt () =
     tests_to_run
     |> Lwt_stream.of_list
     |> Lwt_stream.iter_n(
-         ~max_concurrency, ((test: Config.Test.t, (width, height), exists)) => {
+         ~max_concurrency=config.parallelism,
+         (
+           (
+             test: Config.Types.test,
+             {name: size_name, width, height},
+             exists,
+           ),
+         ) => {
          Lwt_pool.use(
            pool,
            target => {
@@ -215,8 +224,8 @@ let run = t => {
 
              let create_new = !exists;
 
-             let url = config.Config.Global.base_url ++ test.url;
-             let full_size = config.Config.Global.fullscreen;
+             let url = config.base_url ++ test.url;
+             let full_size = config.fullscreen;
 
              let%lwt () =
                target
@@ -249,15 +258,39 @@ let run = t => {
                target |> Browser.Actions.wait_for_network_idle(~loaderId);
 
              let%lwt () =
-               test.Config.Test.actions
+               test.actions
                |> Lwt_list.iter_s(action => {
-                    switch (action) {
-                    | Config.Test.Click(selector) =>
+                    switch (action, size_name) {
+                    | (Click(_, Some(_)), None) => Lwt.return()
+                    | (Click(selector, None), _) =>
                       target |> Browser.Actions.click(~selector)
-                    | Config.Test.Type(selector, text) =>
+                    | (Click(selector, Some(size_restr)), Some(size_name)) =>
+                      if (size_restr |> List.mem(size_name)) {
+                        target |> Browser.Actions.click(~selector);
+                      } else {
+                        Lwt.return();
+                      }
+
+                    | (Type(_, _, Some(_)), None) => Lwt.return()
+                    | (Type(selector, text, None), _) =>
                       target |> Browser.Actions.type_text(~selector, ~text)
-                    | Config.Test.Wait(int) =>
-                      let timeout = float_of_int(int) /. 1000.0;
+                    | (Type(selector, text, Some(size)), Some(size_name)) =>
+                      if (size |> List.mem(size_name)) {
+                        target |> Browser.Actions.type_text(~selector, ~text);
+                      } else {
+                        Lwt.return();
+                      }
+
+                    | (Wait(_, Some(_)), None) => Lwt.return()
+                    | (Wait(ms, Some(size)), Some(size_name)) =>
+                      if (size |> List.mem(size_name)) {
+                        let timeout = float_of_int(ms) /. 1000.0;
+                        Lwt_unix.sleep(timeout);
+                      } else {
+                        Lwt.return();
+                      }
+                    | (Wait(ms, None), _) =>
+                      let timeout = float_of_int(ms) /. 1000.0;
                       Lwt_unix.sleep(timeout);
                     }
                   });
@@ -285,25 +318,54 @@ let run = t => {
                  Lwt.return();
                } else {
                  let%lwt ignoreRegions =
-                   test.Config.Test.ignore
-                   |> Lwt_list.map_p(region => {
-                        switch (region) {
-                        | Config.Test.Coordinates(a, b) => Lwt.return((a, b))
-                        | Config.Test.Selector(selector) =>
+                   test.ignore
+                   |> Lwt_list.filter_map_p(region => {
+                        switch (region, size_name) {
+                        | (Coordinates(a, b, None), _) =>
+                          Lwt.return(Some((a, b)))
+                        | (Coordinates(_, _, Some(_)), None) =>
+                          Lwt.return(None)
+                        | (
+                            Coordinates(a, b, Some(size_restr)),
+                            Some(size_name),
+                          ) =>
+                          if (size_restr |> List.mem(size_name)) {
+                            Lwt.return(Some((a, b)));
+                          } else {
+                            Lwt.return(None);
+                          }
+
+                        | (Selector(_, Some(_)), None) => Lwt.return(None)
+                        | (
+                            Selector(selector, Some(size_restr)),
+                            Some(size_name),
+                          ) =>
+                          if (size_restr |> List.mem(size_name)) {
+                            let%lwt ((x1, y1), (x2, y2)) =
+                              target |> Browser.Actions.get_quads(~selector);
+                            let x1 = Int.of_float(x1);
+                            let y1 = Int.of_float(y1);
+                            let x2 = Int.of_float(x2);
+                            let y2 = Int.of_float(y2);
+                            Lwt.return(Some(((x1, y1), (x2, y2))));
+                          } else {
+                            Lwt.return(None);
+                          }
+                        | (Selector(selector, None), _) =>
                           let%lwt ((x1, y1), (x2, y2)) =
                             target |> Browser.Actions.get_quads(~selector);
                           let x1 = Int.of_float(x1);
                           let y1 = Int.of_float(y1);
                           let x2 = Int.of_float(x2);
                           let y2 = Int.of_float(y2);
-                          Lwt.return(((x1, y1), (x2, y2)));
+                          Lwt.return(Some(((x1, y1), (x2, y2))));
                         }
                       });
 
                  let diff =
                    Diff.diff(
                      ~threshold=test.threshold,
-                     ~diffPixel=config.Config.Global.diff_pixel_color,
+                     ~diffPixel=config.diff_pixel_color,
                      ~ignoreRegions,
                      ~output=diff_image_path,
                      ~original_image_data,
@@ -368,10 +430,10 @@ let cleanup = (~config_path) => {
 
   let test_file_paths =
     tests
-    |> List.map(test => {
-         test.Config.Test.sizes
-         |> List.filter_map(size => {
-              let (width, height) = size;
+    |> List.map((test: Config.Types.test) => {
+         test.sizes
+         |> List.filter_map((size: Config.Types.size) => {
+              let Config.Types.{width, height, _} = size;
               let filename = get_filename(test.name, width, height);
               let current_image_path = snapshot_dir ++ filename;
               let exists = Sys.file_exists(current_image_path);

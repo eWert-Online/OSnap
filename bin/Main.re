@@ -70,6 +70,13 @@ let default_cmd = {
           print_error("Please rename the following tests: \n");
           tests |> List.iter(print_error);
           Lwt_result.fail();
+        | OSnap_Config.Types.Duplicate_Size_Names(sizes) =>
+          print_error(
+            "Found some sizes with duplicate names. Every size has to have a unique name inside it's list.",
+          );
+          print_error("Please rename the following sizes: \n");
+          sizes |> List.iter(print_error);
+          Lwt_result.fail();
         | OSnap_Config.Test.Invalid_format =>
           print_error("Found some tests with an invalid format.");
           Lwt_result.fail();

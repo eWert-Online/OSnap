@@ -46,7 +46,11 @@
         "text": "Let"
       },
       { "action": "wait", "timeout": 200 },
-      { "action": "click", "selector": ".algolia-docsearch-suggestion--title" }
+      {
+        "@": ["xl", "l", "m", "s"],
+        "action": "click",
+        "selector": ".algolia-docsearch-suggestion--title"
+      }
     ]
   }
 ]

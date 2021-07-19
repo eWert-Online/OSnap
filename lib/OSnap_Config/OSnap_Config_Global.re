@@ -1,17 +1,4 @@
-type size = (int, int);
-
-type t = {
-  root_path: string,
-  threshold: int,
-  ignore_patterns: list(string),
-  test_pattern: string,
-  base_url: string,
-  fullscreen: bool,
-  default_sizes: list(size),
-  snapshot_directory: string,
-  diff_pixel_color: (int, int, int),
-  parallelism: int,
-};
+open OSnap_Config_Types;
 
 exception Parse_Error(string);
 exception No_Config_Found;
@@ -52,17 +39,23 @@ let parse = path => {
       |> Yojson.Basic.Util.member("defaultSizes")
       |> Yojson.Basic.Util.to_list
       |> List.map(item => {
+           let name =
+             item
+             |> Yojson.Basic.Util.member("name")
+             |> Yojson.Basic.Util.to_string_option;
+
            let height =
              item
              |> Yojson.Basic.Util.member("height")
              |> Yojson.Basic.Util.to_int;
+
            let width =
              item
              |> Yojson.Basic.Util.member("width")
              |> Yojson.Basic.Util.to_int;
 
            debug(Printf.sprintf("adding default size %ix%i", width, height));
-           (width, height);
+           {name, width, height};
          });
 
     let snapshot_directory =
@@ -152,6 +145,23 @@ let parse = path => {
 
     let (r, g, b) = diff_pixel_color;
     debug(Printf.sprintf("diff pixel color is set to %i,%i,%i", r, g, b));
+
+    debug("looking for duplicate names in defined sizes");
+    let duplicates =
+      default_sizes
+      |> List.filter((s: OSnap_Config_Types.size) => Option.is_some(s.name))
+      |> OSnap_Utils.find_duplicates((s: OSnap_Config_Types.size) => s.name)
+      |> List.map((s: OSnap_Config_Types.size) => {
+           let name = Option.value(s.name, ~default="");
+           debug(Printf.sprintf("found size with duplicate name %S", name));
+           name;
+         });
+
+    if (List.length(duplicates) != 0) {
+      raise(Duplicate_Size_Names(duplicates));
+    } else {
+      debug("did not find duplicates");
+    };
 
     {
       root_path,

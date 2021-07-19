@@ -5,9 +5,9 @@
   "testPattern": "tests/*.osnap.json",
   "ignorePatterns": ["node_modules", "_esy"],
   "defaultSizes": [
-    { "width": 1024, "height": 576 },
-    { "width": 768, "height": 432 },
-    { "width": 640, "height": 360 },
-    { "width": 320, "height": 180 }
+    { "name": "xl", "width": 1024, "height": 576 },
+    { "name": "l", "width": 768, "height": 432 },
+    { "name": "m", "width": 640, "height": 360 },
+    { "name": "s", "width": 320, "height": 180 }
   ]
 }
