@@ -6,13 +6,13 @@ let wait_for = (~timeout=?, ~look_behind=?, ~event, target) => {
   let (p, resolver) = Lwt.wait();
   let callback = (data, remove) => {
     remove();
-    Lwt.wakeup_later(resolver, Result.ok(data));
+    Lwt.wakeup_later(resolver, `Data(data));
   };
   OSnap_Websocket.listen(~event, ~look_behind?, ~sessionId, callback);
   switch (timeout) {
   | None => p
   | Some(t) =>
-    let timeout = Lwt_unix.sleep(t /. 1000.) |> Lwt.map(Result.error);
+    let timeout = Lwt_unix.sleep(t /. 1000.) |> Lwt.map(() => `Timeout);
     Lwt.pick([timeout, p]);
   };
 };
@@ -149,8 +149,8 @@ let type_text = (~selector, ~text, target) => {
     );
 
   switch (wait_result) {
-  | Error () => Lwt.return()
-  | Ok(data) =>
+  | `Timeout => Lwt.return()
+  | `Data(data) =>
     let event_data = Cdp.Events.Page.FrameNavigated.parse(data);
     let loaderId = event_data.params.frame.loaderId;
     wait_for_network_idle(target, ~loaderId);
@@ -261,12 +261,28 @@ let click = (~selector, target) => {
     );
 
   switch (wait_result) {
-  | Error () => Lwt.return()
-  | Ok(data) =>
+  | `Timeout => Lwt.return()
+  | `Data(data) =>
     let event_data = Cdp.Events.Page.FrameNavigated.parse(data);
     let loaderId = event_data.params.frame.loaderId;
     wait_for_network_idle(target, ~loaderId);
   };
+};
+
+let get_content_size = target => {
+  open Commands.Page;
+
+  let sessionId = target.sessionId;
+
+  let%lwt metrics =
+    GetLayoutMetrics.(
+      Request.make(~sessionId)
+      |> OSnap_Websocket.send
+      |> Lwt.map(Response.parse)
+      |> Lwt.map(response => response.Response.result)
+    );
+
+  Lwt.return((metrics.cssContentSize.width, metrics.cssContentSize.height));
 };
 
 let set_size = (~width, ~height, target) => {
@@ -276,7 +292,7 @@ let set_size = (~width, ~height, target) => {
 
   debug(
     Printf.sprintf(
-      "session %S \n\t setting size to %ix%i",
+      "session %S \n\t setting size to %fx%f",
       sessionId,
       width,
       height,
@@ -289,8 +305,8 @@ let set_size = (~width, ~height, target) => {
         ~sessionId,
         ~params=
           Params.make(
-            ~width=Float.of_int(width),
-            ~height=Float.of_int(height),
+            ~width,
+            ~height,
             ~deviceScaleFactor=1.,
             ~mobile=false,
             (),
@@ -309,17 +325,7 @@ let screenshot = (~full_size=false, target) => {
 
   let%lwt () =
     if (full_size) {
-      let%lwt metrics =
-        GetLayoutMetrics.(
-          Request.make(~sessionId)
-          |> OSnap_Websocket.send
-          |> Lwt.map(Response.parse)
-          |> Lwt.map(response => response.Response.result)
-        );
-
-      let width = Int.of_float(metrics.cssContentSize.width);
-      let height = Int.of_float(metrics.cssContentSize.height);
-
+      let%lwt (width, height) = get_content_size(target);
       set_size(~width, ~height, target);
     } else {
       Lwt.return();

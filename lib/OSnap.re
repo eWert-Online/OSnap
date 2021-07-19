@@ -218,7 +218,13 @@ let run = t => {
              let url = config.Config.Global.base_url ++ test.url;
              let full_size = config.Config.Global.fullscreen;
 
-             let%lwt () = target |> Browser.Actions.set_size(~width, ~height);
+             let%lwt () =
+               target
+               |> Browser.Actions.set_size(
+                    ~width=Float.of_int(width),
+                    ~height=Float.of_int(height),
+                  );
+
              let%lwt loaderId =
                target
                |> Browser.Actions.go_to(~url)

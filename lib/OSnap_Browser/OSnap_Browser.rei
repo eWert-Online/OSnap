@@ -27,14 +27,16 @@ module Actions: {
 
   let wait_for:
     (~timeout: float=?, ~look_behind: bool=?, ~event: string, Target.target) =>
-    Lwt.t(result(string, unit));
+    Lwt.t([> | `Data(string) | `Timeout]);
 
   let wait_for_network_idle:
     (Target.target, ~loaderId: Cdp.Types.Network.LoaderId.t) => Lwt.t(unit);
 
   let go_to: (~url: string, Target.target) => Lwt_result.t(string, string);
 
-  let set_size: (~width: int, ~height: int, Target.target) => Lwt.t(unit);
+  let get_content_size: Target.target => Lwt.t((float, float));
+
+  let set_size: (~width: float, ~height: float, Target.target) => Lwt.t(unit);
 
   let screenshot: (~full_size: bool=?, Target.target) => Lwt.t(string);
 };
