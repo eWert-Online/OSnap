@@ -307,7 +307,7 @@ let screenshot = (~full_size=false, target) => {
 
   let sessionId = target.sessionId;
 
-  let%lwt clip =
+  let%lwt () =
     if (full_size) {
       let%lwt metrics =
         GetLayoutMetrics.(
@@ -317,14 +317,12 @@ let screenshot = (~full_size=false, target) => {
           |> Lwt.map(response => response.Response.result)
         );
 
-      let width = metrics.cssContentSize.width;
-      let height = metrics.cssContentSize.height;
+      let width = Int.of_float(metrics.cssContentSize.width);
+      let height = Int.of_float(metrics.cssContentSize.height);
 
-      Lwt.return(
-        Some(Types.Page.Viewport.{x: 0., y: 0., width, height, scale: 1.}),
-      );
+      set_size(~width, ~height, target);
     } else {
-      Lwt.return(None);
+      Lwt.return();
     };
 
   let%lwt response =
@@ -334,8 +332,7 @@ let screenshot = (~full_size=false, target) => {
         ~params=
           Params.make(
             ~format="png",
-            ~clip?,
-            ~captureBeyondViewport=true,
+            ~captureBeyondViewport=false,
             ~fromSurface=true,
             (),
           ),
