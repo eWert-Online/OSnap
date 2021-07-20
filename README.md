@@ -182,11 +182,11 @@ The currently available actions are `wait`, `click` and `type`. They may be conf
 
 **Wait:**
 
-| Key     | Type           | Description                                                                                       |
-| ------- | -------------- | ------------------------------------------------------------------------------------------------- |
-| action  | `"wait"`       |                                                                                                   |
-| timeout | int            | The number of ms to wait, before executing the next action or taking the screenshot.              |
-| @       | Array<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes |
+| Key     | Type            | Description                                                                                       |
+| ------- | --------------- | ------------------------------------------------------------------------------------------------- |
+| action  | `"wait"`        |                                                                                                   |
+| timeout | int             | The number of ms to wait, before executing the next action or taking the screenshot.              |
+| @       | Array\<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes |
 
 ```json
 { "action": "wait", "timeout": 2000 }
@@ -194,11 +194,11 @@ The currently available actions are `wait`, `click` and `type`. They may be conf
 
 **Click:**
 
-| Key      | Type           | Description                                                                                                                          |
-| -------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| action   | `"click"`      |                                                                                                                                      |
-| selector | string         | A css selector of an element which should be clicked. If the selector evaluates to multiple elements, only the first one is clicked. |
-| @        | Array<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes                                    |
+| Key      | Type            | Description                                                                                                                          |
+| -------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| action   | `"click"`       |                                                                                                                                      |
+| selector | string          | A css selector of an element which should be clicked. If the selector evaluates to multiple elements, only the first one is clicked. |
+| @        | Array\<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes                                    |
 
 ```json
 { "action": "click", "selector": "#id-to-click" }
@@ -206,12 +206,12 @@ The currently available actions are `wait`, `click` and `type`. They may be conf
 
 **Type:**
 
-| Key      | Type           | Description                                                                                                                        |
-| -------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| action   | `"type"`       |                                                                                                                                    |
-| selector | string         | A css selector of an element which should be typed in. If the selector evaluates to multiple elements, the first one will be used. |
-| text     | string         | The text to type into the element                                                                                                  |
-| @        | Array<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes                                  |
+| Key      | Type            | Description                                                                                                                        |
+| -------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| action   | `"type"`        |                                                                                                                                    |
+| selector | string          | A css selector of an element which should be typed in. If the selector evaluates to multiple elements, the first one will be used. |
+| text     | string          | The text to type into the element                                                                                                  |
+| @        | Array\<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes                                  |
 
 ```json
 { "action": "type", "selector": "#search", "text": "some searchword" }
