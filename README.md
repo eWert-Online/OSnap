@@ -71,17 +71,17 @@ If you want to have the config file in a different location, you may specify the
 
 The following options are available:
 
-| Key                 | Type                             | Description                                                                                                                                    | Default                            |
-| ------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| baseUrl **\***      | string                           | The base url used for all of your test                                                                                                         |                                    |
-| fullScreen          | boolean                          | `true`: if you want to capture a screenshot of the whole page <br /> `false`: if you want to capture a screenshot of just the visible viewport | `false`                            |
-| threshold           | int                              | The number of pixels allowed to be different, before the test will be marked as failed.                                                        | `0`                                |
-| parallelism         | int                              | The number of workers OSnap should spawn to run your tests.                                                                                    | `3`                                |
-| testPattern         | string                           | A glob pattern used to locate the test files to run                                                                                            | `**/*.osnap.json`                  |
-| ignorePatterns      | Array\<string>                   | An array of glob patterns to not search for test files in                                                                                      | `["**/node_modules/**"]`           |
-| defaultSizes **\*** | Array<{width: int, height: int}> | An array of default sizes to run your tests in. If fullScreen is set to true, the height is the minimum height of the snapshot.                |                                    |
-| snapshotDirectory   | string                           | The relative path to a folder, where OSnap will save the base images in.                                                                       | `__snapshots__`                    |
-| diffPixelColor      | {r: int, g: int, b: int}         | The color used to highlight different pixels in the diff image.                                                                                | `{"r": 255, "g": 0, "b": 0}` (red) |
+| Key                 | Type                                            | Description                                                                                                                                    | Default                            |
+| ------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| baseUrl **\***      | string                                          | The base url used for all of your test                                                                                                         |                                    |
+| fullScreen          | boolean                                         | `true`: if you want to capture a screenshot of the whole page <br /> `false`: if you want to capture a screenshot of just the visible viewport | `false`                            |
+| threshold           | int                                             | The number of pixels allowed to be different, before the test will be marked as failed.                                                        | `0`                                |
+| parallelism         | int                                             | The number of workers OSnap should spawn to run your tests.                                                                                    | `3`                                |
+| testPattern         | string                                          | A glob pattern used to locate the test files to run                                                                                            | `**/*.osnap.json`                  |
+| ignorePatterns      | Array\<string>                                  | An array of glob patterns to not search for test files in                                                                                      | `["**/node_modules/**"]`           |
+| defaultSizes **\*** | Array<{name: string?, width: int, height: int}> | An array of default sizes to run your tests in. If fullScreen is set to true, the height is the minimum height of the snapshot.                |                                    |
+| snapshotDirectory   | string                                          | The relative path to a folder, where OSnap will save the base images in.                                                                       | `__snapshots__`                    |
+| diffPixelColor      | {r: int, g: int, b: int}                        | The color used to highlight different pixels in the diff image.                                                                                | `{"r": 255, "g": 0, "b": 0}` (red) |
 
 _Keys marked with **\*** are required!_
 
@@ -96,12 +96,12 @@ _Keys marked with **\*** are required!_
   "testPattern": "src/**/*.osnap.json",
   "ignorePatterns": ["node_modules", "vendor", "dist"],
   "defaultSizes": [
-    { "width": 1600, "height": 900 },
-    { "width": 1366, "height": 768 },
-    { "width": 1024, "height": 576 },
-    { "width": 768, "height": 432 },
-    { "width": 640, "height": 360 },
-    { "width": 320, "height": 180 }
+    { "name": "xxl", "width": 1600, "height": 900 },
+    { "name": "xl", "width": 1366, "height": 768 },
+    { "name": "md", "width": 1024, "height": 576 },
+    { "name": "sm", "width": 768, "height": 432 },
+    { "name": "xs", "width": 640, "height": 360 },
+    { "name": "xxs", "width": 320, "height": 180 }
   ],
   "snapshotDirectory": "./__image-snapshots__",
   "diffPixelColor": {
@@ -153,6 +153,7 @@ The smallest possible test file would look like this:
     "sizes": [{ "width": 768, "height": 1024 }],
     "ignore": [
       {
+        "@": ["xxs"],
         "x1": 0,
         "y1": 0,
         "x2": 100,
@@ -163,7 +164,7 @@ The smallest possible test file would look like this:
     "actions": [
       { "action": "type", "selector": "#search", "text": "some text to type" },
       { "action": "click", "selector": "#id .class" },
-      { "action": "wait", "timeout": 2000 }
+      { "@": ["xxs", "xs"], "action": "wait", "timeout": 2000 }
     ]
   }
 ]
@@ -181,10 +182,11 @@ The currently available actions are `wait`, `click` and `type`. They may be conf
 
 **Wait:**
 
-| Key     | Type     | Description                                                                          |
-| ------- | -------- | ------------------------------------------------------------------------------------ |
-| action  | `"wait"` |                                                                                      |
-| timeout | int      | The number of ms to wait, before executing the next action or taking the screenshot. |
+| Key     | Type           | Description                                                                                       |
+| ------- | -------------- | ------------------------------------------------------------------------------------------------- |
+| action  | `"wait"`       |                                                                                                   |
+| timeout | int            | The number of ms to wait, before executing the next action or taking the screenshot.              |
+| @       | Array<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes |
 
 ```json
 { "action": "wait", "timeout": 2000 }
@@ -192,10 +194,11 @@ The currently available actions are `wait`, `click` and `type`. They may be conf
 
 **Click:**
 
-| Key      | Type      | Description                                                                                                                          |
-| -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| action   | `"click"` |                                                                                                                                      |
-| selector | string    | A css selector of an element which should be clicked. If the selector evaluates to multiple elements, only the first one is clicked. |
+| Key      | Type           | Description                                                                                                                          |
+| -------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| action   | `"click"`      |                                                                                                                                      |
+| selector | string         | A css selector of an element which should be clicked. If the selector evaluates to multiple elements, only the first one is clicked. |
+| @        | Array<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes                                    |
 
 ```json
 { "action": "click", "selector": "#id-to-click" }
@@ -203,11 +206,12 @@ The currently available actions are `wait`, `click` and `type`. They may be conf
 
 **Type:**
 
-| Key      | Type     | Description                                                                                                                        |
-| -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| action   | `"type"` |                                                                                                                                    |
-| selector | string   | A css selector of an element which should be typed in. If the selector evaluates to multiple elements, the first one will be used. |
-| text     | string   | The text to type into the element                                                                                                  |
+| Key      | Type           | Description                                                                                                                        |
+| -------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| action   | `"type"`       |                                                                                                                                    |
+| selector | string         | A css selector of an element which should be typed in. If the selector evaluates to multiple elements, the first one will be used. |
+| text     | string         | The text to type into the element                                                                                                  |
+| @        | Array<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes                                  |
 
 ```json
 { "action": "type", "selector": "#search", "text": "some searchword" }
@@ -227,6 +231,7 @@ Ignoring by coordinates can be done in the following way:
 {
   "ignore": [
     {
+      "@": ["xxs", "xs"],
       "x1": 0,
       "y1": 0,
       "x2": 100,
@@ -244,7 +249,7 @@ Specifying an ignore region by an selector may be done like this:
 
 ```json
 {
-  "ignore": [{ "selector": ".selector" }]
+  "ignore": [{ "@": ["md", "l"], "selector": ".selector" }]
 }
 ```
 
