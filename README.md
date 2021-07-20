@@ -118,16 +118,16 @@ _Keys marked with **\*** are required!_
 
 The test config files (`**.osnap.json` by default), are used to specify a single test to be executed on all `defaultSizes`. A test file consists of an array of tests with the following possible options:
 
-| Key         | Type                             | Description                                                                                                          | Default                                         |
-| ----------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| name **\*** | string                           | The name of the test. <br /> This has to be **unique**, as it will be used to name the base image of this snapshot.  |                                                 |
-| url **\***  | string                           | The url (concatenated with the `baseUrl`) to screenshot                                                              |                                                 |
-| only        | boolean                          | If set to `true`, OSnap will only run tests with `only` set to true and skip all other tests.                        | `false`                                         |
-| skip        | boolean                          | If set to `true`, this test will be skipped.                                                                         | `false`                                         |
-| threshold   | int                              | The number of pixels allowed to be different, before the test will be marked as failed.                              | _Whatever is specified in the global threshold_ |
-| sizes       | Array<{width: int, height: int}> | An array of sizes (width and height) to run this test in. If this is not specified, the `defaultSizes` will be used. | `[]`                                            |
-| ignore      | Array\<regions>                  | An array of regions to ignore in your screenshot. (Possible options are explained below)                             | `[]`                                            |
-| actions     | Array\<action>                   | An array of actions to run before the screenshot is taken. (Possible options are explained below)                    | `[]`                                            |
+| Key         | Type                                            | Description                                                                                                                                | Default                                         |
+| ----------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| name **\*** | string                                          | The name of the test. <br /> This has to be **unique**, as it will be used to name the base image of this snapshot.                        |                                                 |
+| url **\***  | string                                          | The url (concatenated with the `baseUrl`) to screenshot                                                                                    |                                                 |
+| only        | boolean                                         | If set to `true`, OSnap will only run tests with `only` set to true and skip all other tests.                                              | `false`                                         |
+| skip        | boolean                                         | If set to `true`, this test will be skipped.                                                                                               | `false`                                         |
+| threshold   | int                                             | The number of pixels allowed to be different, before the test will be marked as failed.                                                    | _Whatever is specified in the global threshold_ |
+| sizes       | Array<{name: string?, width: int, height: int}> | An array of sizes (width and height with an optional name) to run this test in. If this is not specified, the `defaultSizes` will be used. | `[]`                                            |
+| ignore      | Array\<regions>                                 | An array of regions to ignore in your screenshot. (Possible options are explained below)                                                   | `[]`                                            |
+| actions     | Array\<action>                                  | An array of actions to run before the screenshot is taken. (Possible options are explained below)                                          | `[]`                                            |
 
 _Keys marked with **\*** are required!_
 
