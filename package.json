@@ -55,7 +55,7 @@
     "@opam/fmt": "0.8.9",
     "@opam/imagelib": "20210511",
     "@opam/logs": "0.7.0",
-    "@opam/lwt": "5.4.1",
+    "@opam/lwt": "5.4.2",
     "@opam/lwt_ppx": "2.0.2",
     "@opam/ppx_yojson_conv": "v0.14.0",
     "@opam/re": "*",
@@ -90,7 +90,7 @@
         }
       }
     },
-    "@opam/re": "ocaml/ocaml-re:re.opam#09c2745a2d8d1517b3d597396e82e122903b0017",
+    "@opam/re": "ocaml/ocaml-re:re.opam#8a59309051ec573d3090d2550cb61b415a4c6837",
     "esy-libpng": "esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048"
   }
 }

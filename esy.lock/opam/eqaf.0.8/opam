@@ -14,28 +14,22 @@ This package provides an equal function on string in constant-time to avoid timi
 build: [
   [ "dune" "subst" ] {dev}
   [ "dune" "build" "-p" name "-j" jobs ]
+  [ "dune" "runtest" "-p" name "-j" "1" "--no-buffer" "--verbose" ] {with-test}
 ]
 
 depends: [
-  "ocaml"          {>= "4.03.0"}
-  "dune"
+  "ocaml"          {>= "4.07.0"}
+  "dune"           {>= "2.0"}
+  "cstruct"        {>= "1.1.0"}
   "base64"         {with-test}
   "alcotest"       {with-test}
   "crowbar"        {with-test}
 ]
-
-depopts: [
-  "cstruct"
-  "bigarray-compat"
-]
-
-conflicts: [
-  "cstruct" {< "4.0.0"}
-]
 url {
-  src: "https://github.com/mirage/eqaf/releases/download/v0.7/eqaf-v0.7.tbz"
+  src: "https://github.com/mirage/eqaf/releases/download/v0.8/eqaf-v0.8.tbz"
   checksum: [
-    "sha256=10e666aea9a413e63c5e9dd1c0566aed78a2bf0f4e09caa2bb3b88a021bf09e0"
-    "sha512=38a2687bafb5cd1d1deb51ceceba94fcff9ce88515fd2c61ec1182808c50c0e3373a4d71fe51a17a23c74616c5ab350a4cf7914de656886981538abf2b57ff61"
+    "sha256=1145a160107437d7943e02e486df6bd233d3937ec1a597d7fa39edb9471cf875"
+    "sha512=303749bdbaae8fc27f57ebaa5cf9b16ed5b8cbaee35f0a35d69f91a437b1a3411a613d145d3aff7ff74a587509d877cc0a569fdae4d00cec65bf50d705361e25"
   ]
 }
+x-commit-hash: "b17b607195fac4043e6c64c9ffb67df3d373fc86"

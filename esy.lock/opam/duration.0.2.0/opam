@@ -24,9 +24,10 @@ on negative or out of bound input.
 """
 url {
   src:
-    "https://github.com/hannesm/duration/releases/download/0.1.3/duration-0.1.3.tbz"
+    "https://github.com/hannesm/duration/releases/download/0.2.0/duration-0.2.0.tbz"
   checksum: [
-    "sha256=b0a41b0487b79d1e6447bbb048a32447684b296b72e5de767a28d10bbd023955"
-    "sha512=e7c0270f9e32adecee3c1e25e25c560f646360f146162a66ef15c7231b991cb746178ab806c35feb3494b78f978659db83e9c895329886e76c09f8a0facbd0f2"
+    "sha256=ad14fb75a5a6f73fff7ef1721178925ee555cf0f23b23e3ab329184bc0c1ce69"
+    "sha512=6a259ca406739bfc6020c7de767e39c2a7ee06169aa1966d43d426b2a54fc69b81be6465d04b9bd8fbbbbfd9ebe1c82a1cbfbf62100a37eb0f7403f6cf53e3b8"
   ]
 }
+x-commit-hash: "ec2b9a36901d1902cc90d202a8987d7e3b3e63df"
