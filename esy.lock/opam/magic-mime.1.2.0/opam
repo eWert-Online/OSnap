@@ -30,12 +30,12 @@ build: [
   ["dune" "subst"] {dev}
   ["dune" "build" "-p" name "-j" jobs]
 ]
-x-commit-hash: "ef9dbc7fbfa2613248bc17070ff4f06f61aa8b62"
 url {
   src:
-    "https://github.com/mirage/ocaml-magic-mime/releases/download/v1.1.3/magic-mime-v1.1.3.tbz"
+    "https://github.com/mirage/ocaml-magic-mime/releases/download/v1.2.0/magic-mime-v1.2.0.tbz"
   checksum: [
-    "sha256=7fb36ce619ca479ac44ef923c3bf19eda4c98a4428dbf7f3f7c714b516d212f7"
-    "sha512=25445290f4d73d7cd09a5ef2a1cc6ac538e03a90b09d8f1703b6e1ed3bd499733dc6f7d8932a20ceda646304471cea1099054c3218e7736aab7bf76bfd7e0993"
+    "sha256=f121b67500f8dd97e2fc9fd5d01c7325e4c84bc5c0237442779fbd6fa20694f5"
+    "sha512=f55e39b11e145f97eaec6796cb99bdca3ac62130995fc36f82fdd097ab5ed6ff9130c671546b76b7c21777284977c02f6b6f74d5549a367481210342708886da"
   ]
 }
+x-commit-hash: "11afeba987ca94cb9a6b1e4e1695f1d54c6e23b2"

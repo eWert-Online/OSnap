@@ -1,5 +1,5 @@
 {
-  "checksum": "69322195eff6e574819c8c7434a67133",
+  "checksum": "647c774abef076644093e263a591b990",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -105,16 +105,16 @@
       "dependencies": [],
       "devDependencies": []
     },
-    "cdp@github:eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e@d41d8cd9": {
+    "cdp@github:eWert-Online/reason-cdp#2e28647d86d2a040a988337b97fc14d1b9b2ff56@d41d8cd9": {
       "id":
-        "cdp@github:eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e@d41d8cd9",
+        "cdp@github:eWert-Online/reason-cdp#2e28647d86d2a040a988337b97fc14d1b9b2ff56@d41d8cd9",
       "name": "cdp",
       "version":
-        "github:eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e",
+        "github:eWert-Online/reason-cdp#2e28647d86d2a040a988337b97fc14d1b9b2ff56",
       "source": {
         "type": "install",
         "source": [
-          "github:eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e"
+          "github:eWert-Online/reason-cdp#2e28647d86d2a040a988337b97fc14d1b9b2ff56"
         ]
       },
       "overrides": [],
@@ -140,7 +140,7 @@
       "dependencies": [
         "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117@d41d8cd9",
         "esy-libpng@github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048@d41d8cd9",
-        "cdp@github:eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e@d41d8cd9",
+        "cdp@github:eWert-Online/reason-cdp#2e28647d86d2a040a988337b97fc14d1b9b2ff56@d41d8cd9",
         "@opam/zarith@opam:1.11@6b66cdc1",
         "@opam/yojson@opam:1.7.0@69d87312",
         "@opam/websocket-lwt-unix@opam:2.14@03e9609b",
@@ -1487,7 +1487,7 @@
         "@opam/dune-configurator@opam:2.9.0@40e837e7",
         "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/cstruct@opam:6.0.0@c77fb059",
-        "@opam/conf-pkg-config@opam:2@de102891",
+        "@opam/conf-pkg-config@opam:2@85f8644d",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
@@ -1518,7 +1518,7 @@
         "@opam/dune-configurator@opam:2.9.0@40e837e7",
         "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/cstruct@opam:6.0.0@c77fb059",
-        "@opam/conf-pkg-config@opam:2@de102891",
+        "@opam/conf-pkg-config@opam:2@85f8644d",
         "@opam/bigarray-compat@opam:1.0.0@951830c6",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
@@ -1640,20 +1640,20 @@
         "@opam/dune@opam:2.9.0@489e77a9"
       ]
     },
-    "@opam/magic-mime@opam:1.1.3@b3f714ac": {
-      "id": "@opam/magic-mime@opam:1.1.3@b3f714ac",
+    "@opam/magic-mime@opam:1.2.0@6a509c98": {
+      "id": "@opam/magic-mime@opam:1.2.0@6a509c98",
       "name": "@opam/magic-mime",
-      "version": "opam:1.1.3",
+      "version": "opam:1.2.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/sha256/7f/7fb36ce619ca479ac44ef923c3bf19eda4c98a4428dbf7f3f7c714b516d212f7#sha256:7fb36ce619ca479ac44ef923c3bf19eda4c98a4428dbf7f3f7c714b516d212f7",
-          "archive:https://github.com/mirage/ocaml-magic-mime/releases/download/v1.1.3/magic-mime-v1.1.3.tbz#sha256:7fb36ce619ca479ac44ef923c3bf19eda4c98a4428dbf7f3f7c714b516d212f7"
+          "archive:https://opam.ocaml.org/cache/sha256/f1/f121b67500f8dd97e2fc9fd5d01c7325e4c84bc5c0237442779fbd6fa20694f5#sha256:f121b67500f8dd97e2fc9fd5d01c7325e4c84bc5c0237442779fbd6fa20694f5",
+          "archive:https://github.com/mirage/ocaml-magic-mime/releases/download/v1.2.0/magic-mime-v1.2.0.tbz#sha256:f121b67500f8dd97e2fc9fd5d01c7325e4c84bc5c0237442779fbd6fa20694f5"
         ],
         "opam": {
           "name": "magic-mime",
-          "version": "1.1.3",
-          "path": "esy.lock/opam/magic-mime.1.1.3"
+          "version": "1.2.0",
+          "path": "esy.lock/opam/magic-mime.1.2.0"
         }
       },
       "overrides": [],
@@ -2449,13 +2449,13 @@
       ],
       "dependencies": [
         "esy-zlib@github:esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3@d41d8cd9",
-        "@opam/conf-pkg-config@opam:2@de102891",
+        "@opam/conf-pkg-config@opam:2@85f8644d",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": []
     },
-    "@opam/conf-pkg-config@opam:2@de102891": {
-      "id": "@opam/conf-pkg-config@opam:2@de102891",
+    "@opam/conf-pkg-config@opam:2@85f8644d": {
+      "id": "@opam/conf-pkg-config@opam:2@85f8644d",
       "name": "@opam/conf-pkg-config",
       "version": "opam:2",
       "source": {
@@ -2680,7 +2680,7 @@
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/ppx_sexp_conv@opam:v0.14.3@8f42b1ac",
-        "@opam/magic-mime@opam:1.1.3@b3f714ac",
+        "@opam/magic-mime@opam:1.2.0@6a509c98",
         "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/logs@opam:0.7.0@1d03143e",
         "@opam/fmt@opam:0.8.9@e0843a5b", "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/conduit-lwt-unix@opam:4.0.0@3705c621",
@@ -2693,7 +2693,7 @@
       "devDependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/ppx_sexp_conv@opam:v0.14.3@8f42b1ac",
-        "@opam/magic-mime@opam:1.1.3@b3f714ac",
+        "@opam/magic-mime@opam:1.2.0@6a509c98",
         "@opam/lwt@opam:5.4.1@37ffbe37", "@opam/logs@opam:0.7.0@1d03143e",
         "@opam/fmt@opam:0.8.9@e0843a5b", "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/conduit-lwt-unix@opam:4.0.0@3705c621",
@@ -2823,7 +2823,7 @@
         "@opam/optint@opam:0.1.0@4e40be46",
         "@opam/dune-configurator@opam:2.9.0@40e837e7",
         "@opam/dune@opam:2.9.0@489e77a9",
-        "@opam/conf-pkg-config@opam:2@de102891",
+        "@opam/conf-pkg-config@opam:2@85f8644d",
         "@opam/bigarray-compat@opam:1.0.0@951830c6",
         "@opam/base-bytes@opam:base@19d0c2ff",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
@@ -2990,7 +2990,7 @@
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/dune@opam:2.9.0@489e77a9",
-        "@opam/conf-pkg-config@opam:2@de102891",
+        "@opam/conf-pkg-config@opam:2@85f8644d",
         "@opam/bigarray-compat@opam:1.0.0@951830c6",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],

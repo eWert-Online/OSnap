@@ -105,7 +105,7 @@ let type_text = (~selector, ~text, target) => {
                  ~sessionId,
                  ~params=
                    Params.make(
-                     ~type_="keyDown",
+                     ~type_=`keyDown,
                      ~windowsVirtualKeyCode=
                        Float.of_int(Option.value(def.keyCode, ~default=0)),
                      ~key=def.key,
@@ -126,7 +126,7 @@ let type_text = (~selector, ~text, target) => {
                ~sessionId,
                ~params=
                  Params.make(
-                   ~type_="keyUp",
+                   ~type_=`keyUp,
                    ~key=def.key,
                    ~code=def.code,
                    ~location=Float.of_int(def.location),
@@ -208,7 +208,7 @@ let click = (~selector, target) => {
     DispatchMouseEvent.(
       Request.make(
         ~sessionId,
-        ~params=Params.make(~x, ~y, ~type_="mouseMoved", ()),
+        ~params=Params.make(~x, ~y, ~type_=`mouseMoved, ()),
       )
       |> OSnap_Websocket.send
       |> Lwt.map(ignore)
@@ -220,8 +220,8 @@ let click = (~selector, target) => {
         ~sessionId,
         ~params=
           Params.make(
-            ~type_="mousePressed",
-            ~button="left",
+            ~type_=`mousePressed,
+            ~button=`left,
             ~buttons=1.,
             ~clickCount=1.,
             ~x,
@@ -239,8 +239,8 @@ let click = (~selector, target) => {
         ~sessionId,
         ~params=
           Params.make(
-            ~type_="mouseReleased",
-            ~button="left",
+            ~type_=`mouseReleased,
+            ~button=`left,
             ~buttons=1.,
             ~clickCount=1.,
             ~x,
@@ -337,7 +337,7 @@ let screenshot = (~full_size=false, target) => {
         ~sessionId,
         ~params=
           Params.make(
-            ~format="png",
+            ~format=`png,
             ~captureBeyondViewport=false,
             ~fromSurface=true,
             (),

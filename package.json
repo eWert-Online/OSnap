@@ -64,7 +64,7 @@
     "@opam/websocket-lwt-unix": "2.14",
     "@opam/yojson": "1.7.0",
     "@opam/zarith": "1.11",
-    "cdp": "eWert-Online/reason-cdp#4ed6292f3c58e2921039b23fb3fe0d2e2c3e152e",
+    "cdp": "eWert-Online/reason-cdp#2e28647d86d2a040a988337b97fc14d1b9b2ff56",
     "esy-libpng": "*",
     "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117"
   },
