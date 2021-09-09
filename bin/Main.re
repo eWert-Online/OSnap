@@ -54,14 +54,23 @@ let default_cmd = {
         | Failure(message) =>
           print_error(message);
           Lwt_result.fail();
-        | OSnap_Config.Global.Parse_Error(_) =>
-          print_error("Your osnap.config.json is in an invalid format.");
+        | OSnap_Config.Types.Parse_Error(s) =>
+          print_error(
+            Printf.sprintf(
+              "Your osnap.config.json is in an invalid format: \n%S",
+              s,
+            ),
+          );
           Lwt_result.fail();
         | OSnap_Config.Global.No_Config_Found =>
           print_error("Unable to find a global config file.");
           print_error(
             "Please create a \"osnap.config.json\" at the root of your project or specifiy the location using the --config option.",
           );
+          Lwt_result.fail();
+        | OSnap_Config.Types.Unsupported_Format =>
+          print_error("Your global config file has an unknown format.");
+          print_error("Known formats are json and yaml");
           Lwt_result.fail();
         | OSnap_Config.Test.Duplicate_Tests(tests) =>
           print_error(
@@ -138,7 +147,7 @@ let cleanup_cmd = {
       | Failure(message) =>
         print_error(message);
         Result.error();
-      | OSnap_Config.Global.Parse_Error(_) =>
+      | OSnap_Config.Types.Parse_Error(_) =>
         print_error("Your osnap.config.json is in an invalid format.");
         Result.error();
       | OSnap_Config.Global.No_Config_Found =>

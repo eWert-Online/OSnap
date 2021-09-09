@@ -1,0 +1,25 @@
+baseUrl: ""
+fullScreen: true
+parallelism: 20
+
+testPattern: tests/*.osnap.yaml
+ignorePatterns:
+  - node_modules
+  - _esy
+
+defaultSizes:
+  - name: xl
+    width: 1024
+    height: 576
+
+  - name: l
+    width: 768
+    height: 432
+
+  - name: m
+    width: 640
+    height: 360
+
+  - name: s
+    width: 320
+    height: 180

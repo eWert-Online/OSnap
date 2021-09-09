@@ -65,11 +65,8 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
 
   let start_time = Unix.gettimeofday();
 
-  debug("looking for global config file");
-  let config = Config.Global.find(~config_path);
-  debug("found global config file at " ++ config);
-  debug("parsing config file");
-  let config = config |> Config.Global.parse;
+  let config = Config.Global.init(~config_path);
+
   let (snapshot_dir, updated_dir, diff_dir) = init_folder_structure(config);
   debug("looking for test files");
   let tests = Config.Test.init(config);
@@ -421,9 +418,9 @@ let run = t => {
 };
 
 let cleanup = (~config_path) => {
-  open Fmt;
   print_newline();
-  let config = Config.Global.find(~config_path) |> Config.Global.parse;
+
+  let config = Config.Global.init(~config_path);
   let (snapshot_dir, _updated_dir, _diff_dir) =
     init_folder_structure(config);
   let tests = Config.Test.init(config);
@@ -451,7 +448,7 @@ let cleanup = (~config_path) => {
     FileUtil.ls(snapshot_dir)
     |> List.find_all(file => !List.mem(file, test_file_paths));
   let num_files_to_delete = List.length(files_to_delete);
-
+  open Fmt;
   if (num_files_to_delete > 0) {
     Fmt.pr(
       "%a @.",

@@ -1,4 +1,10 @@
+exception Parse_Error(string);
 exception Duplicate_Size_Names(list(string));
+exception Unsupported_Format;
+
+type format =
+  | JSON
+  | YAML;
 
 type size = {
   name: option(string),
