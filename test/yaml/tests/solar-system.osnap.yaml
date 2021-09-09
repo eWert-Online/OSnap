@@ -1,0 +1,6 @@
+---
+- name: solar-system-yaml
+  url: https://3d-solar-system.webflow.io/
+  ignore:
+    - "@": [xl, l, m, s]
+      selector: ".space"

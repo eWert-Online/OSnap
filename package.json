@@ -42,7 +42,8 @@
   },
   "scripts": {
     "run": "esy x osnap",
-    "test": "esy x osnap --config ./test/osnap.config.json"
+    "test:yaml": "esy x osnap --config ./test/yaml/osnap.config.yaml",
+    "test:json": "esy x osnap --config ./test/json/osnap.config.json"
   },
   "dependencies": {
     "@opam/base64": "3.5.0",
@@ -62,6 +63,7 @@
     "@opam/uri": "4.2.0",
     "@opam/websocket": "2.14",
     "@opam/websocket-lwt-unix": "2.14",
+    "@opam/yaml": "3.0.0",
     "@opam/yojson": "1.7.0",
     "@opam/zarith": "1.11",
     "cdp": "eWert-Online/reason-cdp#2e28647d86d2a040a988337b97fc14d1b9b2ff56",
