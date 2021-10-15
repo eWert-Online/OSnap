@@ -18,6 +18,10 @@
 
 <br />
 
+**NOTE: We are currently working on a documentation website. It is still work in progress, but you may look at it here: https://ewert-online.github.io/OSnap**
+
+<br />
+
 # Table of contents
 
 - [How do I install it?](#how-do-i-install-it)
