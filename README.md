@@ -34,7 +34,7 @@
   - [Updating Snapshots](#updating-snapshots)
   - [Cleanup](#cleanup-command)
 - [Credits](#credits)
-- [Building the project](#building-the-project)
+- [Building the Project](#building-the-project)
 
 <br />
 
