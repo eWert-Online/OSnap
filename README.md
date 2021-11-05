@@ -34,7 +34,7 @@
   - [Updating Snapshots](#updating-snapshots)
   - [Cleanup](#cleanup-command)
 - [Credits](#credits)
-- [Building the Project](#building-the-project)
+- [Contributing](#contributing)
 
 <br />
 
@@ -325,14 +325,25 @@ In decending order of priority (top ones are more important):
 
 If you find a bug or think some feature is missing, don't hesitate to submit an issue.
 
-## Building the Project
+## Contributing
 
-Install [esy](https://esy.sh/) by running:
+Contributions are always welcome. Here's how to set up the project locally.
+
+**Install [`esy`](https://esy.sh/)**
+
 ```sh
 npm install -g esy
 ```
 
-Install dependencies and build the project by running:
+**Install dependencies and build the project**
 ```sh
 esy
+```
+
+**Running the tests**
+```sh
+esy run test:yaml
+```
+```sh
+esy run test:json
 ```
