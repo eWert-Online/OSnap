@@ -34,6 +34,7 @@
   - [Updating Snapshots](#updating-snapshots)
   - [Cleanup](#cleanup-command)
 - [Credits](#credits)
+- [Building the project](#building-the-project)
 
 <br />
 
@@ -323,3 +324,15 @@ In decending order of priority (top ones are more important):
       Maybe we can find a way, to wait for specific events to be triggered on the page. For example: Wait for all animations on the page to complete before taking the screenshot.
 
 If you find a bug or think some feature is missing, don't hesitate to submit an issue.
+
+## Building the Project
+
+Install [esy](https://esy.sh/) by running:
+```sh
+npm install -g esy
+```
+
+Install dependencies and build the project by running:
+```sh
+esy
+```
