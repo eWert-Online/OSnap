@@ -118,6 +118,7 @@ jobs:
 
   prepare-publish:
     name: Prepare publish to npm
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/master' }}
     needs: [build-platform, build-static]
     runs-on: ubuntu-latest
     steps:
@@ -189,6 +190,7 @@ jobs:
 
   test-platform:
     name: Test installing ${{ matrix.os }}
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/master' }}
     needs: prepare-publish
     runs-on: ${{ matrix.os }}
     strategy:
@@ -215,6 +217,7 @@ jobs:
         run: npx osnap --help=plain
 
   publish:
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     needs: [prepare-publish, test-platform]
     steps:
@@ -233,12 +236,6 @@ jobs:
       - name: npm publish nightly
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         run: npm publish ./osnap.tgz --tag=nightly --access=public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: npm publish nightly+branch
-        if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/master' }}
-        run: npm publish ./osnap.tgz --tag=nightly+${{ github.ref_name }} --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -307,14 +304,14 @@ jobs:
           push: true
           tags: osnap/${{ matrix.container }}:nightly
 
-      - name: Build & Publish Nightly ${{ matrix.container }}
+      - name: Build & Publish nightly-${{ github.ref_name }} ${{ matrix.container }}
         if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/master' }}
         uses: docker/build-push-action@v2
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
           push: true
-          tags: osnap/${{ matrix.container }}:nightly+${{ github.ref_name }}
+          tags: osnap/${{ matrix.container }}:nightly-${{ github.ref_name }}
 
       - name: Build & Publish Next ${{ matrix.container }}
         if: ${{ github.event_name == 'release' }}
