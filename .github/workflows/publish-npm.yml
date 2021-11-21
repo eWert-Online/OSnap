@@ -1,9 +1,7 @@
 name: Publish to npm / Docker
 
 on:
-  push:
-    branches:
-      - master
+  push
   release:
     types: [prereleased, released]
 
@@ -236,6 +234,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: npm publish nightly+branch
+        if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/master' }}
+        run: npm publish ./osnap.tgz --tag=nightly+${GITHUB_REF##*/} --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: npm publish prerelease
         if: ${{ github.event_name == 'release' }}
         run: npm publish ./osnap.tgz --tag=next --access=public
@@ -300,6 +304,15 @@ jobs:
           file: docker/Dockerfile.${{ matrix.container }}
           push: true
           tags: osnap/${{ matrix.container }}:nightly
+
+      - name: Build & Publish Nightly ${{ matrix.container }}
+        if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/master' }}
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: docker/Dockerfile.${{ matrix.container }}
+          push: true
+          tags: osnap/${{ matrix.container }}:nightly+${GITHUB_REF##*/}
 
       - name: Build & Publish Next ${{ matrix.container }}
         if: ${{ github.event_name == 'release' }}
