@@ -238,7 +238,7 @@ jobs:
 
       - name: npm publish nightly+branch
         if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/master' }}
-        run: npm publish ./osnap.tgz --tag=nightly+${GITHUB_REF##*/} --access=public
+        run: npm publish ./osnap.tgz --tag=nightly+${{ github.ref_name }} --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -314,7 +314,7 @@ jobs:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
           push: true
-          tags: osnap/${{ matrix.container }}:nightly+${GITHUB_REF##*/}
+          tags: osnap/${{ matrix.container }}:nightly+${{ github.ref_name }}
 
       - name: Build & Publish Next ${{ matrix.container }}
         if: ${{ github.event_name == 'release' }}
