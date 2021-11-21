@@ -9,11 +9,32 @@ module Utils = OSnap_Utils;
 module List = {
   include List;
 
-  let find_all_or_input = (fn, list) => {
-    switch (List.find_all(fn, list)) {
-    | [] => list
-    | list => list
+  let map_p_until_exception = (fn, list) => {
+    open! Lwt.Syntax;
+    let rec loop = (acc, list) => {
+      switch (list) {
+      | [] => Lwt_result.return(acc)
+      | list =>
+        let* (resolved, pending) = Lwt.nchoose_split(list);
+        let (success, error) =
+          resolved
+          |> List.partition_map(
+               fun
+               | Ok(v) => Either.left(v)
+               | Error(e) => Either.right(e),
+             );
+
+        switch (error) {
+        | [] => loop(success @ acc, pending)
+        | [hd, ..._tl] =>
+          pending |> List.iter(Lwt.cancel);
+          Lwt_result.fail(hd);
+        };
+      };
     };
+
+    let promises = list |> List.map(Lwt.apply(fn));
+    loop([], promises);
   };
 };
 
@@ -21,6 +42,7 @@ exception Failed_Test(int);
 
 type t = {
   config: Config.Types.global,
+  all_tests: list((Config.Types.test, Config.Types.size, bool)),
   tests_to_run: list((Config.Types.test, Config.Types.size, bool)),
   start_time: float,
   browser: Browser.t,
@@ -62,11 +84,11 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
   debug(Printf.sprintf("found %i test files", List.length(tests)));
 
   debug("collecting test sizes to run");
-  let all_tests =
+  let* all_tests =
     tests
-    |> List.map(test => {
+    |> List.map_p_until_exception(test => {
          test.sizes
-         |> List.map(size => {
+         |> List.map_p_until_exception(size => {
               let {name: _size_name, width, height} = size;
               let filename =
                 OSnap_Test.get_filename(test.name, width, height);
@@ -74,7 +96,7 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
               let exists = Sys.file_exists(current_image_path);
 
               if (noCreate && !exists) {
-                raise(
+                Lwt_result.fail(
                   Failure(
                     Printf.sprintf(
                       "Flag --no-create is set. Cannot create new images for %s.",
@@ -82,54 +104,61 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
                     ),
                   ),
                 );
+              } else {
+                Lwt_result.return((test, size, exists));
               };
-              (test, size, exists);
             })
        })
-    |> List.flatten;
+    |> Lwt_result.map(List.flatten);
 
   debug("checking for \"only\" flags");
-  let tests_to_run =
-    all_tests
-    |> List.find_all_or_input(((test, _size, _exists)) =>
-         if (test.only) {
-           if (noOnly) {
-             raise(
-               Failure(
-                 Printf.sprintf(
-                   "Flag --no-only is set, but test %s still has only set to true.",
-                   test.name,
-                 ),
-               ),
-             );
-           };
-           true;
-         } else {
-           false;
-         }
-       );
+  let only_tests = all_tests |> List.find_all(((test, _, _)) => test.only);
+
+  let* tests_to_run =
+    if (noOnly && List.length(only_tests) > 0) {
+      Lwt_result.fail(
+        Failure(
+          only_tests
+          |> List.map(((test: Config.Types.test, _, _)) => test.name)
+          |> List.sort_uniq(String.compare)
+          |> String.concat(",\n")
+          |> Printf.sprintf(
+               "Flag --no-only is set, but the following tests still have only set to true:\n%s",
+             ),
+        ),
+      );
+    } else if (List.length(only_tests) > 0) {
+      Lwt_result.return(only_tests);
+    } else {
+      Lwt_result.return(all_tests);
+    };
 
   debug("checking for \"skip\" flags");
-  let tests_to_run =
-    tests_to_run
-    |> List.find_all(((test, {width, height, _}, _exists)) =>
-         if (test.skip) {
-           if (noSkip) {
-             raise(
-               Failure(
-                 Printf.sprintf(
-                   "Flag --no-skip is set, but test %s still has skip set to true.",
-                   test.name,
-                 ),
-               ),
-             );
-           };
-           Printer.skipped_message(~name=test.name, ~width, ~height);
-           false;
-         } else {
-           true;
-         }
-       );
+  let (skipped_tests, tests_to_run) =
+    tests_to_run |> List.partition(((test, _, _)) => test.skip);
+
+  let* tests_to_run =
+    if (noSkip && List.length(skipped_tests) > 0) {
+      Lwt_result.fail(
+        Failure(
+          skipped_tests
+          |> List.map(((test: Config.Types.test, _, _)) => test.name)
+          |> List.sort_uniq(String.compare)
+          |> String.concat(",\n")
+          |> Printf.sprintf(
+               "Flag --no-skip is set, but the following tests still have \"skip\" set to true:\n%s",
+             ),
+        ),
+      );
+    } else if (List.length(skipped_tests) > 0) {
+      skipped_tests
+      |> List.iter(((test: Config.Types.test, {width, height, _}, _)) =>
+           Printer.skipped_message(~name=test.name, ~width, ~height)
+         );
+      Lwt_result.return(tests_to_run);
+    } else {
+      Lwt_result.return(tests_to_run);
+    };
 
   debug("setting test priority");
   let tests_to_run =
@@ -141,7 +170,7 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
   debug("launching browser");
   let* browser = Browser.Launcher.make();
 
-  Lwt_result.return({config, tests_to_run, start_time, browser});
+  Lwt_result.return({config, all_tests, tests_to_run, start_time, browser});
 };
 
 let teardown = t => {
@@ -153,7 +182,7 @@ let run = t => {
   open Lwt_result.Syntax;
 
   let debug = Logger.debug(~header="RUN");
-  let {tests_to_run, config, start_time, browser} = t;
+  let {tests_to_run, all_tests, config, start_time, browser} = t;
 
   debug(Printf.sprintf("creating pool of %i runners", config.parallelism));
   let pool =
@@ -163,37 +192,9 @@ let run = t => {
       ~validate=target => Lwt.return(Result.is_ok(target)),
     );
 
-  let run_parallel_until_exception = (fn, list) => {
-    open! Lwt.Syntax;
-    let rec loop = (acc, list) => {
-      switch (list) {
-      | [] => Lwt_result.return(acc)
-      | list =>
-        let* (resolved, pending) = Lwt.nchoose_split(list);
-        let (success, error) =
-          resolved
-          |> List.partition_map(
-               fun
-               | Ok(v) => Either.left(v)
-               | Error(e) => Either.right(e),
-             );
-
-        switch (error) {
-        | [] => loop(success @ acc, pending)
-        | [hd, ..._tl] =>
-          pending |> List.iter(Lwt.cancel);
-          Lwt_result.fail(hd);
-        };
-      };
-    };
-
-    let promises = list |> List.map(Lwt.apply(fn));
-    loop([], promises);
-  };
-
   let* test_results =
     tests_to_run
-    |> run_parallel_until_exception(test => {
+    |> List.map_p_until_exception(test => {
          Lwt_pool.use(
            pool,
            target => {
@@ -234,7 +235,7 @@ let run = t => {
     ~create_count,
     ~passed_count,
     ~failed_count,
-    ~skipped_count=List.length(test_results) - test_count,
+    ~skipped_count=List.length(all_tests) - test_count,
     ~seconds,
   );
 
