@@ -66,7 +66,7 @@
     "@opam/yaml": "3.0.0",
     "@opam/yojson": "1.7.0",
     "@opam/zarith": "1.11",
-    "cdp": "*",
+    "cdp": "eWert-Online/reason-cdp#35e8efefb77717ba3b7b91b4fcf9db94b5e83648",
     "esy-libpng": "*",
     "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117"
   },
@@ -93,7 +93,6 @@
       }
     },
     "@opam/re": "ocaml/ocaml-re:re.opam#8a59309051ec573d3090d2550cb61b415a4c6837",
-    "esy-libpng": "esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048",
-    "cdp": "link:../../reason-cdp/package.json"
+    "esy-libpng": "esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048"
   }
 }
