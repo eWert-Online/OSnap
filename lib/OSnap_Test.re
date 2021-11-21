@@ -126,6 +126,7 @@ let run = (global_config: Config.Types.global, target, test) => {
   let dirs = OSnap_Paths.get(global_config);
 
   let filename = get_filename(test.name, test.width, test.height);
+  let url = global_config.base_url ++ test.url;
   let base_snapshot = dirs.base ++ filename;
   let updated_snapshot = dirs.updated ++ filename;
   let diff_image = dirs.diff ++ filename;
@@ -137,7 +138,7 @@ let run = (global_config: Config.Types.global, target, test) => {
          ~height=Float.of_int(test.height),
        );
 
-  let* loaderId = target |> Browser.Actions.go_to(~url=test.url);
+  let* loaderId = target |> Browser.Actions.go_to(~url);
 
   let* () =
     target
