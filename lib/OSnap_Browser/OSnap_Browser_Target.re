@@ -22,7 +22,9 @@ let enable_events = t => {
 };
 
 let make = browser => {
-  let%lwt targetId =
+  open Lwt_result.Syntax;
+
+  let* {targetId} =
     Cdp.Commands.Target.CreateTarget.(
       Request.make(
         ~sessionId=?None,
@@ -36,10 +38,19 @@ let make = browser => {
       )
       |> Websocket.send
       |> Lwt.map(Response.parse)
-      |> Lwt.map(response => response.Response.result.targetId)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  Failure(error.message)
+                )
+             |> Option.value(~default=Failure(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
     );
 
-  let%lwt sessionId =
+  let* {sessionId} =
     Cdp.Commands.Target.AttachToTarget.(
       Request.make(
         ~sessionId=?None,
@@ -47,12 +58,19 @@ let make = browser => {
       )
       |> Websocket.send
       |> Lwt.map(Response.parse)
-      |> Lwt.map(response => response.Response.result.sessionId)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  Failure(error.message)
+                )
+             |> Option.value(~default=Failure(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
     );
 
   let t = {targetId, sessionId};
-
   let%lwt () = enable_events(t);
-
-  Lwt.return(t);
+  Lwt_result.return(t);
 };

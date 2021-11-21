@@ -3,6 +3,8 @@ open Cmdliner;
 Printexc.record_backtrace(true);
 Fmt.set_style_renderer(Fmt.stdout, `Ansi_tty);
 
+exception No_Additional_Output;
+
 let setup_log = {
   Term.(
     const(OSnap.Logger.init) $ Fmt_cli.style_renderer() $ Logs_cli.level()
@@ -48,12 +50,18 @@ let default_cmd = {
 
   let exec = (noCreate, noOnly, noSkip, config_path, ()) => {
     open Lwt_result.Syntax;
+
     let run = {
-      let* t =
-        try%lwt(OSnap.setup(~config_path, ~noCreate, ~noOnly, ~noSkip)) {
+      let* t = OSnap.setup(~config_path, ~noCreate, ~noOnly, ~noSkip);
+
+      (
+        try%lwt(OSnap.run(t)) {
         | Failure(message) =>
-          print_error(message);
-          Lwt_result.fail();
+          let () = OSnap.teardown(t);
+          Lwt_result.fail(Failure(message));
+        | Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error(Failure(reason), _) =>
+          let () = OSnap.teardown(t);
+          Lwt_result.fail(Failure(reason));
         | OSnap_Config.Types.Parse_Error(s) =>
           print_error(
             Printf.sprintf(
@@ -61,51 +69,59 @@ let default_cmd = {
               s,
             ),
           );
-          Lwt_result.fail();
+          Lwt_result.fail(No_Additional_Output);
         | OSnap_Config.Global.No_Config_Found =>
           print_error("Unable to find a global config file.");
           print_error(
             "Please create a \"osnap.config.json\" at the root of your project or specifiy the location using the --config option.",
           );
-          Lwt_result.fail();
+          Lwt_result.fail(No_Additional_Output);
         | OSnap_Config.Types.Unsupported_Format =>
           print_error("Your global config file has an unknown format.");
           print_error("Known formats are json and yaml");
-          Lwt_result.fail();
+          Lwt_result.fail(No_Additional_Output);
         | OSnap_Config.Test.Duplicate_Tests(tests) =>
           print_error(
             "Found some tests with duplicate names. Every test has to have a unique name.",
           );
           print_error("Please rename the following tests: \n");
           tests |> List.iter(print_error);
-          Lwt_result.fail();
+          Lwt_result.fail(No_Additional_Output);
         | OSnap_Config.Types.Duplicate_Size_Names(sizes) =>
           print_error(
             "Found some sizes with duplicate names. Every size has to have a unique name inside it's list.",
           );
           print_error("Please rename the following sizes: \n");
           sizes |> List.iter(print_error);
-          Lwt_result.fail();
+          Lwt_result.fail(No_Additional_Output);
         | OSnap_Config.Test.Invalid_format =>
           print_error("Found some tests with an invalid format.");
-          Lwt_result.fail();
-        | exn => raise(exn)
-        };
-
-      let* () =
-        try%lwt(OSnap.run(t)) {
-        | Failure(message) =>
-          print_error(message);
-          Lwt_result.fail();
-        | exn => raise(exn)
-        };
-
-      Lwt_result.return();
+          Lwt_result.fail(No_Additional_Output);
+        | exn =>
+          let () = OSnap.teardown(t);
+          Lwt_result.fail(exn);
+        }
+      )
+      |> Lwt.bind(_, result => {
+           switch (result) {
+           | Ok () => Lwt_result.return()
+           | Error(e) =>
+             let () = OSnap.teardown(t);
+             Lwt_result.fail(e);
+           }
+         });
     };
 
     switch (Lwt_main.run(run)) {
     | Ok () => 0
-    | Error () => 1
+    | Error(No_Additional_Output) => 1
+    | Error(OSnap.Failed_Test(_)) => 1
+    | Error(Failure(message)) =>
+      print_error(message);
+      1;
+    | Error(exn) =>
+      print_error(Printexc.to_string(exn));
+      1;
     };
   };
 

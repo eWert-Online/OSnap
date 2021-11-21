@@ -9,7 +9,6 @@
       y1: 0
       x2: 20
       y2: 20
-    - selector: ".logo"
 
 - name: reason-3-2-0-yaml
   url: https://reasonml.github.io/blog/2018/05/25/reason-3.2.0

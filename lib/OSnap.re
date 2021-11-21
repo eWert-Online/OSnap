@@ -1,7 +1,6 @@
 module Config = OSnap_Config;
 module Browser = OSnap_Browser;
 
-module Diff = OSnap_Diff;
 module Printer = OSnap_Printer;
 module Logger = OSnap_Logger;
 
@@ -18,48 +17,37 @@ module List = {
   };
 };
 
+exception Failed_Test(int);
+
 type t = {
   config: Config.Types.global,
-  all_tests: list((Config.Types.test, Config.Types.size, bool)),
   tests_to_run: list((Config.Types.test, Config.Types.size, bool)),
-  snapshot_dir: string,
-  updated_dir: string,
-  diff_dir: string,
   start_time: float,
+  browser: Browser.t,
 };
 
-let get_filename = (name, width, height) =>
-  Printf.sprintf("/%s_%ix%i.png", name, width, height);
-
 let init_folder_structure = config => {
-  open Config.Types;
   let debug = Logger.debug(~header="SETUP");
 
-  let base_path = config.root_path ++ config.snapshot_directory;
+  let dirs = OSnap_Paths.get(config);
 
-  debug("initializing folder structure in " ++ base_path);
-
-  let snapshot_dir = base_path ++ "/__base_images__";
-  if (!Sys.file_exists(snapshot_dir)) {
-    debug("creating base images folder at " ++ snapshot_dir);
-    FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), snapshot_dir);
+  if (!Sys.file_exists(dirs.base)) {
+    debug("creating base images folder at " ++ dirs.base);
+    FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), dirs.base);
   };
 
-  let updated_dir = base_path ++ "/__updated__";
-  debug("(re)creating " ++ updated_dir);
-  FileUtil.rm(~recurse=true, [updated_dir]);
-  FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), updated_dir);
+  debug("(re)creating " ++ dirs.updated);
+  FileUtil.rm(~recurse=true, [dirs.updated]);
+  FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), dirs.updated);
 
-  let diff_dir = base_path ++ "/__diff__";
-  debug("(re)creating " ++ diff_dir);
-  FileUtil.rm(~recurse=true, [diff_dir]);
-  FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), diff_dir);
-
-  (snapshot_dir, updated_dir, diff_dir);
+  debug("(re)creating " ++ dirs.diff);
+  FileUtil.rm(~recurse=true, [dirs.diff]);
+  FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), dirs.diff);
 };
 
 let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
   open Config.Types;
+  open Lwt_result.Syntax;
 
   let debug = Logger.debug(~header="SETUP");
 
@@ -67,7 +55,8 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
 
   let config = Config.Global.init(~config_path);
 
-  let (snapshot_dir, updated_dir, diff_dir) = init_folder_structure(config);
+  let () = init_folder_structure(config);
+  let snapshot_dir = OSnap_Paths.get_base_images_dir(config);
   debug("looking for test files");
   let tests = Config.Test.init(config);
   debug(Printf.sprintf("found %i test files", List.length(tests)));
@@ -79,7 +68,8 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
          test.sizes
          |> List.map(size => {
               let {name: _size_name, width, height} = size;
-              let filename = get_filename(test.name, width, height);
+              let filename =
+                OSnap_Test.get_filename(test.name, width, height);
               let current_image_path = snapshot_dir ++ filename;
               let exists = Sys.file_exists(current_image_path);
 
@@ -148,250 +138,80 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
          Bool.compare(exists1, exists2)
        });
 
-  Lwt_result.return({
-    config,
-    all_tests,
-    tests_to_run,
-    snapshot_dir,
-    updated_dir,
-    diff_dir,
-    start_time,
-  });
+  debug("launching browser");
+  let* browser = Browser.Launcher.make();
+
+  Lwt_result.return({config, tests_to_run, start_time, browser});
 };
 
-let save_screenshot = (~path, data) => {
-  let%lwt io = Lwt_io.open_file(~mode=Output, path);
-  let%lwt () = Lwt_io.write(io, data);
-  Lwt_io.close(io);
-};
-
-let read_file_contents = (~path) => {
-  let%lwt io = Lwt_io.open_file(~mode=Input, path);
-  let%lwt data = Lwt_io.read(io);
-  let%lwt () = Lwt_io.close(io);
-  Lwt.return(data);
+let teardown = t => {
+  Browser.Launcher.shutdown(t.browser);
 };
 
 let run = t => {
   open Config.Types;
+  open Lwt_result.Syntax;
 
   let debug = Logger.debug(~header="RUN");
-  let {
-    snapshot_dir,
-    updated_dir,
-    diff_dir,
-    all_tests,
-    tests_to_run,
-    config,
-    start_time,
-  } = t;
+  let {tests_to_run, config, start_time, browser} = t;
 
-  let create_count = ref(0);
-  let passed_count = ref(0);
-  let failed_count = ref(0);
-  let test_count = ref(0);
-
-  debug("launching browser");
-  let%lwt browser = Browser.Launcher.make();
-
-  debug("creating pool of runners");
+  debug(Printf.sprintf("creating pool of %i runners", config.parallelism));
   let pool =
-    Lwt_pool.create(config.parallelism, () => Browser.Target.make(browser));
+    Lwt_pool.create(
+      config.parallelism,
+      () => Browser.Target.make(browser),
+      ~validate=target => Lwt.return(Result.is_ok(target)),
+    );
 
-  let%lwt () =
+  let run_parallel_until_exception = (fn, list) => {
+    open! Lwt.Syntax;
+    let rec loop = (acc, list) => {
+      switch (list) {
+      | [] => Lwt_result.return(acc)
+      | list =>
+        let* (resolved, pending) = Lwt.nchoose_split(list);
+        let (success, error) =
+          resolved
+          |> List.partition_map(
+               fun
+               | Ok(v) => Either.left(v)
+               | Error(e) => Either.right(e),
+             );
+
+        switch (error) {
+        | [] => loop(success @ acc, pending)
+        | [hd, ..._tl] =>
+          pending |> List.iter(Lwt.cancel);
+          Lwt_result.fail(hd);
+        };
+      };
+    };
+
+    let promises = list |> List.map(Lwt.apply(fn));
+    loop([], promises);
+  };
+
+  let* test_results =
     tests_to_run
-    |> Lwt_stream.of_list
-    |> Lwt_stream.iter_n(
-         ~max_concurrency=config.parallelism,
-         (
-           (
-             test: Config.Types.test,
-             {name: size_name, width, height},
-             exists,
-           ),
-         ) => {
+    |> run_parallel_until_exception(test => {
          Lwt_pool.use(
            pool,
            target => {
-             incr(test_count);
-             let filename = get_filename(test.name, width, height);
-             let current_image_path = snapshot_dir ++ filename;
-             let new_image_path = updated_dir ++ filename;
-             let diff_image_path = diff_dir ++ filename;
+             let (test, {name: size_name, width, height}, exists) = test;
 
-             let create_new = !exists;
-
-             let url = config.base_url ++ test.url;
-             let full_size = config.fullscreen;
-
-             let%lwt () =
-               target
-               |> Browser.Actions.set_size(
-                    ~width=Float.of_int(width),
-                    ~height=Float.of_int(height),
-                  );
-
-             let%lwt loaderId =
-               target
-               |> Browser.Actions.go_to(~url)
-               |> Lwt.map(
-                    fun
-                    | Ok(id) => id
-                    | Error(message) => {
-                        Browser.Launcher.shutdown(browser);
-                        raise(
-                          Failure(
-                            Printf.sprintf(
-                              "Could not connect to url %S. \nError was: %S",
-                              url,
-                              message,
-                            ),
-                          ),
-                        );
-                      },
-                  );
-
-             let%lwt () =
-               target |> Browser.Actions.wait_for_network_idle(~loaderId);
-
-             let%lwt () =
-               test.actions
-               |> Lwt_list.iter_s(action => {
-                    switch (action, size_name) {
-                    | (Click(_, Some(_)), None) => Lwt.return()
-                    | (Click(selector, None), _) =>
-                      target |> Browser.Actions.click(~selector)
-                    | (Click(selector, Some(size_restr)), Some(size_name)) =>
-                      if (size_restr |> List.mem(size_name)) {
-                        target |> Browser.Actions.click(~selector);
-                      } else {
-                        Lwt.return();
-                      }
-
-                    | (Type(_, _, Some(_)), None) => Lwt.return()
-                    | (Type(selector, text, None), _) =>
-                      target |> Browser.Actions.type_text(~selector, ~text)
-                    | (Type(selector, text, Some(size)), Some(size_name)) =>
-                      if (size |> List.mem(size_name)) {
-                        target |> Browser.Actions.type_text(~selector, ~text);
-                      } else {
-                        Lwt.return();
-                      }
-
-                    | (Wait(_, Some(_)), None) => Lwt.return()
-                    | (Wait(ms, Some(size)), Some(size_name)) =>
-                      if (size |> List.mem(size_name)) {
-                        let timeout = float_of_int(ms) /. 1000.0;
-                        Lwt_unix.sleep(timeout);
-                      } else {
-                        Lwt.return();
-                      }
-                    | (Wait(ms, None), _) =>
-                      let timeout = float_of_int(ms) /. 1000.0;
-                      Lwt_unix.sleep(timeout);
-                    }
-                  });
-
-             let%lwt screenshot =
-               target
-               |> Browser.Actions.screenshot(~full_size)
-               |> Lwt.map(Base64.decode_exn);
-
-             if (create_new) {
-               incr(create_count);
-               incr(passed_count);
-               Printer.created_message(~name=test.name, ~width, ~height);
-               save_screenshot(
-                 ~path=create_new ? current_image_path : new_image_path,
-                 screenshot,
-               );
-             } else {
-               let%lwt original_image_data =
-                 read_file_contents(~path=current_image_path);
-
-               if (original_image_data == screenshot) {
-                 incr(passed_count);
-                 Printer.success_message(~name=test.name, ~width, ~height);
-                 Lwt.return();
-               } else {
-                 let%lwt ignoreRegions =
-                   test.ignore
-                   |> Lwt_list.filter_map_p(region => {
-                        switch (region, size_name) {
-                        | (Coordinates(a, b, None), _) =>
-                          Lwt.return(Some((a, b)))
-                        | (Coordinates(_, _, Some(_)), None) =>
-                          Lwt.return(None)
-                        | (
-                            Coordinates(a, b, Some(size_restr)),
-                            Some(size_name),
-                          ) =>
-                          if (size_restr |> List.mem(size_name)) {
-                            Lwt.return(Some((a, b)));
-                          } else {
-                            Lwt.return(None);
-                          }
-
-                        | (Selector(_, Some(_)), None) => Lwt.return(None)
-                        | (
-                            Selector(selector, Some(size_restr)),
-                            Some(size_name),
-                          ) =>
-                          if (size_restr |> List.mem(size_name)) {
-                            let%lwt ((x1, y1), (x2, y2)) =
-                              target |> Browser.Actions.get_quads(~selector);
-                            let x1 = Int.of_float(x1);
-                            let y1 = Int.of_float(y1);
-                            let x2 = Int.of_float(x2);
-                            let y2 = Int.of_float(y2);
-                            Lwt.return(Some(((x1, y1), (x2, y2))));
-                          } else {
-                            Lwt.return(None);
-                          }
-                        | (Selector(selector, None), _) =>
-                          let%lwt ((x1, y1), (x2, y2)) =
-                            target |> Browser.Actions.get_quads(~selector);
-                          let x1 = Int.of_float(x1);
-                          let y1 = Int.of_float(y1);
-                          let x2 = Int.of_float(x2);
-                          let y2 = Int.of_float(y2);
-                          Lwt.return(Some(((x1, y1), (x2, y2))));
-                        }
-                      });
-
-                 let diff =
-                   Diff.diff(
-                     ~threshold=test.threshold,
-                     ~diffPixel=config.diff_pixel_color,
-                     ~ignoreRegions,
-                     ~output=diff_image_path,
-                     ~original_image_data,
-                     ~new_image_data=screenshot,
-                   );
-
-                 switch (diff()) {
-                 | Ok () =>
-                   incr(passed_count);
-                   FileUtil.rm(~recurse=true, [new_image_path]);
-                   Printer.success_message(~name=test.name, ~width, ~height);
-                   Lwt.return();
-                 | Error(Layout) =>
-                   incr(failed_count);
-                   Printer.layout_message(~name=test.name, ~width, ~height);
-                   save_screenshot(~path=new_image_path, screenshot);
-                 | Error(Pixel(diffCount, diffPercentage)) =>
-                   incr(failed_count);
-                   Printer.diff_message(
-                     ~name=test.name,
-                     ~width,
-                     ~height,
-                     ~diffCount,
-                     ~diffPercentage,
-                   );
-                   save_screenshot(~path=new_image_path, screenshot);
-                 };
-               };
+             let test: OSnap_Test.t = {
+               exists,
+               size_name,
+               width,
+               height,
+               url: test.url,
+               name: test.name,
+               actions: test.actions,
+               ignore_regions: test.ignore,
              };
+
+             /* Targets are validated at creation time. They are guaranteed to be created. */
+             OSnap_Test.run(config, Result.get_ok(target), test);
            },
          )
        });
@@ -401,19 +221,27 @@ let run = t => {
 
   Browser.Launcher.shutdown(browser);
 
+  let create_count =
+    test_results |> List.filter(r => r == `Created) |> List.length;
+  let passed_count =
+    test_results |> List.filter(r => r == `Passed) |> List.length;
+  let failed_count =
+    test_results |> List.filter(r => r == `Failed) |> List.length;
+  let test_count = tests_to_run |> List.length;
+
   Printer.stats(
-    ~test_count=List.length(tests_to_run),
-    ~create_count=create_count^,
-    ~passed_count=passed_count^,
-    ~failed_count=failed_count^,
-    ~skipped_count=List.length(all_tests) - List.length(tests_to_run),
+    ~test_count,
+    ~create_count,
+    ~passed_count,
+    ~failed_count,
+    ~skipped_count=List.length(test_results) - test_count,
     ~seconds,
   );
 
-  if (failed_count^ == 0) {
+  if (failed_count == 0) {
     Lwt_result.return();
   } else {
-    Lwt_result.fail();
+    Lwt_result.fail(Failed_Test(failed_count));
   };
 };
 
@@ -421,8 +249,8 @@ let cleanup = (~config_path) => {
   print_newline();
 
   let config = Config.Global.init(~config_path);
-  let (snapshot_dir, _updated_dir, _diff_dir) =
-    init_folder_structure(config);
+  let () = init_folder_structure(config);
+  let snapshot_dir = OSnap_Paths.get_base_images_dir(config);
   let tests = Config.Test.init(config);
 
   let test_file_paths =
@@ -431,7 +259,8 @@ let cleanup = (~config_path) => {
          test.sizes
          |> List.filter_map((size: Config.Types.size) => {
               let Config.Types.{width, height, _} = size;
-              let filename = get_filename(test.name, width, height);
+              let filename =
+                OSnap_Test.get_filename(test.name, width, height);
               let current_image_path = snapshot_dir ++ filename;
               let exists = Sys.file_exists(current_image_path);
 
