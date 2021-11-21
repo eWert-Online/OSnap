@@ -1,7 +1,9 @@
 name: Publish to npm / Docker
 
 on:
-  push
+  push:
+    branches:
+      - "**"
   release:
     types: [prereleased, released]
 
