@@ -21,7 +21,9 @@ let save_screenshot = (~path, data) => {
   let* io =
     try(Lwt_io.open_file(~mode=Output, path) |> Lwt_result.ok) {
     | _ =>
-      Failure(Printf.sprintf("Could not save screenshot to %s", path))
+      OSnap_Response.FS_Error(
+        Printf.sprintf("Could not save screenshot to %s", path),
+      )
       |> Lwt_result.fail
     };
 
@@ -35,7 +37,9 @@ let read_file_contents = (~path) => {
   let* io =
     try(Lwt_io.open_file(~mode=Input, path) |> Lwt_result.ok) {
     | _ =>
-      Failure(Printf.sprintf("Could not open file %S for reading", path))
+      OSnap_Response.FS_Error(
+        Printf.sprintf("Could not open file %S for reading", path),
+      )
       |> Lwt_result.fail
     };
 
@@ -149,7 +153,7 @@ let run = (global_config: Config.Types.global, target, test) => {
     test.actions
     |> Lwt_list.map_s(execute_action(target, test.size_name))
     >>= Lwt_list.fold_left_s(
-          (acc: Result.t(unit, exn), curr) =>
+          (acc: Result.t(unit, OSnap_Response.t), curr) =>
             if (Result.is_ok(acc) && Result.is_ok(curr)) {
               Lwt.return(acc);
             } else {

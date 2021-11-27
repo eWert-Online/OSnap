@@ -2,6 +2,6 @@
  (name OSnap_Config)
  (flags
   (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
- (libraries OSnap_Logger OSnap_Utils re fileutils yaml yojson)
+ (libraries OSnap_Response OSnap_Logger OSnap_Utils re fileutils yaml yojson)
  (preprocess
   (pps lwt_ppx ppx_yojson_conv)))

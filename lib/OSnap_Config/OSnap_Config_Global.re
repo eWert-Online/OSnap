@@ -66,7 +66,7 @@ module YAML = {
              | _ => raise(Parse_Error("ignorePatterns has to be an array")),
            )
         |> Option.value(~default=[])
-        |> List.map(OSnap_Config_Utils.YAML.parse_size);
+        |> List.map(OSnap_Config_Utils.YAML.parse_size_exn);
 
       let snapshot_directory =
         yaml
@@ -450,7 +450,7 @@ let init = (~config_path) => {
 
   debug("found global config file at " ++ config);
   debug("parsing config file");
-  let format = OSnap_Config_Utils.get_format(config);
+  let format = OSnap_Config_Utils.get_format(config) |> Result.get_ok;
   switch (format) {
   | OSnap_Config_Types.JSON => JSON.parse(config)
   | OSnap_Config_Types.YAML => YAML.parse(config)

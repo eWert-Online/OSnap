@@ -9,16 +9,62 @@ type target = {
 
 let enable_events = t => {
   open Cdp.Commands;
+  open Lwt_result.Syntax;
+
   let sessionId = t.sessionId;
 
-  let%lwt _ = Page.Enable.Request.make(~sessionId) |> Websocket.send;
-  let%lwt _ = DOM.Enable.Request.make(~sessionId) |> Websocket.send;
-  let%lwt _ =
+  let* _ =
+    Page.Enable.(
+      Request.make(~sessionId)
+      |> Websocket.send
+      |> Lwt.map(Response.parse)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
+    );
+
+  let* _ =
+    DOM.Enable.(
+      Request.make(~sessionId)
+      |> Websocket.send
+      |> Lwt.map(Response.parse)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
+    );
+
+  let* _ =
     Page.SetLifecycleEventsEnabled.(
       Request.make(~sessionId, ~params=Params.make(~enabled=true, ()))
       |> Websocket.send
+      |> Lwt.map(Response.parse)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
     );
-  Lwt.return();
+
+  Lwt_result.return();
 };
 
 let make = browser => {
@@ -42,9 +88,9 @@ let make = browser => {
            let error =
              response.Response.error
              |> Option.map((error: Response.error) =>
-                  Failure(error.message)
+                  OSnap_Response.CDP_Protocol_Error(error.message)
                 )
-             |> Option.value(~default=Failure(""));
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
            Option.to_result(response.Response.result, ~none=error);
          })
@@ -62,15 +108,15 @@ let make = browser => {
            let error =
              response.Response.error
              |> Option.map((error: Response.error) =>
-                  Failure(error.message)
+                  OSnap_Response.CDP_Protocol_Error(error.message)
                 )
-             |> Option.value(~default=Failure(""));
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
            Option.to_result(response.Response.result, ~none=error);
          })
     );
 
   let t = {targetId, sessionId};
-  let%lwt () = enable_events(t);
+  let* () = enable_events(t);
   Lwt_result.return(t);
 };

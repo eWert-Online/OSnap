@@ -3,16 +3,14 @@ module Utils = OSnap_Utils;
 
 type t;
 
-exception Failed_Test(int);
-
 let setup:
   (~noCreate: bool, ~noOnly: bool, ~noSkip: bool, ~config_path: string) =>
-  Lwt_result.t(t, exn);
+  Lwt_result.t(t, OSnap_Response.t);
 
 let teardown: t => unit;
 
-let cleanup: (~config_path: string) => Result.t(unit, unit);
+let cleanup: (~config_path: string) => Result.t(unit, OSnap_Response.t);
 
-let run: t => Lwt_result.t(unit, exn);
+let run: t => Lwt_result.t(unit, OSnap_Response.t);
 
 let download_chromium: unit => Lwt_result.t(unit, unit);

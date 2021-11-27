@@ -4,8 +4,6 @@ open Lwt_result.Syntax;
 
 module Websocket = OSnap_Websocket;
 
-exception Connection_failed;
-
 let debug = Logger.debug(~header="BROWSER");
 
 let make = () => {
@@ -79,7 +77,7 @@ let make = () => {
                      ~search="Cannot start http server",
                    ) =>
             proc#terminate;
-            Lwt_result.fail(Connection_failed);
+            Lwt_result.fail(OSnap_Response.CDP_Connection_Failed);
           | line
               when
                 line
@@ -94,7 +92,8 @@ let make = () => {
           };
         },
       )
-    | Lwt_process.Exited(_) => Lwt_result.fail(Connection_failed)
+    | Lwt_process.Exited(_) =>
+      Lwt_result.fail(OSnap_Response.CDP_Connection_Failed)
     };
   };
 
@@ -114,9 +113,9 @@ let make = () => {
            let error =
              response.Response.error
              |> Option.map((error: Response.error) =>
-                  Failure(error.message)
+                  OSnap_Response.CDP_Protocol_Error(error.message)
                 )
-             |> Option.value(~default=Connection_failed);
+             |> Option.value(~default=OSnap_Response.CDP_Connection_Failed);
 
            Option.to_result(response.Response.result, ~none=error);
          })

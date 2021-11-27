@@ -32,9 +32,9 @@ let select_element = (~selector, ~sessionId) => {
            let error =
              response.Response.error
              |> Option.map((error: Response.error) =>
-                  Failure(error.message)
+                  OSnap_Response.CDP_Protocol_Error(error.message)
                 )
-             |> Option.value(~default=Failure(""));
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
            Option.to_result(response.Response.result, ~none=error);
          })
@@ -50,8 +50,10 @@ let select_element = (~selector, ~sessionId) => {
     |> Lwt.map(response => {
          let error =
            response.Response.error
-           |> Option.map((error: Response.error) => Failure(error.message))
-           |> Option.value(~default=Failure(""));
+           |> Option.map((error: Response.error) =>
+                OSnap_Response.CDP_Protocol_Error(error.message)
+              )
+           |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
          Option.to_result(response.Response.result, ~none=error);
        })
@@ -100,18 +102,21 @@ let go_to = (~url, target) => {
            let error =
              response.Response.error
              |> Option.map((error: Response.error) =>
-                  Failure(error.message)
+                  OSnap_Response.CDP_Protocol_Error(error.message)
                 )
-             |> Option.value(~default=Failure(""));
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
            Option.to_result(response.Response.result, ~none=error);
          })
     );
 
   switch (result.errorText, result.loaderId) {
-  | (Some(error), _) => Failure(error) |> Lwt_result.fail
+  | (Some(error), _) =>
+    OSnap_Response.CDP_Protocol_Error(error) |> Lwt_result.fail
   | (None, None) =>
-    Lwt_result.fail(Failure("CDP responded with no loader id"))
+    Lwt_result.fail(
+      OSnap_Response.CDP_Protocol_Error("CDP responded with no loader id"),
+    )
   | (None, Some(loaderId)) => loaderId |> Lwt_result.return
   };
 };
@@ -133,9 +138,9 @@ let type_text = (~selector, ~text, target) => {
            let error =
              response.Response.error
              |> Option.map((error: Response.error) =>
-                  Failure(error.message)
+                  OSnap_Response.CDP_Protocol_Error(error.message)
                 )
-             |> Option.value(~default=Failure(""));
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
            Option.to_result(response.Response.result, ~none=error);
          })
@@ -226,9 +231,9 @@ let get_quads = (~selector, target) => {
            let error =
              response.Response.error
              |> Option.map((error: Response.error) =>
-                  Failure(error.message)
+                  OSnap_Response.CDP_Protocol_Error(error.message)
                 )
-             |> Option.value(~default=Failure(""));
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
            Option.to_result(response.Response.result, ~none=error);
          })
@@ -237,7 +242,7 @@ let get_quads = (~selector, target) => {
   switch (result.quads) {
   | [[x1, y1, x2, _y2, _x3, y2, _x4, _y4, ..._], ..._] =>
     Lwt_result.return(((x1, y1), (x2, y2)))
-  | _ => Lwt_result.fail(Failure(""))
+  | _ => Lwt_result.fail(OSnap_Response.CDP_Protocol_Error(""))
   };
 };
 
@@ -336,9 +341,9 @@ let get_content_size = target => {
            let error =
              response.Response.error
              |> Option.map((error: Response.error) =>
-                  Failure(error.message)
+                  OSnap_Response.CDP_Protocol_Error(error.message)
                 )
-             |> Option.value(~default=Failure(""));
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
            Option.to_result(response.Response.result, ~none=error);
          })
@@ -385,9 +390,9 @@ let set_size = (~width, ~height, target) => {
            let error =
              response.Response.error
              |> Option.map((error: Response.error) =>
-                  Failure(error.message)
+                  OSnap_Response.CDP_Protocol_Error(error.message)
                 )
-             |> Option.value(~default=Failure(""));
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
            Option.to_result(response.Response.result, ~none=error);
          })
@@ -428,9 +433,9 @@ let screenshot = (~full_size=false, target) => {
            let error =
              response.Response.error
              |> Option.map((error: Response.error) =>
-                  Failure(error.message)
+                  OSnap_Response.CDP_Protocol_Error(error.message)
                 )
-             |> Option.value(~default=Failure(""));
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
            Option.to_result(response.Response.result, ~none=error);
          })

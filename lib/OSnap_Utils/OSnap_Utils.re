@@ -41,7 +41,7 @@ let contains_substring = (~search, str) => {
         while (str.[i + j^] == search.[j^]) {
           incr(j);
           if (j^ == search_length) {
-            raise(Exit);
+            raise_notrace(Exit);
           };
         };
       };
@@ -77,4 +77,24 @@ let path_of_segments = paths => {
        },
        "",
      );
+};
+
+module List = {
+  let map_until_exception = (fn, list) => {
+    [@ocaml.tailcall]
+    let rec loop = (acc, list) => {
+      switch (list) {
+      | [] => Result.ok(List.rev(acc))
+      | [hd, ...tl] =>
+        let result = fn(hd);
+
+        switch (result) {
+        | Ok(v) => loop([v, ...acc], tl)
+        | Error(e) => Result.error(e)
+        };
+      };
+    };
+
+    loop([], list);
+  };
 };

@@ -6,8 +6,8 @@ module Logger = OSnap_Logger;
 
 module Utils = OSnap_Utils;
 
-module List = {
-  include List;
+module Lwt_list = {
+  include Lwt_list;
 
   let map_p_until_exception = (fn, list) => {
     open! Lwt.Syntax;
@@ -37,8 +37,6 @@ module List = {
     loop([], promises);
   };
 };
-
-exception Failed_Test(int);
 
 type t = {
   config: Config.Types.global,
@@ -80,15 +78,15 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
   let () = init_folder_structure(config);
   let snapshot_dir = OSnap_Paths.get_base_images_dir(config);
   debug("looking for test files");
-  let tests = Config.Test.init(config);
+  let* tests = Config.Test.init(config) |> Lwt_result.lift;
   debug(Printf.sprintf("found %i test files", List.length(tests)));
 
   debug("collecting test sizes to run");
   let* all_tests =
     tests
-    |> List.map_p_until_exception(test => {
+    |> Lwt_list.map_p_until_exception(test => {
          test.sizes
-         |> List.map_p_until_exception(size => {
+         |> Lwt_list.map_p_until_exception(size => {
               let {name: _size_name, width, height} = size;
               let filename =
                 OSnap_Test.get_filename(test.name, width, height);
@@ -97,7 +95,7 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
 
               if (noCreate && !exists) {
                 Lwt_result.fail(
-                  Failure(
+                  OSnap_Response.Invalid_Run(
                     Printf.sprintf(
                       "Flag --no-create is set. Cannot create new images for %s.",
                       test.name,
@@ -117,7 +115,7 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
   let* tests_to_run =
     if (noOnly && List.length(only_tests) > 0) {
       Lwt_result.fail(
-        Failure(
+        OSnap_Response.Invalid_Run(
           only_tests
           |> List.map(((test: Config.Types.test, _, _)) => test.name)
           |> List.sort_uniq(String.compare)
@@ -140,7 +138,7 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
   let* tests_to_run =
     if (noSkip && List.length(skipped_tests) > 0) {
       Lwt_result.fail(
-        Failure(
+        OSnap_Response.Invalid_Run(
           skipped_tests
           |> List.map(((test: Config.Types.test, _, _)) => test.name)
           |> List.sort_uniq(String.compare)
@@ -194,7 +192,7 @@ let run = t => {
 
   let* test_results =
     tests_to_run
-    |> List.map_p_until_exception(test => {
+    |> Lwt_list.map_p_until_exception(test => {
          Lwt_pool.use(
            pool,
            target => {
@@ -242,17 +240,19 @@ let run = t => {
   if (failed_count == 0) {
     Lwt_result.return();
   } else {
-    Lwt_result.fail(Failed_Test(failed_count));
+    Lwt_result.fail(OSnap_Response.Test_Failure);
   };
 };
 
 let cleanup = (~config_path) => {
+  let ( let* ) = Result.bind;
+
   print_newline();
 
   let config = Config.Global.init(~config_path);
   let () = init_folder_structure(config);
   let snapshot_dir = OSnap_Paths.get_base_images_dir(config);
-  let tests = Config.Test.init(config);
+  let* tests = Config.Test.init(config);
 
   let test_file_paths =
     tests
