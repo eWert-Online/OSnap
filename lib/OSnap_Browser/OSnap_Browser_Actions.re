@@ -48,14 +48,23 @@ let select_element = (~selector, ~sessionId) => {
     |> OSnap_Websocket.send
     |> Lwt.map(Response.parse)
     |> Lwt.map(response => {
-         let error =
-           response.Response.error
-           |> Option.map((error: Response.error) =>
-                OSnap_Response.CDP_Protocol_Error(error.message)
-              )
-           |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
-
-         Option.to_result(response.Response.result, ~none=error);
+         switch (response.Response.error, response.Response.result) {
+         | (_, Some({nodeId: 0.})) =>
+           Result.error(
+             OSnap_Response.CDP_Protocol_Error(
+               Printf.sprintf(
+                 "A node with the selector %S could not be found.",
+                 selector,
+               ),
+             ),
+           )
+         | (None, None) =>
+           Result.error(OSnap_Response.CDP_Protocol_Error(""))
+         | (Some({message, _}), None) =>
+           Result.error(OSnap_Response.CDP_Protocol_Error(message))
+         | (Some(_), Some(result))
+         | (None, Some(result)) => Result.ok(result)
+         }
        })
   );
 };
@@ -220,11 +229,11 @@ let get_quads = (~selector, target) => {
 
   let sessionId = target.sessionId;
 
-  let* node = select_element(~selector, ~sessionId);
+  let* {nodeId} = select_element(~selector, ~sessionId);
 
   let* result =
     GetContentQuads.(
-      Request.make(~sessionId, ~params=Params.make(~nodeId=node.nodeId, ()))
+      Request.make(~sessionId, ~params=Params.make(~nodeId, ()))
       |> OSnap_Websocket.send
       |> Lwt.map(Response.parse)
       |> Lwt.map(response => {
