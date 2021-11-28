@@ -3,8 +3,6 @@ open Cmdliner;
 Printexc.record_backtrace(true);
 Fmt.set_style_renderer(Fmt.stdout, `Ansi_tty);
 
-exception No_Additional_Output;
-
 let setup_log = {
   Term.(
     const(OSnap.Logger.init) $ Fmt_cli.style_renderer() $ Logs_cli.level()

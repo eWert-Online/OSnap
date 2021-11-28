@@ -73,7 +73,7 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
 
   let start_time = Unix.gettimeofday();
 
-  let config = Config.Global.init(~config_path);
+  let* config = Config.Global.init(~config_path) |> Lwt_result.lift;
 
   let () = init_folder_structure(config);
   let snapshot_dir = OSnap_Paths.get_base_images_dir(config);
@@ -249,7 +249,7 @@ let cleanup = (~config_path) => {
 
   print_newline();
 
-  let config = Config.Global.init(~config_path);
+  let* config = Config.Global.init(~config_path);
   let () = init_folder_structure(config);
   let snapshot_dir = OSnap_Paths.get_base_images_dir(config);
   let* tests = Config.Test.init(config);

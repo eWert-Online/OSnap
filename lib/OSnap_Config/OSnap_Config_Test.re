@@ -414,88 +414,14 @@ module YAML = {
   let parse_action = a => {
     let debug = OSnap_Logger.debug(~header="Config.Test.YAML.parse_action");
 
-    let* action =
-      a
-      |> Yaml.Util.find("action")
-      |> Result.map(Option.map(Yaml.Util.to_string))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> (
-        fun
-        | Ok(Some(s)) => Result.ok(s)
-        | Ok(None) =>
-          Result.error(
-            OSnap_Response.Config_Parse_Error(
-              "action has an invalid format. Key \"action\" is required but not provided!",
-              None,
-            ),
-          )
-        | Error(`Msg(message)) =>
-          Result.error(OSnap_Response.Config_Parse_Error(message, None))
-      );
-
     let* size_restriction =
-      a
-      |> Yaml.Util.find("@")
-      |> Result.map(
-           Option.map(v => {
-             switch (v) {
-             | `A(l) => Result.ok(l)
-             | _ => Result.error(`Msg("@ is in an invalid format."))
-             }
-           }),
-         )
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map(
-           Option.map(
-             OSnap_Utils.List.map_until_exception(Yaml.Util.to_string),
-           ),
-         )
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
+      a |> OSnap_Config_Utils.YAML.get_string_list_option("@");
 
+    let* action = a |> OSnap_Config_Utils.YAML.get_string("action");
     let* selector =
-      a
-      |> Yaml.Util.find("selector")
-      |> Result.map(Option.map(Yaml.Util.to_string))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
-
-    let* text =
-      a
-      |> Yaml.Util.find("text")
-      |> Result.map(Option.map(Yaml.Util.to_string))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
-
-    let* timeout =
-      a
-      |> Yaml.Util.find("timeout")
-      |> Result.map(Option.map(Yaml.Util.to_float))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map(Option.map(Float.to_int))
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
+      a |> OSnap_Config_Utils.YAML.get_string_option("selector");
+    let* text = a |> OSnap_Config_Utils.YAML.get_string_option("text");
+    let* timeout = a |> OSnap_Config_Utils.YAML.get_int_option("timeout");
 
     Common.collect_action(
       ~debug,
@@ -511,91 +437,15 @@ module YAML = {
     let debug = OSnap_Logger.debug(~header="Config.Test.YAML.parse_ignore");
 
     let* size_restriction =
-      r
-      |> Yaml.Util.find("@")
-      |> Result.map(
-           Option.map(v => {
-             switch (v) {
-             | `A(l) => Result.ok(l)
-             | _ => Result.error(`Msg("@ is in an invalid format."))
-             }
-           }),
-         )
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map(
-           Option.map(
-             OSnap_Utils.List.map_until_exception(Yaml.Util.to_string),
-           ),
-         )
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
+      r |> OSnap_Config_Utils.YAML.get_string_list_option("@");
 
-    let* x1 =
-      r
-      |> Yaml.Util.find("x1")
-      |> Result.map(Option.map(Yaml.Util.to_float))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map(Option.map(Float.to_int))
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
-    let* y1 =
-      r
-      |> Yaml.Util.find("y1")
-      |> Result.map(Option.map(Yaml.Util.to_float))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map(Option.map(Float.to_int))
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
-    let* x2 =
-      r
-      |> Yaml.Util.find("x2")
-      |> Result.map(Option.map(Yaml.Util.to_float))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map(Option.map(Float.to_int))
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
-    let* y2 =
-      r
-      |> Yaml.Util.find("y2")
-      |> Result.map(Option.map(Yaml.Util.to_float))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map(Option.map(Float.to_int))
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
+    let* x1 = r |> OSnap_Config_Utils.YAML.get_int_option("x1");
+    let* y1 = r |> OSnap_Config_Utils.YAML.get_int_option("y1");
+    let* x2 = r |> OSnap_Config_Utils.YAML.get_int_option("x2");
+    let* y2 = r |> OSnap_Config_Utils.YAML.get_int_option("y2");
 
     let* selector =
-      r
-      |> Yaml.Util.find("selector")
-      |> Result.map(Option.map(Yaml.Util.to_string))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
+      r |> OSnap_Config_Utils.YAML.get_string_option("selector");
 
     Common.collect_ignore(
       ~debug,
@@ -611,192 +461,52 @@ module YAML = {
   let parse_single_test = (global_config: OSnap_Config_Types.global, test) => {
     let debug = OSnap_Logger.debug(~header="Config.Test.YAML.parse");
 
-    let* name =
-      test
-      |> Yaml.Util.find("name")
-      |> Result.map(Option.map(Yaml.Util.to_string))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> (
-        fun
-        | Ok(Some(name)) => Result.ok(name)
-        | Ok(None) =>
-          Result.error(
-            OSnap_Response.Config_Parse_Error(
-              "name is required but not provided",
-              None,
-            ),
-          )
-        | Error(`Msg(message)) =>
-          Result.error(OSnap_Response.Config_Parse_Error(message, None))
-      );
-
+    let* name = test |> OSnap_Config_Utils.YAML.get_string("name");
     debug(Printf.sprintf("name: %S", name));
 
-    let* url =
-      test
-      |> Yaml.Util.find("url")
-      |> Result.map(Option.map(Yaml.Util.to_string))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> (
-        fun
-        | Ok(Some(name)) => Result.ok(name)
-        | Ok(None) =>
-          Result.error(
-            OSnap_Response.Config_Parse_Error(
-              "url is required but not provided",
-              None,
-            ),
-          )
-        | Error(`Msg(message)) =>
-          Result.error(OSnap_Response.Config_Parse_Error(message, None))
-      );
-
+    let* url = test |> OSnap_Config_Utils.YAML.get_string("url");
     debug(Printf.sprintf("url: %s", url));
 
     let* only =
       test
-      |> Yaml.Util.find("only")
-      |> Result.map(Option.map(Yaml.Util.to_bool))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map(Option.value(~default=false))
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
-
+      |> OSnap_Config_Utils.YAML.get_bool_option("only")
+      |> Result.map(Option.value(~default=false));
     debug(Printf.sprintf("only: %b", only));
 
     let* skip =
       test
-      |> Yaml.Util.find("skip")
-      |> Result.map(Option.map(Yaml.Util.to_bool))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map(Option.value(~default=false))
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
-
+      |> OSnap_Config_Utils.YAML.get_bool_option("skip")
+      |> Result.map(Option.value(~default=false));
     debug(Printf.sprintf("skip: %b", only));
 
     let* threshold =
       test
-      |> Yaml.Util.find("threshold")
-      |> Result.map(Option.map(Yaml.Util.to_float))
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
-      |> Result.map(
-           Option.fold(~none=global_config.threshold, ~some=Float.to_int),
-         )
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         );
-
+      |> OSnap_Config_Utils.YAML.get_int_option("threshold")
+      |> Result.map(Option.value(~default=global_config.threshold));
     debug(Printf.sprintf("threshold: %i", threshold));
 
     let* sizes =
       test
-      |> Yaml.Util.find("sizes")
-      |> Result.map(
-           Option.map(
-             fun
-             | `Null => {
-                 debug("no sizes present. using default sizes");
-                 Result.ok(global_config.default_sizes);
-               }
-             | `A(list) => {
-                 debug("parsing sizes");
-                 list
-                 |> OSnap_Utils.List.map_until_exception(
-                      OSnap_Config_Utils.YAML.parse_size,
-                    );
-               }
-             | _ =>
-               Result.error(
-                 OSnap_Response.Config_Invalid(
-                   "sizes has an invalid format.",
-                   None,
-                 ),
-               ),
-           ),
+      |> OSnap_Config_Utils.YAML.get_list_option(
+           "sizes",
+           ~parser=OSnap_Config_Utils.YAML.parse_size,
          )
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         )
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
       |> Result.map(Option.value(~default=global_config.default_sizes));
 
     let* actions =
       test
-      |> Yaml.Util.find("actions")
-      |> Result.map(
-           Option.map(
-             fun
-             | `Null => {
-                 Result.ok([]);
-               }
-             | `A(list) => {
-                 debug("parsing actions");
-                 list |> OSnap_Utils.List.map_until_exception(parse_action);
-               }
-             | _ =>
-               Result.error(
-                 OSnap_Response.Config_Invalid(
-                   "sizes has an invalid format.",
-                   None,
-                 ),
-               ),
-           ),
+      |> OSnap_Config_Utils.YAML.get_list_option(
+           "actions",
+           ~parser=parse_action,
          )
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         )
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
       |> Result.map(Option.value(~default=[]));
 
     let* ignore =
       test
-      |> Yaml.Util.find("ignore")
-      |> Result.map(
-           Option.map(
-             fun
-             | `Null => {
-                 Result.ok([]);
-               }
-             | `A(list) => {
-                 debug("parsing ignore regions");
-                 list |> OSnap_Utils.List.map_until_exception(parse_ignore);
-               }
-             | _ =>
-               Result.error(
-                 OSnap_Response.Config_Invalid(
-                   "sizes has an invalid format.",
-                   None,
-                 ),
-               ),
-           ),
+      |> OSnap_Config_Utils.YAML.get_list_option(
+           "ignore",
+           ~parser=parse_ignore,
          )
-      |> Result.map_error(
-           fun
-           | `Msg(message) =>
-             OSnap_Response.Config_Parse_Error(message, None),
-         )
-      |> Result.map(OSnap_Config_Utils.to_result_option)
-      |> Result.join
       |> Result.map(Option.value(~default=[]));
 
     let* () = Common.collect_duplicates(~debug, sizes);
