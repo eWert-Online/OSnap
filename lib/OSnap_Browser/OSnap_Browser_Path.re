@@ -1,4 +1,4 @@
-let get_revision = () => "929190";
+let get_revision = () => "960312";
 let get_folder_name = () => "osnap_chromium_" ++ get_revision();
 let get_chromium_path = () => {
   switch (Sys.getenv_opt("HOME")) {

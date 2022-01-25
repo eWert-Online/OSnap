@@ -11,6 +11,7 @@
   camlzip
   cohttp
   cohttp-lwt-unix
+  fileutils
   lwt)
  (preprocess
   (pps lwt_ppx)))
