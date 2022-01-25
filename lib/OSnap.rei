@@ -4,7 +4,13 @@ module Utils = OSnap_Utils;
 type t;
 
 let setup:
-  (~noCreate: bool, ~noOnly: bool, ~noSkip: bool, ~config_path: string) =>
+  (
+    ~noCreate: bool,
+    ~noOnly: bool,
+    ~noSkip: bool,
+    ~parallelism: option(int),
+    ~config_path: string
+  ) =>
   Lwt_result.t(t, OSnap_Response.t);
 
 let teardown: t => unit;

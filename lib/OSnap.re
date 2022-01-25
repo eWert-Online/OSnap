@@ -65,7 +65,7 @@ let init_folder_structure = config => {
   FileUtil.mkdir(~parent=true, ~mode=`Octal(0o755), dirs.diff);
 };
 
-let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
+let setup = (~noCreate, ~noOnly, ~noSkip, ~parallelism, ~config_path) => {
   open Config.Types;
   open Lwt_result.Syntax;
 
@@ -74,6 +74,11 @@ let setup = (~noCreate, ~noOnly, ~noSkip, ~config_path) => {
   let start_time = Unix.gettimeofday();
 
   let* config = Config.Global.init(~config_path) |> Lwt_result.lift;
+  let config =
+    switch (parallelism) {
+    | Some(parallelism) => {...config, parallelism}
+    | None => config
+    };
 
   let () = init_folder_structure(config);
   let snapshot_dir = OSnap_Paths.get_base_images_dir(config);
