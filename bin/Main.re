@@ -110,11 +110,19 @@ let default_cmd = {
     Arg.(value & flag & info(["no-skip"], ~doc));
   };
 
-  let exec = (noCreate, noOnly, noSkip, config_path, ()) => {
+  let parallelism = {
+    let doc = "
+      Overwrite the parallelism defined in the global config file with the specified value.
+    ";
+    Arg.(value & opt(some(int), None) & info(["p", "parallelism"], ~doc));
+  };
+
+  let exec = (noCreate, noOnly, noSkip, parallelism, config_path, ()) => {
     open Lwt_result.Syntax;
 
     let run = {
-      let* t = OSnap.setup(~config_path, ~noCreate, ~noOnly, ~noSkip);
+      let* t =
+        OSnap.setup(~config_path, ~noCreate, ~noOnly, ~noSkip, ~parallelism);
 
       try%lwt(
         OSnap.run(t)
@@ -133,7 +141,15 @@ let default_cmd = {
   };
 
   (
-    Term.(const(exec) $ noCreate $ noOnly $ noSkip $ config $ setup_log),
+    Term.(
+      const(exec)
+      $ noCreate
+      $ noOnly
+      $ noSkip
+      $ parallelism
+      $ config
+      $ setup_log
+    ),
     Term.info(
       "osnap",
       ~man=[
