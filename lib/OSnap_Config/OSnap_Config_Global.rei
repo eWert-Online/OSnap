@@ -1,3 +1,3 @@
-exception No_Config_Found;
-
-let init: (~config_path: string) => OSnap_Config_Types.global;
+let init:
+  (~config_path: string) =>
+  result(OSnap_Config_Types.global, OSnap_Response.t);

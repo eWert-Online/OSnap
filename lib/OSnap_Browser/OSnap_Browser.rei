@@ -1,7 +1,7 @@
 type t;
 
 module Launcher: {
-  let make: unit => Lwt.t(t);
+  let make: unit => Lwt_result.t(t, OSnap_Response.t);
 
   let shutdown: t => unit;
 };
@@ -12,18 +12,20 @@ module Target: {
     sessionId: Cdp.Types.Target.SessionID.t,
   };
 
-  let make: t => Lwt.t(target);
+  let make: t => Lwt_result.t(target, OSnap_Response.t);
 };
 
 module Actions: {
   let get_quads:
     (~selector: string, Target.target) =>
-    Lwt.t(((float, float), (float, float)));
+    Lwt_result.t(((float, float), (float, float)), OSnap_Response.t);
 
-  let click: (~selector: string, Target.target) => Lwt.t(unit);
+  let click:
+    (~selector: string, Target.target) => Lwt_result.t(unit, OSnap_Response.t);
 
   let type_text:
-    (~selector: string, ~text: string, Target.target) => Lwt.t(unit);
+    (~selector: string, ~text: string, Target.target) =>
+    Lwt_result.t(unit, OSnap_Response.t);
 
   let wait_for:
     (~timeout: float=?, ~look_behind: bool=?, ~event: string, Target.target) =>
@@ -32,13 +34,19 @@ module Actions: {
   let wait_for_network_idle:
     (Target.target, ~loaderId: Cdp.Types.Network.LoaderId.t) => Lwt.t(unit);
 
-  let go_to: (~url: string, Target.target) => Lwt_result.t(string, string);
+  let go_to:
+    (~url: string, Target.target) => Lwt_result.t(string, OSnap_Response.t);
 
-  let get_content_size: Target.target => Lwt.t((float, float));
+  let get_content_size:
+    Target.target => Lwt_result.t((float, float), OSnap_Response.t);
 
-  let set_size: (~width: float, ~height: float, Target.target) => Lwt.t(unit);
+  let set_size:
+    (~width: float, ~height: float, Target.target) =>
+    Lwt_result.t(unit, OSnap_Response.t);
 
-  let screenshot: (~full_size: bool=?, Target.target) => Lwt.t(string);
+  let screenshot:
+    (~full_size: bool=?, Target.target) =>
+    Lwt_result.t(string, OSnap_Response.t);
 };
 
 module Download: {let download: unit => Lwt_result.t(unit, unit);};

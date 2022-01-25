@@ -61,8 +61,13 @@ let extract_zip = (~dest="", source) => {
   let extract_entry = (in_file, entry: Camlzip.Zip.entry) => {
     let out_file = Filename.concat(dest, entry.filename);
     if (entry.is_directory && !Sys.file_exists(out_file)) {
-      Unix.mkdir(out_file, 511);
+      FileUtil.mkdir(~parent=true, ~mode=`Octal(511), out_file);
     } else {
+      let parent_dir = FilePath.dirname(out_file);
+      if (!Sys.file_exists(parent_dir)) {
+        FileUtil.mkdir(~parent=true, ~mode=`Octal(511), parent_dir);
+      };
+
       let oc =
         open_out_gen([Open_creat, Open_binary, Open_append], 511, out_file);
       try(

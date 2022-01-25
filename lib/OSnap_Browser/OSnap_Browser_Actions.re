@@ -4,10 +4,12 @@ open OSnap_Browser_Target;
 let wait_for = (~timeout=?, ~look_behind=?, ~event, target) => {
   let sessionId = target.sessionId;
   let (p, resolver) = Lwt.wait();
+
   let callback = (data, remove) => {
     remove();
     Lwt.wakeup_later(resolver, `Data(data));
   };
+
   OSnap_Websocket.listen(~event, ~look_behind?, ~sessionId, callback);
   switch (timeout) {
   | None => p
@@ -15,6 +17,56 @@ let wait_for = (~timeout=?, ~look_behind=?, ~event, target) => {
     let timeout = Lwt_unix.sleep(t /. 1000.) |> Lwt.map(() => `Timeout);
     Lwt.pick([timeout, p]);
   };
+};
+
+let select_element = (~selector, ~sessionId) => {
+  open Commands.DOM;
+  open Lwt_result.Syntax;
+
+  let* document =
+    GetDocument.(
+      Request.make(~sessionId, ~params=Params.make())
+      |> OSnap_Websocket.send
+      |> Lwt.map(Response.parse)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
+    );
+
+  QuerySelector.(
+    Request.make(
+      ~sessionId,
+      ~params=Params.make(~nodeId=document.root.nodeId, ~selector, ()),
+    )
+    |> OSnap_Websocket.send
+    |> Lwt.map(Response.parse)
+    |> Lwt.map(response => {
+         switch (response.Response.error, response.Response.result) {
+         | (_, Some({nodeId: 0.})) =>
+           Result.error(
+             OSnap_Response.CDP_Protocol_Error(
+               Printf.sprintf(
+                 "A node with the selector %S could not be found.",
+                 selector,
+               ),
+             ),
+           )
+         | (None, None) =>
+           Result.error(OSnap_Response.CDP_Protocol_Error(""))
+         | (Some({message, _}), None) =>
+           Result.error(OSnap_Response.CDP_Protocol_Error(message))
+         | (Some(_), Some(result))
+         | (None, Some(result)) => Result.ok(result)
+         }
+       })
+  );
 };
 
 let wait_for_network_idle = (target, ~loaderId) => {
@@ -41,6 +93,7 @@ let wait_for_network_idle = (target, ~loaderId) => {
 
 let go_to = (~url, target) => {
   open Commands.Page;
+  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
@@ -49,50 +102,61 @@ let go_to = (~url, target) => {
 
   let params = Navigate.Params.make(~url, ());
 
-  let%lwt payload =
-    Navigate.Request.make(~sessionId, ~params)
-    |> OSnap_Websocket.send
-    |> Lwt.map(Navigate.Response.parse);
+  let* result =
+    Navigate.(
+      Request.make(~sessionId, ~params)
+      |> OSnap_Websocket.send
+      |> Lwt.map(Navigate.Response.parse)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
-  switch (payload.result.errorText, payload.result.loaderId) {
-  | (Some(error), _) => error |> Lwt_result.fail
-  | (None, None) => Lwt_result.fail("CDP responded with no loader id")
+           Option.to_result(response.Response.result, ~none=error);
+         })
+    );
+
+  switch (result.errorText, result.loaderId) {
+  | (Some(error), _) =>
+    OSnap_Response.CDP_Protocol_Error(error) |> Lwt_result.fail
+  | (None, None) =>
+    Lwt_result.fail(
+      OSnap_Response.CDP_Protocol_Error("CDP responded with no loader id"),
+    )
   | (None, Some(loaderId)) => loaderId |> Lwt_result.return
   };
 };
 
 let type_text = (~selector, ~text, target) => {
   open Commands.DOM;
+  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
-  let%lwt document =
-    GetDocument.(
-      Request.make(~sessionId, ~params=Params.make())
-      |> OSnap_Websocket.send
-      |> Lwt.map(Response.parse)
-      |> Lwt.map(response => response.Response.result)
-    );
+  let* node = select_element(~selector, ~sessionId);
 
-  let%lwt node =
-    QuerySelector.(
-      Request.make(
-        ~sessionId,
-        ~params=Params.make(~nodeId=document.root.nodeId, ~selector, ()),
-      )
-      |> OSnap_Websocket.send
-      |> Lwt.map(Response.parse)
-      |> Lwt.map(response => response.Response.result)
-    );
-
-  let%lwt () =
+  let* () =
     Focus.(
       Request.make(~sessionId, ~params=Params.make(~nodeId=node.nodeId, ()))
       |> OSnap_Websocket.send
-      |> Lwt.map(ignore)
+      |> Lwt.map(Response.parse)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
+      |> Lwt_result.map(ignore)
     );
 
-  let%lwt () =
+  let* () =
     List.init(String.length(text), String.get(text))
     |> Lwt_list.iter_s(char => {
          let definition: option(OSnap_Browser_KeyDefinition.t) =
@@ -138,73 +202,71 @@ let type_text = (~selector, ~text, target) => {
            );
          | None => Lwt.return()
          };
-       });
+       })
+    |> Lwt_result.ok;
 
-  let%lwt wait_result =
+  let* wait_result =
     wait_for(
       ~event="Page.frameNavigated",
       ~look_behind=false,
       ~timeout=1000.,
       target,
-    );
+    )
+    |> Lwt_result.ok;
 
   switch (wait_result) {
-  | `Timeout => Lwt.return()
+  | `Timeout => Lwt_result.return()
   | `Data(data) =>
     let event_data = Cdp.Events.Page.FrameNavigated.parse(data);
     let loaderId = event_data.params.frame.loaderId;
-    wait_for_network_idle(target, ~loaderId);
+    wait_for_network_idle(target, ~loaderId) |> Lwt_result.ok;
   };
 };
 
 let get_quads = (~selector, target) => {
   open Commands.DOM;
+  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
-  let%lwt document =
-    GetDocument.(
-      Request.make(~sessionId, ~params=Params.make())
-      |> OSnap_Websocket.send
-      |> Lwt.map(Response.parse)
-      |> Lwt.map(response => response.Response.result)
-    );
 
-  let%lwt node =
-    QuerySelector.(
-      Request.make(
-        ~sessionId,
-        ~params=Params.make(~nodeId=document.root.nodeId, ~selector, ()),
-      )
-      |> OSnap_Websocket.send
-      |> Lwt.map(Response.parse)
-      |> Lwt.map(response => response.Response.result)
-    );
+  let* {nodeId} = select_element(~selector, ~sessionId);
 
-  let%lwt quads =
+  let* result =
     GetContentQuads.(
-      Request.make(~sessionId, ~params=Params.make(~nodeId=node.nodeId, ()))
+      Request.make(~sessionId, ~params=Params.make(~nodeId, ()))
       |> OSnap_Websocket.send
       |> Lwt.map(Response.parse)
-      |> Lwt.map(response => response.Response.result.quads)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
     );
 
-  switch (quads) {
+  switch (result.quads) {
   | [[x1, y1, x2, _y2, _x3, y2, _x4, _y4, ..._], ..._] =>
-    Lwt.return(((x1, y1), (x2, y2)))
-  | _ => Lwt.return(((0., 0.), (0., 0.)))
+    Lwt_result.return(((x1, y1), (x2, y2)))
+  | _ => Lwt_result.fail(OSnap_Response.CDP_Protocol_Error(""))
   };
 };
 
 let click = (~selector, target) => {
   open Commands.Input;
+  open Lwt_result.Syntax;
+
   let sessionId = target.sessionId;
 
-  let%lwt ((x1, y1), (x2, y2)) = get_quads(~selector, target);
+  let* ((x1, y1), (x2, y2)) = get_quads(~selector, target);
 
   let x = x1 +. (x2 -. x1) /. 2.0;
   let y = y1 +. (y2 -. y1) /. 2.0;
 
-  let%lwt () =
+  let* () =
     DispatchMouseEvent.(
       Request.make(
         ~sessionId,
@@ -212,9 +274,10 @@ let click = (~selector, target) => {
       )
       |> OSnap_Websocket.send
       |> Lwt.map(ignore)
+      |> Lwt_result.ok
     );
 
-  let%lwt _ =
+  let* _ =
     DispatchMouseEvent.(
       Request.make(
         ~sessionId,
@@ -231,9 +294,10 @@ let click = (~selector, target) => {
       )
       |> OSnap_Websocket.send
       |> Lwt.map(ignore)
+      |> Lwt_result.ok
     );
 
-  let%lwt _ =
+  let* () =
     DispatchMouseEvent.(
       Request.make(
         ~sessionId,
@@ -250,43 +314,60 @@ let click = (~selector, target) => {
       )
       |> OSnap_Websocket.send
       |> Lwt.map(ignore)
+      |> Lwt_result.ok
     );
 
-  let%lwt wait_result =
+  let* wait_result =
     wait_for(
       ~event="Page.frameNavigated",
       ~look_behind=false,
       ~timeout=1000.,
       target,
-    );
+    )
+    |> Lwt_result.ok;
 
   switch (wait_result) {
-  | `Timeout => Lwt.return()
+  | `Timeout => Lwt_result.return()
   | `Data(data) =>
     let event_data = Cdp.Events.Page.FrameNavigated.parse(data);
     let loaderId = event_data.params.frame.loaderId;
-    wait_for_network_idle(target, ~loaderId);
+    wait_for_network_idle(target, ~loaderId) |> Lwt_result.ok;
   };
 };
 
 let get_content_size = target => {
   open Commands.Page;
+  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
-  let%lwt metrics =
+  let* metrics =
     GetLayoutMetrics.(
       Request.make(~sessionId)
       |> OSnap_Websocket.send
       |> Lwt.map(Response.parse)
-      |> Lwt.map(response => response.Response.result)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
     );
 
-  Lwt.return((metrics.cssContentSize.width, metrics.cssContentSize.height));
+  Lwt_result.return((
+    metrics.cssContentSize.width,
+    metrics.cssContentSize.height,
+  ));
 };
 
 let set_size = (~width, ~height, target) => {
   open Commands.Emulation;
+  open Lwt_result.Syntax;
+
   let debug = OSnap_Logger.debug(~header="Browser.set_size");
   let sessionId = target.sessionId;
 
@@ -299,7 +380,7 @@ let set_size = (~width, ~height, target) => {
     ),
   );
 
-  let%lwt _ =
+  let* _ =
     SetDeviceMetricsOverride.(
       Request.make(
         ~sessionId,
@@ -313,25 +394,37 @@ let set_size = (~width, ~height, target) => {
           ),
       )
       |> OSnap_Websocket.send
+      |> Lwt.map(Response.parse)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
     );
 
-  Lwt.return();
+  Lwt_result.return();
 };
 
 let screenshot = (~full_size=false, target) => {
   open Commands.Page;
+  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
-  let%lwt () =
+  let* () =
     if (full_size) {
-      let%lwt (width, height) = get_content_size(target);
+      let* (width, height) = get_content_size(target);
       set_size(~width, ~height, target);
     } else {
-      Lwt.return();
+      Lwt_result.return();
     };
 
-  let%lwt response =
+  let* result =
     CaptureScreenshot.(
       Request.make(
         ~sessionId,
@@ -345,7 +438,17 @@ let screenshot = (~full_size=false, target) => {
       )
       |> OSnap_Websocket.send
       |> Lwt.map(Response.parse)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
     );
 
-  Lwt.return(response.result.data);
+  Lwt_result.return(result.data);
 };

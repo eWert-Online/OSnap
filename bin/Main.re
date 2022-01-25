@@ -10,7 +10,71 @@ let setup_log = {
 };
 
 let print_error = msg => {
-  Fmt.pr("%a @.", Fmt.styled(`Red, Fmt.string), msg);
+  let printer = Fmt.pr("%a @.", Fmt.styled(`Red, Fmt.string));
+  Printf.ksprintf(printer, msg);
+};
+
+let handle_response = response => {
+  switch (response) {
+  | Ok () => 0
+  | Error(OSnap_Response.Test_Failure) => 1
+  | Error(OSnap_Response.Config_Duplicate_Tests(tests)) =>
+    print_error(
+      "Found some tests with duplicate names. Every test has to have a unique name.",
+    );
+    print_error("Please rename the following tests: \n");
+    tests |> List.iter(print_error("%s"));
+    1;
+  | Error(OSnap_Response.Config_Global_Not_Found) =>
+    print_error("Unable to find a global config file.");
+    print_error(
+      "Please create a \"osnap.config.json\" at the root of your project or specifiy the location using the --config option.",
+    );
+    1;
+  | Error(OSnap_Response.Config_Unsupported_Format(path)) =>
+    print_error("Your config file has an unknown format.");
+    print_error("Tried to parse %S.", path);
+    print_error("Known formats are json and yaml");
+    1;
+  | Error(OSnap_Response.CDP_Connection_Failed) =>
+    print_error("Could not connect to Chrome.");
+    1;
+  | Error(OSnap_Response.Config_Parse_Error(msg, path)) =>
+    print_error("Your config is in an invalid format");
+    switch (path) {
+    | Some(path) => print_error("Tried to parse %S", path)
+    | None => ()
+    };
+    print_error("%s", msg);
+    1;
+  | Error(OSnap_Response.Config_Invalid(s, path)) =>
+    print_error("Found some tests with an invalid format.");
+    switch (path) {
+    | Some(path) => print_error("Tried to parse %S", path)
+    | None => ()
+    };
+    print_error("%s", s);
+    1;
+  | Error(OSnap_Response.Config_Duplicate_Size_Names(sizes)) =>
+    print_error(
+      "Found some sizes with duplicate names. Every size has to have a unique name inside it's list.",
+    );
+    print_error("Please rename the following sizes: \n");
+    sizes |> List.iter(print_error("%s"));
+    1;
+  | Error(OSnap_Response.CDP_Protocol_Error(e)) =>
+    print_error("CDP failed to run some commands. Message was: \n");
+    print_error("%s", e);
+    1;
+  | Error(OSnap_Response.Invalid_Run(msg)) =>
+    print_error("%s", msg);
+    1;
+  | Error(OSnap_Response.FS_Error(_)) => 1
+  | Error(OSnap_Response.Unknown_Error(exn)) =>
+    print_error("An unexpected error occured: \n");
+    print_error("%s", Printexc.to_string(exn));
+    1;
+  };
 };
 
 let config = {
@@ -48,65 +112,24 @@ let default_cmd = {
 
   let exec = (noCreate, noOnly, noSkip, config_path, ()) => {
     open Lwt_result.Syntax;
+
     let run = {
-      let* t =
-        try%lwt(OSnap.setup(~config_path, ~noCreate, ~noOnly, ~noSkip)) {
-        | Failure(message) =>
-          print_error(message);
-          Lwt_result.fail();
-        | OSnap_Config.Types.Parse_Error(s) =>
-          print_error(
-            Printf.sprintf(
-              "Your osnap.config.json is in an invalid format: \n%S",
-              s,
-            ),
-          );
-          Lwt_result.fail();
-        | OSnap_Config.Global.No_Config_Found =>
-          print_error("Unable to find a global config file.");
-          print_error(
-            "Please create a \"osnap.config.json\" at the root of your project or specifiy the location using the --config option.",
-          );
-          Lwt_result.fail();
-        | OSnap_Config.Types.Unsupported_Format =>
-          print_error("Your global config file has an unknown format.");
-          print_error("Known formats are json and yaml");
-          Lwt_result.fail();
-        | OSnap_Config.Test.Duplicate_Tests(tests) =>
-          print_error(
-            "Found some tests with duplicate names. Every test has to have a unique name.",
-          );
-          print_error("Please rename the following tests: \n");
-          tests |> List.iter(print_error);
-          Lwt_result.fail();
-        | OSnap_Config.Types.Duplicate_Size_Names(sizes) =>
-          print_error(
-            "Found some sizes with duplicate names. Every size has to have a unique name inside it's list.",
-          );
-          print_error("Please rename the following sizes: \n");
-          sizes |> List.iter(print_error);
-          Lwt_result.fail();
-        | OSnap_Config.Test.Invalid_format =>
-          print_error("Found some tests with an invalid format.");
-          Lwt_result.fail();
-        | exn => raise(exn)
-        };
+      let* t = OSnap.setup(~config_path, ~noCreate, ~noOnly, ~noSkip);
 
-      let* () =
-        try%lwt(OSnap.run(t)) {
-        | Failure(message) =>
-          print_error(message);
-          Lwt_result.fail();
-        | exn => raise(exn)
-        };
-
-      Lwt_result.return();
+      try%lwt(
+        OSnap.run(t)
+        |> Lwt_result.map_err(e => {
+             let () = OSnap.teardown(t);
+             e;
+           })
+      ) {
+      | exn =>
+        let () = OSnap.teardown(t);
+        Lwt_result.fail(OSnap_Response.Unknown_Error(exn));
+      };
     };
 
-    switch (Lwt_main.run(run)) {
-    | Ok () => 0
-    | Error () => 1
-    };
+    Lwt_main.run(run) |> handle_response;
   };
 
   (
@@ -142,37 +165,7 @@ let default_cmd = {
 
 let cleanup_cmd = {
   let exec = config_path => {
-    let result =
-      try(OSnap.cleanup(~config_path)) {
-      | Failure(message) =>
-        print_error(message);
-        Result.error();
-      | OSnap_Config.Types.Parse_Error(_) =>
-        print_error("Your osnap.config.json is in an invalid format.");
-        Result.error();
-      | OSnap_Config.Global.No_Config_Found =>
-        print_error("Unable to find a global config file.");
-        print_error(
-          "Please create a \"osnap.config.json\" at the root of your project or specifiy the location using the --config option.",
-        );
-        Result.error();
-      | OSnap_Config.Test.Duplicate_Tests(tests) =>
-        print_error(
-          "Found some tests with duplicate names. Every test has to have a unique name.",
-        );
-        print_error("Please rename the following tests: \n");
-        tests |> List.iter(print_error);
-        Result.error();
-      | OSnap_Config.Test.Invalid_format =>
-        print_error("Found some tests with an invalid format.");
-        Result.error();
-      | exn => raise(exn)
-      };
-
-    switch (result) {
-    | Ok () => 0
-    | Error () => 1
-    };
+    OSnap.cleanup(~config_path) |> handle_response;
   };
 
   (
@@ -203,7 +196,7 @@ let download_chromium_cmd = {
     let run = {
       try%lwt(OSnap.download_chromium()) {
       | Failure(message) =>
-        print_error(message);
+        print_error("%s", message);
         Lwt_result.fail();
       | exn => raise(exn)
       };
