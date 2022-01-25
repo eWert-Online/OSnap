@@ -12,6 +12,7 @@ type t = {
   height: int,
   actions: list(Config.Types.action),
   ignore_regions: list(Config.Types.ignoreType),
+  threshold: int,
   exists: bool,
 };
 
@@ -203,7 +204,7 @@ let run = (global_config: Config.Types.global, target, test) => {
 
       let diff =
         Diff.diff(
-          ~threshold=global_config.threshold,
+          ~threshold=test.threshold,
           ~diffPixel=global_config.diff_pixel_color,
           ~ignoreRegions,
           ~output=diff_image,

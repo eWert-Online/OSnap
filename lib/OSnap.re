@@ -207,6 +207,7 @@ let run = t => {
                name: test.name,
                actions: test.actions,
                ignore_regions: test.ignore,
+               threshold: test.threshold,
              };
 
              /* Targets are validated at creation time. They are guaranteed to be created. */
