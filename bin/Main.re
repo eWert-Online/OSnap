@@ -114,7 +114,7 @@ let default_cmd = {
     let doc = "
       Overwrite the parallelism defined in the global config file with the specified value.
     ";
-    Arg.(value & opt(some(int), None) & info(["parallelism"], ~doc));
+    Arg.(value & opt(some(int), None) & info(["p", "parallelism"], ~doc));
   };
 
   let exec = (noCreate, noOnly, noSkip, parallelism, config_path, ()) => {
