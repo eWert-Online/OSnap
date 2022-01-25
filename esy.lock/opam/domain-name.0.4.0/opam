@@ -27,10 +27,10 @@ case insensitive manner.
 """
 url {
   src:
-    "https://github.com/hannesm/domain-name/releases/download/v0.3.1/domain-name-v0.3.1.tbz"
+    "https://github.com/hannesm/domain-name/releases/download/v0.4.0/domain-name-0.4.0.tbz"
   checksum: [
-    "sha256=73d5d4b64fd7b5350d7d886edc81452b571361ee1997a86cfc0c90a0c0e8f64a"
-    "sha512=e4be7c094c3d58cbf4bc627596a7eacbe715cb68d5920f8662661b0c76a3c4d563f2b478a49e98c932f7313ed3efe6a432513580a372f14bca2cfd5f8a76f61d"
+    "sha256=a5c06e22845895201973e812fe3019274d1db81c0a7873da6c8007c4ad2108c5"
+    "sha512=f25aedb1ddf6ab8c49b1545cf88f4990114a9e7954d91cabf260e6ce470abd42dd135e8a55084262a77d4c9ee4bff6dc00c71307b23a48d82d50593b910ee173"
   ]
 }
-x-commit-hash: "4d50b4ee43a8611bade7331a2417605a313d6499"
+x-commit-hash: "e9833486ee40ef2c49c43dd72976022a627b4a34"

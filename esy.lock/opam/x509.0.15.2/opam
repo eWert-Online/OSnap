@@ -50,10 +50,10 @@ namely PKCS 1, PKCS 5, PKCS 7, PKCS 8, PKCS 9, PKCS 10, and PKCS 12.
 """
 url {
   src:
-    "https://github.com/mirleft/ocaml-x509/releases/download/v0.15.1/x509-v0.15.1.tbz"
+    "https://github.com/mirleft/ocaml-x509/releases/download/v0.15.2/x509-v0.15.2.tbz"
   checksum: [
-    "sha256=b586dd46f0b55c1738d0c846509eb1b1e7a67d7b657c708e52c5e682f910deb8"
-    "sha512=6d836cfd96aee156b6793849fca2d14c25b8454a192f3fbc2ef0dcf6d0ff222358357b02cbf89d5dbd46b6e175b58032a201639405cd2dc6607417b36eb8c80b"
+    "sha256=4034afdd83a0cb8291b1f809403015da9139bd772813d59d6093e42ec31ba643"
+    "sha512=945b07b630a88b72232cd3e1edc7561198a7f9d94e1a403a4c726b3710faee91a2ec4b451b71d94ebf373f53c05b20181800598fd68717c4c4fffa4ccddddd00"
   ]
 }
-x-commit-hash: "1a6e421fa71feeede0286dbf3a8ca9b09f89972d"
+x-commit-hash: "e6b5243d492d2c4b403e80625c4b449a3e5ae2d2"

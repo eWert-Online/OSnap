@@ -52,8 +52,8 @@ the `ctypes-foreign` optional dependency:
 This will make the `ctypes.foreign` ocamlfind subpackage available."""
 authors: "yallop@gmail.com"
 url {
-  src: "https://github.com/ocamllabs/ocaml-ctypes/archive/0.19.1.tar.gz"
-  checksum: "md5=ceb891ec568fd7da76c31af270a2afe2"
+  src: "https://github.com/ocamllabs/ocaml-ctypes/archive/0.20.0.tar.gz"
+  checksum: "md5=e286bc69e536e581529f01059dd4bbb3"
 }
 conflicts: [
   "mirage-xen" {>= "6.0.0"}

@@ -38,6 +38,6 @@ s-expressions from files or other external sources, you should use
 parsexp_io.
 "
 url {
-  src: "https://github.com/janestreet/parsexp/archive/refs/tags/v0.14.1.tar.gz"
-  checksum: "e6659d53f4d94de8979e05d17222b753"
+  src: "https://github.com/janestreet/parsexp/archive/refs/tags/v0.14.2.tar.gz"
+  checksum: "sha256=f6e17e4e08dcdce08a6372485a381dcdb3fda0f71b4506d7be982b87b5a1f230"
 }

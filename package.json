@@ -81,6 +81,8 @@
     "@opam/mirage-crypto-rng": "mirage/mirage-crypto:mirage-crypto-rng.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
     "@opam/mirage-crypto-pk": "mirage/mirage-crypto:mirage-crypto-pk.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
     "@opam/mirage-crypto-ec": "mirage/mirage-crypto:mirage-crypto-ec.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
+    "@opam/ocamlfind": "1.9.1",
+    "@opam/conf-gmp": "esy-packages/esy-gmp#e27cb300adfb0c0b320c273082c5affafcd225fa",
     "ocaml": "4.12.0-musl.static.flambda",
     "@opam/camlzip": {
       "source": "rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195",
