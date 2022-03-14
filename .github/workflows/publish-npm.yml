@@ -259,10 +259,9 @@ jobs:
       fail-fast: false
       matrix:
         container:
-          - centos
+          # - centos
           - ubuntu
           - node-lts
-          - node-arm64
     steps:
       - name: Free Disk Space
         run: |

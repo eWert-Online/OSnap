@@ -20,8 +20,12 @@ let download = (~revision, dir) => {
       ~port=80,
       ~path=
         switch (OSnap_Utils.detect_platform()) {
-        | Darwin =>
+        | MacOS =>
           "/chromium-browser-snapshots/Mac/" ++ revision ++ "/chrome-mac.zip"
+        | MacOS_ARM =>
+          "/chromium-browser-snapshots/Mac_Arm/"
+          ++ revision
+          ++ "/chrome-mac.zip"
         | Linux =>
           "/chromium-browser-snapshots/Linux_x64/"
           ++ revision

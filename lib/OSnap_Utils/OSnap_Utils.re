@@ -1,7 +1,8 @@
 type platform =
   | Win32
   | Win64
-  | Darwin
+  | MacOS
+  | MacOS_ARM
   | Linux;
 
 let detect_platform = () => {
@@ -14,9 +15,15 @@ let detect_platform = () => {
     let ic = Unix.open_process_in("uname");
     let uname = input_line(ic);
     let () = close_in(ic);
+    let ic = Unix.open_process_in("uname -m");
+    let arch = input_line(ic);
+    let () = close_in(ic);
 
     if (uname == "Darwin") {
-      Darwin;
+      switch (arch) {
+      | "arm64" => MacOS_ARM
+      | _ => MacOS
+      };
     } else {
       Linux;
     };
