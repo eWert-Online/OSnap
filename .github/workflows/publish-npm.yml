@@ -40,6 +40,7 @@ jobs:
           push: false
           load: true
           tags: osnap:build
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
@@ -302,6 +303,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:nightly
 
@@ -311,6 +313,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:nightly-${{ github.ref_name }}
 
@@ -320,6 +323,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:next
 
@@ -329,6 +333,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:${{ github.event.release.tag_name }}
 
@@ -338,5 +343,6 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:latest

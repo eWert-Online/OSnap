@@ -11,7 +11,8 @@ let make = () => {
 
   let executable_path =
     switch (OSnap_Utils.detect_platform()) {
-    | Darwin =>
+    | MacOS
+    | MacOS_ARM =>
       Filename.concat(
         base_path,
         "chrome-mac/Chromium.app/Contents/MacOS/Chromium",
