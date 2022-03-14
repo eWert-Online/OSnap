@@ -262,6 +262,7 @@ jobs:
           - centos
           - ubuntu
           - node-lts
+          - node-arm64
     steps:
       - name: Free Disk Space
         run: |
