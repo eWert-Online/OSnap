@@ -49,4 +49,8 @@ module Actions: {
     Lwt_result.t(string, OSnap_Response.t);
 };
 
-module Download: {let download: unit => Lwt_result.t(unit, unit);};
+module Download: {
+  let get_uri: (string, OSnap_Utils.platform) => Uri.t;
+
+  let download: unit => Lwt_result.t(unit, unit);
+};

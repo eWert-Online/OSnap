@@ -8,3 +8,13 @@
  (libraries OSnap cmdliner fmt logs logs.cli logs.fmt)
  (preprocess
   (pps lwt_ppx)))
+
+(executable
+ (name ChromiumVersion)
+ (modules ChromiumVersion)
+ (public_name chromium-version)
+ (flags
+  (:standard -w +A-42-44-48-66-40 -warn-error +A-3-44-66-40))
+ (libraries OSnap cmdliner fmt cohttp cohttp-lwt-unix fileutils lwt)
+ (preprocess
+  (pps lwt_ppx)))
