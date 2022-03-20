@@ -39,7 +39,17 @@ jobs:
         run: |
           docker create -ti --name build osnap:build sh
           docker cp build:/usr/app/_release ./_release
+          docker cp build:/usr/local ./_build
           docker rm -f build
+
+      - name: Tar static build
+        run: |
+          tar -cvf static-build.tar _build
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: static-build
+          path: static-build.tar
 
       # Upload the npm package as an artifact
       - uses: actions/upload-artifact@v2
@@ -227,6 +237,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-docker-containers:
+    needs: build-static
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -243,6 +254,21 @@ jobs:
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
       - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: static-build
+          path: .
+
+      - name: Extract Artifacts
+        run: |
+          tar -xvf static-build.tar
+
+      - name: List binaries
+        run: |
+          ls -lah ./_build/bin
+          ls -lah ./_build/share/.config/yarn/global/node_modules/.bin
+          ls -lah ./_build/share/.config/yarn/global/node_modules/@space-labs/osnap/bin
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
