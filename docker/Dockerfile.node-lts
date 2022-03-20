@@ -25,10 +25,11 @@ RUN yarn global remove esy && \
   rm -rf /usr/local/share/.cache/yarn && \
   yarn global --prefix=/usr/local --force add /usr/app/_release
 
-FROM alpine:edge
+FROM debian:sid
 
 COPY --from=build /usr/local /usr/local
 
-RUN apk update && apk add --update nodejs npm yarn chromium=99.0.4844.74-r0 && \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -yq nodejs npm yarn chromium=99.0.4844.74-1 && \
+  mkdir -p ~/osnap_chromium_961656/chrome-linux && \
   mv /usr/lib/chromium ~/osnap_chromium_961656/chrome-linux && \
-  rm -f /usr/bin/chromium-browser
+  rm -f /usr/bin/chromium
