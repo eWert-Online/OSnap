@@ -136,6 +136,8 @@ let run = (global_config: Config.Types.global, target, test) => {
   let updated_snapshot = dirs.updated ++ filename;
   let diff_image = dirs.diff ++ filename;
 
+  let* () = target |> Browser.Actions.clear_cookies;
+
   let* () =
     target
     |> Browser.Actions.set_size(
