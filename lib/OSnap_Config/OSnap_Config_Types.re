@@ -11,6 +11,7 @@ type size = {
 type size_restriction = option(list(string));
 
 type action =
+  | Function(string, size_restriction)
   | Click(string, size_restriction)
   | Type(string, string, size_restriction)
   | Wait(int, size_restriction);
@@ -38,6 +39,7 @@ type global = {
   base_url: string,
   fullscreen: bool,
   default_sizes: list(size),
+  functions: list((string, list(action))),
   snapshot_directory: string,
   diff_pixel_color: (int, int, int),
   parallelism: int,

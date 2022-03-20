@@ -15,6 +15,89 @@ let to_result_option =
   | Some(Ok(v)) => Ok(Some(v))
   | Some(Error(e)) => Error(e);
 
+let collect_action =
+    (~debug, ~selector, ~size_restriction, ~name, ~text, ~timeout, action) => {
+  switch (action) {
+  | "click" =>
+    debug("found click action");
+    switch (selector) {
+    | None =>
+      Result.error(
+        OSnap_Response.Config_Invalid(
+          "no selector for click action provided",
+          None,
+        ),
+      )
+    | Some(selector) =>
+      debug(Printf.sprintf("click selector is %S", selector));
+      OSnap_Config_Types.Click(selector, size_restriction) |> Result.ok;
+    };
+  | "type" =>
+    debug("found type action");
+    switch (selector, text) {
+    | (None, _) =>
+      debug("");
+      Result.error(
+        OSnap_Response.Config_Invalid(
+          "no selector for type action provided",
+          None,
+        ),
+      );
+    | (_, None) =>
+      Result.error(
+        OSnap_Response.Config_Invalid(
+          "no text for type action provided",
+          None,
+        ),
+      )
+    | (Some(selector), Some(text)) =>
+      debug(
+        Printf.sprintf(
+          "type action selector is %S with text %S",
+          selector,
+          text,
+        ),
+      );
+      OSnap_Config_Types.Type(selector, text, size_restriction) |> Result.ok;
+    };
+  | "wait" =>
+    debug("found wait action");
+    switch (timeout) {
+    | None =>
+      Result.error(
+        OSnap_Response.Config_Invalid(
+          "no timeout for wait action provided",
+          None,
+        ),
+      )
+    | Some(timeout) =>
+      debug(Printf.sprintf("timeout for wait action is %i", timeout));
+      OSnap_Config_Types.Wait(timeout, size_restriction) |> Result.ok;
+    };
+  | "function" =>
+    debug("found function action");
+    switch (name) {
+    | None =>
+      Result.error(
+        OSnap_Response.Config_Invalid(
+          "no name for function action provided",
+          None,
+        ),
+      )
+    | Some(name) =>
+      debug(Printf.sprintf("name for function action is %s", name));
+      OSnap_Config_Types.Function(name, size_restriction) |> Result.ok;
+    };
+  | action =>
+    Result.error(
+      OSnap_Response.Config_Invalid(
+        Printf.sprintf("found unknown action %S", action),
+        None,
+      ),
+    )
+  };
+};
+
 module JSON = {
   let ( let* ) = Result.bind;
   let parse_size = size => {
@@ -78,22 +161,85 @@ module JSON = {
     OSnap_Config_Types.{name, width, height} |> Result.ok;
   };
 
-  let parse_size_exn = size => {
-    let debug = OSnap_Logger.debug(~header="Config.Test.parse_size");
-    let name =
-      size
-      |> Yojson.Basic.Util.member("name")
-      |> Yojson.Basic.Util.to_string_option;
+  let parse_action = a => {
+    let debug = OSnap_Logger.debug(~header="Config.Test.parse_action");
 
-    let width =
-      size |> Yojson.Basic.Util.member("width") |> Yojson.Basic.Util.to_int;
+    let* action =
+      try(
+        a
+        |> Yojson.Basic.Util.member("action")
+        |> Yojson.Basic.Util.to_string
+        |> Result.ok
+      ) {
+      | Yojson.Basic.Util.Type_error(message, _) =>
+        Result.error(OSnap_Response.Config_Parse_Error(message, None))
+      };
 
-    let height =
-      size |> Yojson.Basic.Util.member("height") |> Yojson.Basic.Util.to_int;
+    let* size_restriction =
+      try(
+        a
+        |> Yojson.Basic.Util.member("@")
+        |> Yojson.Basic.Util.to_option(Yojson.Basic.Util.to_list)
+        |> Option.map(List.map(Yojson.Basic.Util.to_string))
+        |> Result.ok
+      ) {
+      | Yojson.Basic.Util.Type_error(message, _) =>
+        Result.error(OSnap_Response.Config_Parse_Error(message, None))
+      };
 
-    debug(Printf.sprintf("size is set to %ix%i", width, height));
+    let* selector =
+      try(
+        a
+        |> Yojson.Basic.Util.member("selector")
+        |> Yojson.Basic.Util.to_string_option
+        |> Result.ok
+      ) {
+      | Yojson.Basic.Util.Type_error(message, _) =>
+        Result.error(OSnap_Response.Config_Parse_Error(message, None))
+      };
 
-    OSnap_Config_Types.{name, width, height};
+    let* text =
+      try(
+        a
+        |> Yojson.Basic.Util.member("text")
+        |> Yojson.Basic.Util.to_string_option
+        |> Result.ok
+      ) {
+      | Yojson.Basic.Util.Type_error(message, _) =>
+        Result.error(OSnap_Response.Config_Parse_Error(message, None))
+      };
+
+    let* timeout =
+      try(
+        a
+        |> Yojson.Basic.Util.member("timeout")
+        |> Yojson.Basic.Util.to_int_option
+        |> Result.ok
+      ) {
+      | Yojson.Basic.Util.Type_error(message, _) =>
+        Result.error(OSnap_Response.Config_Parse_Error(message, None))
+      };
+
+    let* name =
+      try(
+        a
+        |> Yojson.Basic.Util.member("name")
+        |> Yojson.Basic.Util.to_string_option
+        |> Result.ok
+      ) {
+      | Yojson.Basic.Util.Type_error(message, _) =>
+        Result.error(OSnap_Response.Config_Parse_Error(message, None))
+      };
+
+    collect_action(
+      ~debug,
+      ~selector,
+      ~size_restriction,
+      ~text,
+      ~timeout,
+      ~name,
+      action,
+    );
   };
 };
 
@@ -306,5 +452,27 @@ module YAML = {
     debug(Printf.sprintf("adding size %ix%i", width, height));
 
     OSnap_Config_Types.{name, width, height} |> Result.ok;
+  };
+
+  let parse_action = a => {
+    let debug = OSnap_Logger.debug(~header="Config.Test.YAML.parse_action");
+
+    let* size_restriction = a |> get_string_list_option("@");
+
+    let* action = a |> get_string("action");
+    let* selector = a |> get_string_option("selector");
+    let* name = a |> get_string_option("name");
+    let* text = a |> get_string_option("text");
+    let* timeout = a |> get_int_option("timeout");
+
+    collect_action(
+      ~debug,
+      ~selector,
+      ~size_restriction,
+      ~text,
+      ~name,
+      ~timeout,
+      action,
+    );
   };
 };

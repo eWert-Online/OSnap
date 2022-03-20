@@ -50,7 +50,7 @@ let read_file_contents = (~path) => {
   Lwt_result.return(data);
 };
 
-let execute_action = (target, size_name, action) => {
+let rec execute_action = (~global_config, target, size_name, action) => {
   Config.Types.(
     switch (action, size_name) {
     | (Click(_, Some(_)), None) => Lwt_result.return()
@@ -84,6 +84,62 @@ let execute_action = (target, size_name, action) => {
     | (Wait(ms, None), _) =>
       let timeout = float_of_int(ms) /. 1000.0;
       Lwt_unix.sleep(timeout) |> Lwt_result.ok;
+
+    | (Function(_, Some(_)), None) => Lwt_result.return()
+    | (Function(name, Some(size)), Some(size_name)) =>
+      if (size |> List.mem(size_name)) {
+        switch (global_config.functions |> List.assoc_opt(name)) {
+        | Some(actions) =>
+          Lwt.Infix.(
+            actions
+            |> Lwt_list.map_s(
+                 execute_action(~global_config, target, Some(size_name)),
+               )
+            >>= Lwt_list.fold_left_s(
+                  (acc: Result.t(unit, OSnap_Response.t), curr) =>
+                    if (Result.is_ok(acc) && Result.is_ok(curr)) {
+                      Lwt.return(acc);
+                    } else {
+                      Lwt.return(curr);
+                    },
+                  Result.ok(),
+                )
+          )
+        | None =>
+          Lwt_result.fail(
+            OSnap_Response.Invalid_Run(
+              "Tried to call non existant function " ++ name,
+            ),
+          )
+        };
+      } else {
+        Lwt_result.return();
+      }
+    | (Function(name, None), _) =>
+      switch (global_config.functions |> List.assoc_opt(name)) {
+      | Some(actions) =>
+        Lwt.Infix.(
+          actions
+          |> Lwt_list.map_s(
+               execute_action(~global_config, target, size_name),
+             )
+          >>= Lwt_list.fold_left_s(
+                (acc: Result.t(unit, OSnap_Response.t), curr) =>
+                  if (Result.is_ok(acc) && Result.is_ok(curr)) {
+                    Lwt.return(acc);
+                  } else {
+                    Lwt.return(curr);
+                  },
+                Result.ok(),
+              )
+        )
+      | None =>
+        Lwt_result.fail(
+          OSnap_Response.Invalid_Run(
+            "Tried to call non existant function " ++ name,
+          ),
+        )
+      }
     }
   );
 };
@@ -154,7 +210,9 @@ let run = (global_config: Config.Types.global, target, test) => {
 
   let* () =
     test.actions
-    |> Lwt_list.map_s(execute_action(target, test.size_name))
+    |> Lwt_list.map_s(
+         execute_action(~global_config, target, test.size_name),
+       )
     >>= Lwt_list.fold_left_s(
           (acc: Result.t(unit, OSnap_Response.t), curr) =>
             if (Result.is_ok(acc) && Result.is_ok(curr)) {

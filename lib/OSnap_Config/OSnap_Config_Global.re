@@ -51,6 +51,26 @@ module YAML = {
          )
       |> Result.map(Option.value(~default=[]));
 
+    let* functions = {
+      let f = yaml |> Yaml.Util.find_exn("functions");
+      f
+      |> Option.map(f => {
+           f
+           |> Yaml.Util.keys_exn
+           |> OSnap_Utils.List.map_until_exception(key => {
+                let* actions =
+                  f
+                  |> OSnap_Config_Utils.YAML.get_list_option(
+                       key,
+                       ~parser=OSnap_Config_Utils.YAML.parse_action,
+                     )
+                  |> Result.map(Option.value(~default=[]));
+                (key, actions) |> Result.ok;
+              })
+         })
+      |> Option.value(~default=Result.ok([]));
+    };
+
     let* snapshot_directory =
       yaml
       |> OSnap_Config_Utils.YAML.get_string_option("snapshotDirectory")
@@ -175,6 +195,7 @@ module YAML = {
         base_url,
         fullscreen,
         default_sizes,
+        functions,
         snapshot_directory,
         diff_pixel_color,
         parallelism,
@@ -241,6 +262,40 @@ module JSON = {
       | Yojson.Basic.Util.Type_error(message, _) =>
         Result.error(OSnap_Response.Config_Parse_Error(message, Some(path)))
       };
+
+    let* functions = {
+      json
+      |> Yojson.Basic.Util.member("functions")
+      |> (
+        fun
+        | `Null => Result.ok([])
+        | `Assoc(assoc) =>
+          assoc
+          |> OSnap_Utils.List.map_until_exception(((key, actions)) => {
+               let* actions =
+                 try(
+                   actions
+                   |> Yojson.Basic.Util.to_list
+                   |> OSnap_Utils.List.map_until_exception(
+                        OSnap_Config_Utils.JSON.parse_action,
+                      )
+                 ) {
+                 | Yojson.Basic.Util.Type_error(message, _) =>
+                   Result.error(
+                     OSnap_Response.Config_Parse_Error(message, Some(path)),
+                   )
+                 };
+               Result.ok((key, actions));
+             })
+        | _ =>
+          Result.error(
+            OSnap_Response.Config_Parse_Error(
+              "The functions option has to be an object.",
+              Some(path),
+            ),
+          )
+      );
+    };
 
     let* snapshot_directory =
       try(
@@ -387,6 +442,7 @@ module JSON = {
         base_url,
         fullscreen,
         default_sizes,
+        functions,
         snapshot_directory,
         diff_pixel_color,
         parallelism,

@@ -23,75 +23,6 @@ module Common = {
     };
   };
 
-  let collect_action =
-      (~debug, ~selector, ~size_restriction, ~text, ~timeout, action) => {
-    switch (action) {
-    | "click" =>
-      debug("found click action");
-      switch (selector) {
-      | None =>
-        Result.error(
-          OSnap_Response.Config_Invalid(
-            "no selector for click action provided",
-            None,
-          ),
-        )
-      | Some(selector) =>
-        debug(Printf.sprintf("click selector is %S", selector));
-        Click(selector, size_restriction) |> Result.ok;
-      };
-    | "type" =>
-      debug("found type action");
-      switch (selector, text) {
-      | (None, _) =>
-        debug("");
-        Result.error(
-          OSnap_Response.Config_Invalid(
-            "no selector for type action provided",
-            None,
-          ),
-        );
-      | (_, None) =>
-        Result.error(
-          OSnap_Response.Config_Invalid(
-            "no text for type action provided",
-            None,
-          ),
-        )
-      | (Some(selector), Some(text)) =>
-        debug(
-          Printf.sprintf(
-            "type action selector is %S with text %S",
-            selector,
-            text,
-          ),
-        );
-        Type(selector, text, size_restriction) |> Result.ok;
-      };
-    | "wait" =>
-      debug("found wait action");
-      switch (timeout) {
-      | None =>
-        Result.error(
-          OSnap_Response.Config_Invalid(
-            "no timeout for wait action provided",
-            None,
-          ),
-        )
-      | Some(timeout) =>
-        debug(Printf.sprintf("timeout for wait action is %i", timeout));
-        Wait(timeout, size_restriction) |> Result.ok;
-      };
-    | action =>
-      Result.error(
-        OSnap_Response.Config_Invalid(
-          Printf.sprintf("found unknown action %S", action),
-          None,
-        ),
-      )
-    };
-  };
-
   let collect_ignore = (~debug, ~size_restriction, selector, x1, y1, x2, y2) => {
     switch (selector, x1, y1, x2, y2) {
     | (Some(selector), None, None, None, None) =>
@@ -114,75 +45,6 @@ module Common = {
 };
 
 module JSON = {
-  let parse_action = a => {
-    let debug = OSnap_Logger.debug(~header="Config.Test.parse_action");
-
-    let* action =
-      try(
-        a
-        |> Yojson.Basic.Util.member("action")
-        |> Yojson.Basic.Util.to_string
-        |> Result.ok
-      ) {
-      | Yojson.Basic.Util.Type_error(message, _) =>
-        Result.error(OSnap_Response.Config_Parse_Error(message, None))
-      };
-
-    let* size_restriction =
-      try(
-        a
-        |> Yojson.Basic.Util.member("@")
-        |> Yojson.Basic.Util.to_option(Yojson.Basic.Util.to_list)
-        |> Option.map(List.map(Yojson.Basic.Util.to_string))
-        |> Result.ok
-      ) {
-      | Yojson.Basic.Util.Type_error(message, _) =>
-        Result.error(OSnap_Response.Config_Parse_Error(message, None))
-      };
-
-    let* selector =
-      try(
-        a
-        |> Yojson.Basic.Util.member("selector")
-        |> Yojson.Basic.Util.to_string_option
-        |> Result.ok
-      ) {
-      | Yojson.Basic.Util.Type_error(message, _) =>
-        Result.error(OSnap_Response.Config_Parse_Error(message, None))
-      };
-
-    let* text =
-      try(
-        a
-        |> Yojson.Basic.Util.member("text")
-        |> Yojson.Basic.Util.to_string_option
-        |> Result.ok
-      ) {
-      | Yojson.Basic.Util.Type_error(message, _) =>
-        Result.error(OSnap_Response.Config_Parse_Error(message, None))
-      };
-
-    let* timeout =
-      try(
-        a
-        |> Yojson.Basic.Util.member("timeout")
-        |> Yojson.Basic.Util.to_int_option
-        |> Result.ok
-      ) {
-      | Yojson.Basic.Util.Type_error(message, _) =>
-        Result.error(OSnap_Response.Config_Parse_Error(message, None))
-      };
-
-    Common.collect_action(
-      ~debug,
-      ~selector,
-      ~size_restriction,
-      ~text,
-      ~timeout,
-      action,
-    );
-  };
-
   let parse_ignore = r => {
     let debug = OSnap_Logger.debug(~header="Config.Test.parse_ignore");
 
@@ -368,7 +230,10 @@ module JSON = {
         fun
         | `List(list) => {
             debug("parsing actions");
-            OSnap_Utils.List.map_until_exception(parse_action, list);
+            OSnap_Utils.List.map_until_exception(
+              OSnap_Config_Utils.JSON.parse_action,
+              list,
+            );
           }
         | _ => Result.ok([])
       );
@@ -411,28 +276,6 @@ module JSON = {
 };
 
 module YAML = {
-  let parse_action = a => {
-    let debug = OSnap_Logger.debug(~header="Config.Test.YAML.parse_action");
-
-    let* size_restriction =
-      a |> OSnap_Config_Utils.YAML.get_string_list_option("@");
-
-    let* action = a |> OSnap_Config_Utils.YAML.get_string("action");
-    let* selector =
-      a |> OSnap_Config_Utils.YAML.get_string_option("selector");
-    let* text = a |> OSnap_Config_Utils.YAML.get_string_option("text");
-    let* timeout = a |> OSnap_Config_Utils.YAML.get_int_option("timeout");
-
-    Common.collect_action(
-      ~debug,
-      ~selector,
-      ~size_restriction,
-      ~text,
-      ~timeout,
-      action,
-    );
-  };
-
   let parse_ignore = r => {
     let debug = OSnap_Logger.debug(~header="Config.Test.YAML.parse_ignore");
 
@@ -497,7 +340,7 @@ module YAML = {
       test
       |> OSnap_Config_Utils.YAML.get_list_option(
            "actions",
-           ~parser=parse_action,
+           ~parser=OSnap_Config_Utils.YAML.parse_action,
          )
       |> Result.map(Option.value(~default=[]));
 

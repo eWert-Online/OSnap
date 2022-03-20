@@ -23,3 +23,16 @@ defaultSizes:
   - name: s
     width: 320
     height: 180
+
+functions:
+  search:
+    - action: wait
+      timeout: 200
+    - action: type
+      selector: "#search_input_react"
+      text: Let
+    - action: wait
+      timeout: 200
+    - "@": [xl, l, m, s]
+      action: click
+      selector: ".algolia-docsearch-suggestion--title"

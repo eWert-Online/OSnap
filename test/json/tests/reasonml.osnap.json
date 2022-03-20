@@ -35,19 +35,6 @@
   {
     "name": "reason-search",
     "url": "https://reasonml.github.io/blog/2018/02/20/reason-discourse-now-open",
-    "actions": [
-      { "action": "wait", "timeout": 200 },
-      {
-        "action": "type",
-        "selector": "#search_input_react",
-        "text": "Let"
-      },
-      { "action": "wait", "timeout": 200 },
-      {
-        "@": ["xl", "l", "m", "s"],
-        "action": "click",
-        "selector": ".algolia-docsearch-suggestion--title"
-      }
-    ]
+    "actions": [{ "action": "function", "name": "search" }]
   }
 ]
