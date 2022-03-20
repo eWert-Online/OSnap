@@ -1,7 +1,8 @@
 type platform =
   | Win32
   | Win64
-  | Darwin
+  | MacOS
+  | MacOS_ARM
   | Linux;
 
 let detect_platform: unit => platform;

@@ -1,4 +1,5 @@
-let get_revision = () => "960312";
+// https://omahaproxy.appspot.com/deps.json?version=99.0.4844.74
+let get_revision = () => "961656";
 let get_folder_name = () => "osnap_chromium_" ++ get_revision();
 let get_chromium_path = () => {
   switch (Sys.getenv_opt("HOME")) {

@@ -24,14 +24,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
       - name: Build statically linked package
         uses: docker/build-push-action@v2
         with:
@@ -40,8 +32,8 @@ jobs:
           push: false
           load: true
           tags: osnap:build
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Get packages from container
         run: |
@@ -49,14 +41,6 @@ jobs:
           docker cp build:/usr/app/_release ./_release
           docker cp build:/usr/local ./_build
           docker rm -f build
-
-      # Temp fix
-      # https://github.com/docker/build-push-action/issues/252
-      # https://github.com/moby/buildkit/issues/1896
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Tar static build
         run: |
@@ -259,7 +243,6 @@ jobs:
       fail-fast: false
       matrix:
         container:
-          - centos
           - ubuntu
           - node-lts
     steps:
@@ -287,6 +270,9 @@ jobs:
           ls -lah ./_build/share/.config/yarn/global/node_modules/.bin
           ls -lah ./_build/share/.config/yarn/global/node_modules/@space-labs/osnap/bin
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -302,8 +288,11 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:nightly
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build & Publish nightly-${{ github.ref_name }} ${{ matrix.container }}
         if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/master' }}
@@ -311,8 +300,11 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:nightly-${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build & Publish Next ${{ matrix.container }}
         if: ${{ github.event_name == 'release' }}
@@ -320,8 +312,11 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:next
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build & Publish ${{ matrix.container }}
         if: ${{ github.event_name == 'release' && !github.event.release.prerelease }}
@@ -329,8 +324,11 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:${{ github.event.release.tag_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build & Publish Latest ${{ matrix.container }}
         if: ${{ github.event_name == 'release' && !github.event.release.prerelease }}
@@ -338,5 +336,8 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.${{ matrix.container }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
