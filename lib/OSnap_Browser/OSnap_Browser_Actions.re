@@ -452,3 +452,29 @@ let screenshot = (~full_size=false, target) => {
 
   Lwt_result.return(result.data);
 };
+
+let clear_cookies = target => {
+  open Commands.Storage;
+  open Lwt_result.Syntax;
+
+  let sessionId = target.sessionId;
+
+  let* _ =
+    ClearCookies.(
+      Request.make(~sessionId, ~params=Params.make())
+      |> OSnap_Websocket.send
+      |> Lwt.map(Response.parse)
+      |> Lwt.map(response => {
+           let error =
+             response.Response.error
+             |> Option.map((error: Response.error) =>
+                  OSnap_Response.CDP_Protocol_Error(error.message)
+                )
+             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+
+           Option.to_result(response.Response.result, ~none=error);
+         })
+    );
+
+  Lwt_result.return();
+};

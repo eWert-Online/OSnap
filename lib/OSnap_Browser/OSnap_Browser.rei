@@ -47,6 +47,8 @@ module Actions: {
   let screenshot:
     (~full_size: bool=?, Target.target) =>
     Lwt_result.t(string, OSnap_Response.t);
+
+  let clear_cookies: Target.target => Lwt_result.t(unit, OSnap_Response.t);
 };
 
 module Download: {let download: unit => Lwt_result.t(unit, unit);};
