@@ -59,7 +59,6 @@
     "@opam/lwt": "5.4.2",
     "@opam/lwt_ppx": "2.0.2",
     "@opam/ppx_yojson_conv": "v0.14.0",
-    "@opam/ptime": "0.8.6",
     "@opam/re": "*",
     "@opam/uri": "4.2.0",
     "@opam/websocket": "2.14",
@@ -72,30 +71,26 @@
     "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117"
   },
   "devDependencies": {
-    "@opam/reason": ">= 3.6.0 < 4.0.0",
-    "@opam/dune": "< 3.0.0",
+    "@opam/reason": "3.7.0",
+    "@opam/dune": "2.9.2",
     "@opam/ocaml-lsp-server": "1.5.0",
     "ocaml": "4.12.0"
   },
   "resolutions": {
-    "@opam/mirage-crypto": "mirage/mirage-crypto:mirage-crypto.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
-    "@opam/mirage-crypto-rng": "mirage/mirage-crypto:mirage-crypto-rng.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
-    "@opam/mirage-crypto-pk": "mirage/mirage-crypto:mirage-crypto-pk.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
-    "@opam/mirage-crypto-ec": "mirage/mirage-crypto:mirage-crypto-ec.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4",
-    "@opam/ocamlfind": "1.9.1",
-    "@opam/conf-gmp": "esy-packages/esy-gmp#e27cb300adfb0c0b320c273082c5affafcd225fa",
     "ocaml": "4.12.0-musl.static.flambda",
+    "esy-libpng": "esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048",
+    "@opam/topkg": "1.0.4",
+    "@opam/ocamlbuild": "0.14.0",
+    "@opam/conf-gmp": "esy-packages/esy-gmp#e27cb300adfb0c0b320c273082c5affafcd225fa",
     "@opam/camlzip": {
       "source": "rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195",
       "override": {
         "dependencies": {
-          "@opam/dune": "< 3.0.0",
-          "@opam/dune-configurator": "< 3.0.0",
+          "@opam/dune": "*",
+          "@opam/dune-configurator": "*",
           "@opam/conf-zlib": "*"
         }
       }
-    },
-    "@opam/re": "ocaml/ocaml-re:re.opam#8a59309051ec573d3090d2550cb61b415a4c6837",
-    "esy-libpng": "esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048"
+    }
   }
 }
