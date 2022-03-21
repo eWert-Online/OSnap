@@ -1,5 +1,5 @@
 {
-  "checksum": "f78787ac32c2815054131821042a1758",
+  "checksum": "26b0d2173e1e1e4c7ef4c7083214065c",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -131,6 +131,7 @@
         "@opam/websocket@opam:2.14@cc2f10b7",
         "@opam/uri@opam:4.2.0@9c45eeb8",
         "@opam/re@github:ocaml/ocaml-re:re.opam#8a59309051ec573d3090d2550cb61b415a4c6837@d41d8cd9",
+        "@opam/ptime@opam:0.8.6@5df936b0",
         "@opam/ppx_yojson_conv@opam:v0.14.0@13acb3e6",
         "@opam/lwt_ppx@opam:2.0.2@d18729de", "@opam/lwt@opam:5.4.2@f5e79982",
         "@opam/logs@opam:0.7.0@46a3dffc",
@@ -267,7 +268,7 @@
       "overrides": [],
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/ptime@opam:1.0.0@e04fef10", "@opam/pbkdf@opam:1.2.0@1484a934",
+        "@opam/ptime@opam:0.8.6@5df936b0", "@opam/pbkdf@opam:1.2.0@1484a934",
         "@opam/mirage-crypto-rng@github:mirage/mirage-crypto:mirage-crypto-rng.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4@d41d8cd9",
         "@opam/mirage-crypto-pk@github:mirage/mirage-crypto:mirage-crypto-pk.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4@d41d8cd9",
         "@opam/mirage-crypto-ec@github:mirage/mirage-crypto:mirage-crypto-ec.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4@d41d8cd9",
@@ -283,7 +284,7 @@
       ],
       "devDependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/ptime@opam:1.0.0@e04fef10", "@opam/pbkdf@opam:1.2.0@1484a934",
+        "@opam/ptime@opam:0.8.6@5df936b0", "@opam/pbkdf@opam:1.2.0@1484a934",
         "@opam/mirage-crypto-rng@github:mirage/mirage-crypto:mirage-crypto-rng.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4@d41d8cd9",
         "@opam/mirage-crypto-pk@github:mirage/mirage-crypto:mirage-crypto-pk.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4@d41d8cd9",
         "@opam/mirage-crypto-ec@github:mirage/mirage-crypto:mirage-crypto-ec.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4@d41d8cd9",
@@ -757,20 +758,20 @@
         "@opam/seq@opam:base@d8d7de1d", "@opam/dune@opam:2.9.3@f57a6d69"
       ]
     },
-    "@opam/ptime@opam:1.0.0@e04fef10": {
-      "id": "@opam/ptime@opam:1.0.0@e04fef10",
+    "@opam/ptime@opam:0.8.6@5df936b0": {
+      "id": "@opam/ptime@opam:0.8.6@5df936b0",
       "name": "@opam/ptime",
-      "version": "opam:1.0.0",
+      "version": "opam:0.8.6",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/sha512/df/df2410d9cc25a33083fe968a584b8fb4d68ad5c077f3356da0a20427e6cd8756a5b946b921e5cf8ed4097f2c506e93345d9dca63b113be644d5a7cc0753d1534#sha512:df2410d9cc25a33083fe968a584b8fb4d68ad5c077f3356da0a20427e6cd8756a5b946b921e5cf8ed4097f2c506e93345d9dca63b113be644d5a7cc0753d1534",
-          "archive:https://erratique.ch/software/ptime/releases/ptime-1.0.0.tbz#sha512:df2410d9cc25a33083fe968a584b8fb4d68ad5c077f3356da0a20427e6cd8756a5b946b921e5cf8ed4097f2c506e93345d9dca63b113be644d5a7cc0753d1534"
+          "archive:https://opam.ocaml.org/cache/sha512/db/dbb5a1caae995381672ebe95b6824d62d6092e099d0f40099bab049f2f87516fd3657d59694739423e1c0948efd43e50fa06664975593deffe86ba16f6f9fbb9#sha512:dbb5a1caae995381672ebe95b6824d62d6092e099d0f40099bab049f2f87516fd3657d59694739423e1c0948efd43e50fa06664975593deffe86ba16f6f9fbb9",
+          "archive:https://erratique.ch/software/ptime/releases/ptime-0.8.6.tbz#sha512:dbb5a1caae995381672ebe95b6824d62d6092e099d0f40099bab049f2f87516fd3657d59694739423e1c0948efd43e50fa06664975593deffe86ba16f6f9fbb9"
         ],
         "opam": {
           "name": "ptime",
-          "version": "1.0.0",
-          "path": "esy.lock/opam/ptime.1.0.0"
+          "version": "0.8.6",
+          "path": "esy.lock/opam/ptime.0.8.6"
         }
       },
       "overrides": [],
@@ -2926,7 +2927,7 @@
       "overrides": [],
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/x509@opam:0.16.0@7ea5b66f", "@opam/ptime@opam:1.0.0@e04fef10",
+        "@opam/x509@opam:0.16.0@7ea5b66f", "@opam/ptime@opam:0.8.6@5df936b0",
         "@opam/mirage-crypto@github:mirage/mirage-crypto:mirage-crypto.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4@d41d8cd9",
         "@opam/logs@opam:0.7.0@46a3dffc", "@opam/fpath@opam:0.7.3@674d8125",
         "@opam/dune@opam:2.9.3@f57a6d69", "@opam/bos@opam:0.2.0@d164ac89",
@@ -2935,7 +2936,7 @@
       ],
       "devDependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/x509@opam:0.16.0@7ea5b66f", "@opam/ptime@opam:1.0.0@e04fef10",
+        "@opam/x509@opam:0.16.0@7ea5b66f", "@opam/ptime@opam:0.8.6@5df936b0",
         "@opam/mirage-crypto@github:mirage/mirage-crypto:mirage-crypto.opam#42563a78f0ee9e106e045f4bda3284dd58935ca4@d41d8cd9",
         "@opam/logs@opam:0.7.0@46a3dffc", "@opam/fpath@opam:0.7.3@674d8125",
         "@opam/dune@opam:2.9.3@f57a6d69", "@opam/bos@opam:0.2.0@d164ac89",
@@ -3223,14 +3224,14 @@
       "overrides": [],
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/zarith@opam:1.11@6b66cdc1", "@opam/ptime@opam:1.0.0@e04fef10",
+        "@opam/zarith@opam:1.11@6b66cdc1", "@opam/ptime@opam:0.8.6@5df936b0",
         "@opam/dune@opam:2.9.3@f57a6d69",
         "@opam/cstruct@opam:6.0.1@69eae449",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/zarith@opam:1.11@6b66cdc1", "@opam/ptime@opam:1.0.0@e04fef10",
+        "@opam/zarith@opam:1.11@6b66cdc1", "@opam/ptime@opam:0.8.6@5df936b0",
         "@opam/dune@opam:2.9.3@f57a6d69", "@opam/cstruct@opam:6.0.1@69eae449"
       ]
     },

@@ -59,6 +59,7 @@
     "@opam/lwt": "5.4.2",
     "@opam/lwt_ppx": "2.0.2",
     "@opam/ppx_yojson_conv": "v0.14.0",
+    "@opam/ptime": "0.8.6",
     "@opam/re": "*",
     "@opam/uri": "4.2.0",
     "@opam/websocket": "2.14",
