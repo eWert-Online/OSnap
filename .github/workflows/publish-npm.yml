@@ -75,7 +75,7 @@ jobs:
       # Install esy globally
       - name: Install esy
         run: |
-          npm install -g esy
+          npm install -g @esy-nightly/esy
 
       # Checkout the projects sources
       - uses: actions/checkout@v2
