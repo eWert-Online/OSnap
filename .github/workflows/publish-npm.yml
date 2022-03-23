@@ -293,8 +293,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:nightly
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Enabling this overwrites all other caches, so no container is cached...
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
 
       - name: Build & Publish nightly-${{ github.ref_name }} ${{ matrix.container }}
         if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/master' }}
@@ -305,8 +306,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:nightly-${{ github.ref_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Enabling this overwrites all other caches, so no container is cached...
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
 
       - name: Build & Publish Next ${{ matrix.container }}
         if: ${{ github.event_name == 'release' }}
@@ -317,8 +319,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:next
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Enabling this overwrites all other caches, so no container is cached...
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
 
       - name: Build & Publish ${{ matrix.container }}
         if: ${{ github.event_name == 'release' && !github.event.release.prerelease }}
@@ -329,8 +332,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:${{ github.event.release.tag_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Enabling this overwrites all other caches, so no container is cached...
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
 
       - name: Build & Publish Latest ${{ matrix.container }}
         if: ${{ github.event_name == 'release' && !github.event.release.prerelease }}
@@ -341,5 +345,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: osnap/${{ matrix.container }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Enabling this overwrites all other caches, so no container is cached...
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
