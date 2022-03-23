@@ -16,8 +16,42 @@ let to_result_option =
   | Some(Error(e)) => Error(e);
 
 let collect_action =
-    (~debug, ~selector, ~size_restriction, ~name, ~text, ~timeout, action) => {
+    (
+      ~debug,
+      ~selector,
+      ~size_restriction,
+      ~name,
+      ~text,
+      ~timeout,
+      ~px,
+      action,
+    ) => {
   switch (action) {
+  | "scroll" =>
+    debug("found scroll action");
+    switch (selector, px) {
+    | (None, None) =>
+      Result.error(
+        OSnap_Response.Config_Invalid(
+          "Neither selector nor px was provided for scroll action. Please provide one of them.",
+          None,
+        ),
+      )
+    | (Some(_), Some(_)) =>
+      Result.error(
+        OSnap_Response.Config_Invalid(
+          "Both selector and px were provided for scroll action. Please provide only one of them.",
+          None,
+        ),
+      )
+    | (None, Some(px)) =>
+      debug(Printf.sprintf("scroll px amount is %i", px));
+      OSnap_Config_Types.Scroll(`PxAmount(px), size_restriction) |> Result.ok;
+    | (Some(selector), None) =>
+      debug(Printf.sprintf("scroll selector is %S", selector));
+      OSnap_Config_Types.Scroll(`Selector(selector), size_restriction)
+      |> Result.ok;
+    };
   | "click" =>
     debug("found click action");
     switch (selector) {
@@ -187,6 +221,17 @@ module JSON = {
         Result.error(OSnap_Response.Config_Parse_Error(message, None))
       };
 
+    let* px =
+      try(
+        a
+        |> Yojson.Basic.Util.member("px")
+        |> Yojson.Basic.Util.to_int_option
+        |> Result.ok
+      ) {
+      | Yojson.Basic.Util.Type_error(message, _) =>
+        Result.error(OSnap_Response.Config_Parse_Error(message, None))
+      };
+
     let* selector =
       try(
         a
@@ -238,6 +283,7 @@ module JSON = {
       ~text,
       ~timeout,
       ~name,
+      ~px,
       action,
     );
   };
@@ -461,6 +507,7 @@ module YAML = {
 
     let* action = a |> get_string("action");
     let* selector = a |> get_string_option("selector");
+    let* px = a |> get_int_option("px");
     let* name = a |> get_string_option("name");
     let* text = a |> get_string_option("text");
     let* timeout = a |> get_int_option("timeout");
@@ -472,6 +519,7 @@ module YAML = {
       ~text,
       ~name,
       ~timeout,
+      ~px,
       action,
     );
   };

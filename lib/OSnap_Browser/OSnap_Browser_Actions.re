@@ -335,6 +335,58 @@ let click = (~selector, target) => {
   };
 };
 
+let scroll = (~selector, ~px, target) => {
+  open Lwt_result.Syntax;
+
+  let sessionId = target.sessionId;
+
+  switch (px, selector) {
+  | (None, None) => assert(false)
+  | (Some(_), Some(_)) => assert(false)
+  | (None, Some(selector)) =>
+    let* {nodeId} = select_element(~selector, ~sessionId);
+    Commands.DOM.ScrollIntoViewIfNeeded.(
+      Request.make(~sessionId, ~params=Params.make(~nodeId, ()))
+      |> OSnap_Websocket.send
+      |> Lwt.map(Response.parse)
+      |> Lwt.map(response => {
+           switch (response.Response.error) {
+           | None => Result.ok()
+           | Some({message, _}) =>
+             Result.error(OSnap_Response.CDP_Protocol_Error(message))
+           }
+         })
+    );
+  | (Some(px), None) =>
+    let expression =
+      Printf.sprintf(
+        {|
+          window.scrollTo({
+            top: %i,
+            left: 0,
+            behavior: 'smooth'
+          });
+        |},
+        px,
+      );
+
+    Commands.Runtime.Evaluate.(
+      Request.make(~sessionId, ~params=Params.make(~expression, ()))
+      |> OSnap_Websocket.send
+      |> Lwt.map(Response.parse)
+      |> Lwt.bind(_, response => {
+           switch (response.Response.error) {
+           | None =>
+             let timeout = float_of_int(px / 200);
+             Lwt_unix.sleep(timeout) |> Lwt_result.ok;
+           | Some({message, _}) =>
+             Lwt_result.fail(OSnap_Response.CDP_Protocol_Error(message))
+           }
+         })
+    );
+  };
+};
+
 let get_content_size = target => {
   open Commands.Page;
   open Lwt_result.Syntax;

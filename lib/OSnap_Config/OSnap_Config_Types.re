@@ -12,6 +12,7 @@ type size_restriction = option(list(string));
 
 type action =
   | Function(string, size_restriction)
+  | Scroll([ | `Selector(string) | `PxAmount(int)], size_restriction)
   | Click(string, size_restriction)
   | Type(string, string, size_restriction)
   | Wait(int, size_restriction);

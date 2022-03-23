@@ -53,6 +53,24 @@ let read_file_contents = (~path) => {
 let rec execute_action = (~global_config, target, size_name, action) => {
   Config.Types.(
     switch (action, size_name) {
+    | (Scroll(_, Some(_)), None) => Lwt_result.return()
+    | (Scroll(`Selector(selector), None), _) =>
+      target |> Browser.Actions.scroll(~selector=Some(selector), ~px=None)
+    | (Scroll(`PxAmount(px), None), _) =>
+      target |> Browser.Actions.scroll(~selector=None, ~px=Some(px))
+    | (Scroll(`Selector(selector), Some(size_restr)), Some(size_name)) =>
+      if (size_restr |> List.mem(size_name)) {
+        target |> Browser.Actions.scroll(~selector=Some(selector), ~px=None);
+      } else {
+        Lwt_result.return();
+      }
+    | (Scroll(`PxAmount(px), Some(size_restr)), Some(size_name)) =>
+      if (size_restr |> List.mem(size_name)) {
+        target |> Browser.Actions.scroll(~selector=None, ~px=Some(px));
+      } else {
+        Lwt_result.return();
+      }
+
     | (Click(_, Some(_)), None) => Lwt_result.return()
     | (Click(selector, None), _) =>
       target |> Browser.Actions.click(~selector)

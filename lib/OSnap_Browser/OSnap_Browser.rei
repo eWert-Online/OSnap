@@ -20,6 +20,10 @@ module Actions: {
     (~selector: string, Target.target) =>
     Lwt_result.t(((float, float), (float, float)), OSnap_Response.t);
 
+  let scroll:
+    (~selector: option(string), ~px: option(int), Target.target) =>
+    Lwt_result.t(unit, OSnap_Response.t);
+
   let click:
     (~selector: string, Target.target) => Lwt_result.t(unit, OSnap_Response.t);
 
