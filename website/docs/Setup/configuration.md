@@ -120,6 +120,17 @@ An array of glob patterns to not search for test files in.
 The color in rgb format used to highlight different pixels in the diff image. <br />
 Only values between 0 and 255 are allowed. The default color is red.
 
+---
+
+### Functions
+
+- **Key**: `functions`
+- **Required**: `false`
+- **Type**: `Record<name, Array<action>>`
+- **Default**: `{}`
+
+A record of which the key is used as the function name and the value is an array of actions to be executed, when that function is called.
+
 ## Example
 
 **A full example of a global config file:**
@@ -164,6 +175,24 @@ defaultSizes:
   - name: xxs
     width: 320
     height: 180
+
+functions:
+  accept_cookies:
+    - action: click
+      selector: "#cookie-consent .settings"
+    - action: click
+      selector: "#cookie-consent .accept"
+    - action: click
+      selector: "#cookie-consent .confirm"
+  login:
+    - action: type
+      selector: "#username"
+      text: "my_testuser"
+    - action: type
+      selector: "#password"
+      text: "password123!"
+    - action: click
+      selector: "#submit_login"
 ```
 
 </TabItem>
@@ -190,7 +219,39 @@ defaultSizes:
     { "name": "sm", "width": 768, "height": 432 },
     { "name": "xs", "width": 640, "height": 360 },
     { "name": "xxs", "width": 320, "height": 180 }
-  ]
+  ],
+  "functions": {
+    "accept_cookies": [
+      {
+        "action": "click",
+        "selector": "#cookie-consent .settings"
+      },
+      {
+        "action": "click",
+        "selector": "#cookie-consent .accept"
+      },
+      {
+        "action": "click",
+        "selector": "#cookie-consent .confirm"
+      }
+    ],
+    "login": [
+      {
+        "action": "type",
+        "selector": "#username",
+        "text": "my_testuser"
+      },
+      {
+        "action": "type",
+        "selector": "#password",
+        "text": "password123!"
+      },
+      {
+        "action": "click",
+        "selector": "#submit_login"
+      }
+    ]
+  }
 }
 ```
 

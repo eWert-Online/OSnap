@@ -14,7 +14,7 @@ As seen in the [configuration options](configuration) of a test file, you are ab
 This is useful to bring the page into a specific state, you want to capture. <br />
 **For example:** opening a dropdown, typing something in an input or waiting for an animation to be completed.
 
-The currently available actions are `wait`, `click` and `type`. They may be configured like this.
+The currently available actions are `wait`, `click`, `type`, `scroll` and `function`. They may be configured like this.
 
 :::info
 All actions may be configured with the optional `@` key.
@@ -123,6 +123,80 @@ If `@` is not present, the action runs on all sizes.
     "action": "type",
     "selector": "#search",
     "text": "some searchword"
+  }
+]
+```
+
+</TabItem>
+</Tabs>
+
+### Scroll
+
+#### Options:
+
+- `selector`: A css selector of an element which should scrolled into view. If the selector evaluates to multiple elements, only the first one will be scrolled to.
+- `px`: The number of px the page should be scrolled by
+
+#### Example:
+
+<Tabs>
+<TabItem value="yaml" label="YAML" default>
+
+```yaml
+- "@": ["xxl"]
+  action: "scroll"
+  px: 200
+
+- "@": ["l"]
+  action: "scroll"
+  selector: ".button"
+```
+
+</TabItem>
+<TabItem value="json" label="JSON">
+
+```json
+[
+  {
+    "@": ["xxl"],
+    "action": "scroll",
+    "px": 200
+  },
+  {
+    "@": ["l"],
+    "action": "scroll",
+    "selector": ".button"
+  }
+]
+```
+
+</TabItem>
+</Tabs>
+
+### Function
+
+#### Options:
+
+- `name`: The name of the function to be executed
+
+#### Example:
+
+<Tabs>
+<TabItem value="yaml" label="YAML" default>
+
+```yaml
+- action: function
+  name: accept_cookies
+```
+
+</TabItem>
+<TabItem value="json" label="JSON">
+
+```json
+[
+  {
+    "action": "function",
+    "name": "accept_cookies"
   }
 ]
 ```
