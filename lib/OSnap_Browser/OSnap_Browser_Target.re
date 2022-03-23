@@ -32,7 +32,7 @@ let enable_events = t => {
 
   let* _ =
     DOM.Enable.(
-      Request.make(~sessionId)
+      Request.make(~sessionId, ~params=Params.make())
       |> Websocket.send
       |> Lwt.map(Response.parse)
       |> Lwt.map(response => {

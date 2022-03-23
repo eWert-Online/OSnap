@@ -42,10 +42,11 @@ module Actions: {
     (~url: string, Target.target) => Lwt_result.t(string, OSnap_Response.t);
 
   let get_content_size:
-    Target.target => Lwt_result.t((float, float), OSnap_Response.t);
+    Target.target =>
+    Lwt_result.t((Cdp.Types.number, Cdp.Types.number), OSnap_Response.t);
 
   let set_size:
-    (~width: float, ~height: float, Target.target) =>
+    (~width: Cdp.Types.number, ~height: Cdp.Types.number, Target.target) =>
     Lwt_result.t(unit, OSnap_Response.t);
 
   let screenshot:

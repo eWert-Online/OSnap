@@ -1,5 +1,5 @@
 {
-  "checksum": "44806be32526acc400aff9cf9d6842ea",
+  "checksum": "ceedbe7ff8ff479f325c650686a1f4d9",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -89,16 +89,16 @@
       ],
       "devDependencies": []
     },
-    "cdp@github:eWert-Online/reason-cdp#557349e6a4b35461f37662d5cb9be59c28a1cabd@d41d8cd9": {
+    "cdp@github:eWert-Online/reason-cdp#5e8421e13ab7aa4386aba0fb0b075a61af20e015@d41d8cd9": {
       "id":
-        "cdp@github:eWert-Online/reason-cdp#557349e6a4b35461f37662d5cb9be59c28a1cabd@d41d8cd9",
+        "cdp@github:eWert-Online/reason-cdp#5e8421e13ab7aa4386aba0fb0b075a61af20e015@d41d8cd9",
       "name": "cdp",
       "version":
-        "github:eWert-Online/reason-cdp#557349e6a4b35461f37662d5cb9be59c28a1cabd",
+        "github:eWert-Online/reason-cdp#5e8421e13ab7aa4386aba0fb0b075a61af20e015",
       "source": {
         "type": "install",
         "source": [
-          "github:eWert-Online/reason-cdp#557349e6a4b35461f37662d5cb9be59c28a1cabd"
+          "github:eWert-Online/reason-cdp#5e8421e13ab7aa4386aba0fb0b075a61af20e015"
         ]
       },
       "overrides": [],
@@ -124,7 +124,7 @@
       "dependencies": [
         "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117@d41d8cd9",
         "esy-libpng@github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048@d41d8cd9",
-        "cdp@github:eWert-Online/reason-cdp#557349e6a4b35461f37662d5cb9be59c28a1cabd@d41d8cd9",
+        "cdp@github:eWert-Online/reason-cdp#5e8421e13ab7aa4386aba0fb0b075a61af20e015@d41d8cd9",
         "@opam/zarith@opam:1.11@6b66cdc1",
         "@opam/yojson@opam:1.7.0@69d87312", "@opam/yaml@opam:3.0.0@98570461",
         "@opam/websocket-lwt-unix@opam:2.14@95bf9430",

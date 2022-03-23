@@ -215,8 +215,8 @@ let run = (global_config: Config.Types.global, target, test) => {
   let* () =
     target
     |> Browser.Actions.set_size(
-         ~width=Float.of_int(test.width),
-         ~height=Float.of_int(test.height),
+         ~width=`Int(test.width),
+         ~height=`Int(test.height),
        );
 
   let* loaderId = target |> Browser.Actions.go_to(~url);

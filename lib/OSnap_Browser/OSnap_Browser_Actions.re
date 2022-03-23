@@ -49,7 +49,7 @@ let select_element = (~selector, ~sessionId) => {
     |> Lwt.map(Response.parse)
     |> Lwt.map(response => {
          switch (response.Response.error, response.Response.result) {
-         | (_, Some({nodeId: 0.})) =>
+         | (_, Some({nodeId: `Int(0)}) | Some({nodeId: `Float(0.)})) =>
            Result.error(
              OSnap_Response.CDP_Protocol_Error(
                Printf.sprintf(
@@ -171,12 +171,14 @@ let type_text = (~selector, ~text, target) => {
                    Params.make(
                      ~type_=`keyDown,
                      ~windowsVirtualKeyCode=
-                       Float.of_int(Option.value(def.keyCode, ~default=0)),
+                       def.keyCode
+                       |> Option.map(i => `Int(i))
+                       |> Option.value(~default=`Int(0)),
                      ~key=def.key,
                      ~code=def.code,
                      ~text=def.text,
                      ~unmodifiedText=def.text,
-                     ~location=Float.of_int(def.location),
+                     ~location=`Int(def.location),
                      ~isKeypad=def.location == 3,
                      (),
                    ),
@@ -193,7 +195,7 @@ let type_text = (~selector, ~text, target) => {
                    ~type_=`keyUp,
                    ~key=def.key,
                    ~code=def.code,
-                   ~location=Float.of_int(def.location),
+                   ~location=`Int(def.location),
                    (),
                  ),
              )
@@ -248,9 +250,17 @@ let get_quads = (~selector, target) => {
          })
     );
 
+  let to_float =
+    fun
+    | `Float(f) => f
+    | `Int(i) => float_of_int(i);
+
   switch (result.quads) {
   | [[x1, y1, x2, _y2, _x3, y2, _x4, _y4, ..._], ..._] =>
-    Lwt_result.return(((x1, y1), (x2, y2)))
+    Lwt_result.return((
+      (to_float(x1), to_float(y1)),
+      (to_float(x2), to_float(y2)),
+    ))
   | _ => Lwt_result.fail(OSnap_Response.CDP_Protocol_Error(""))
   };
 };
@@ -263,8 +273,8 @@ let click = (~selector, target) => {
 
   let* ((x1, y1), (x2, y2)) = get_quads(~selector, target);
 
-  let x = x1 +. (x2 -. x1) /. 2.0;
-  let y = y1 +. (y2 -. y1) /. 2.0;
+  let x = `Float(x1 +. (x2 -. x1) /. 2.0);
+  let y = `Float(y1 +. (y2 -. y1) /. 2.0);
 
   let* () =
     DispatchMouseEvent.(
@@ -285,8 +295,8 @@ let click = (~selector, target) => {
           Params.make(
             ~type_=`mousePressed,
             ~button=`left,
-            ~buttons=1.,
-            ~clickCount=1.,
+            ~buttons=`Int(1),
+            ~clickCount=`Int(1),
             ~x,
             ~y,
             (),
@@ -305,8 +315,8 @@ let click = (~selector, target) => {
           Params.make(
             ~type_=`mouseReleased,
             ~button=`left,
-            ~buttons=1.,
-            ~clickCount=1.,
+            ~buttons=`Int(1),
+            ~clickCount=`Int(1),
             ~x,
             ~y,
             (),
@@ -420,17 +430,7 @@ let set_size = (~width, ~height, target) => {
   open Commands.Emulation;
   open Lwt_result.Syntax;
 
-  let debug = OSnap_Logger.debug(~header="Browser.set_size");
   let sessionId = target.sessionId;
-
-  debug(
-    Printf.sprintf(
-      "session %S \n\t setting size to %fx%f",
-      sessionId,
-      width,
-      height,
-    ),
-  );
 
   let* _ =
     SetDeviceMetricsOverride.(
@@ -440,7 +440,7 @@ let set_size = (~width, ~height, target) => {
           Params.make(
             ~width,
             ~height,
-            ~deviceScaleFactor=1.,
+            ~deviceScaleFactor=`Int(1),
             ~mobile=false,
             (),
           ),
