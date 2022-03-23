@@ -269,14 +269,16 @@ let run = (global_config: Config.Types.global, target, test) => {
         test.ignore_regions
         |> get_ignore_regions(target, test.size_name)
         >>= Lwt_list.fold_left_s(
-              (acc, curr) =>
-                if (Result.is_ok(acc) && Result.is_ok(curr)) {
-                  Lwt.return(
-                    Result.ok([Result.get_ok(curr), ...Result.get_ok(acc)]),
-                  );
-                } else {
-                  Lwt.return(Result.error(Result.get_error(curr)));
-                },
+              (acc, curr) => {
+                switch (acc, curr) {
+                | (Ok(acc), Ok(curr)) =>
+                  Lwt.return(Result.ok([curr, ...acc]))
+                | (Error(acc), Ok(_curr)) => Lwt.return(Result.error(acc))
+                | (Ok(_acc), Error(curr)) =>
+                  Lwt.return(Result.error(curr))
+                | (Error(acc), Error(_)) => Lwt.return(Result.error(acc))
+                }
+              },
               Result.ok([]),
             );
 
