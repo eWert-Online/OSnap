@@ -194,11 +194,27 @@ let get_ignore_regions = (~document, target, size_name, regions) => {
            | (Selector(_, Some(size_restr)), Some(size_name)) =>
              List.mem(size_name, size_restr)
            | (Selector(_selector, None), _) => true
+           | (SelectorAll(_, Some(_)), None) => false
+           | (SelectorAll(_, Some(size_restr)), Some(size_name)) =>
+             List.mem(size_name, size_restr)
+           | (SelectorAll(_selector, None), _) => true
            }
          })
       |> Lwt_list.map_p(region => {
            switch (region) {
-           | Coordinates(a, b, _) => Lwt_result.return((a, b))
+           | Coordinates(a, b, _) => Lwt_result.return([(a, b)])
+           | SelectorAll(selector, _) =>
+             let* quads =
+               target |> Browser.Actions.get_quads_all(~document, ~selector);
+             quads
+             |> List.map((((x1, y1), (x2, y2))) => {
+                  let x1 = Int.of_float(x1);
+                  let y1 = Int.of_float(y1);
+                  let x2 = Int.of_float(x2);
+                  let y2 = Int.of_float(y2);
+                  ((x1, y1), (x2, y2));
+                })
+             |> Lwt_result.return;
            | Selector(selector, _) =>
              let* ((x1, y1), (x2, y2)) =
                target |> Browser.Actions.get_quads(~document, ~selector);
@@ -206,9 +222,11 @@ let get_ignore_regions = (~document, target, size_name, regions) => {
              let y1 = Int.of_float(y1);
              let x2 = Int.of_float(x2);
              let y2 = Int.of_float(y2);
-             Lwt_result.return(((x1, y1), (x2, y2)));
+             Lwt_result.return([((x1, y1), (x2, y2))]);
            }
          })
+      |> Lwt.map(OSnap_Utils.List.map_until_exception(list => list))
+      |> Lwt_result.map(List.flatten)
     )
   );
 };
@@ -287,20 +305,7 @@ let run = (global_config: Config.Types.global, target, test) => {
     } else {
       let* ignoreRegions =
         test.ignore_regions
-        |> get_ignore_regions(~document, target, test.size_name)
-        >>= Lwt_list.fold_left_s(
-              (acc, curr) => {
-                switch (acc, curr) {
-                | (Ok(acc), Ok(curr)) =>
-                  Lwt.return(Result.ok([curr, ...acc]))
-                | (Error(acc), Ok(_curr)) => Lwt.return(Result.error(acc))
-                | (Ok(_acc), Error(curr)) =>
-                  Lwt.return(Result.error(curr))
-                | (Error(acc), Error(_)) => Lwt.return(Result.error(acc))
-                }
-              },
-              Result.ok([]),
-            );
+        |> get_ignore_regions(~document, target, test.size_name);
 
       let diff =
         Diff.diff(

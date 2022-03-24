@@ -31,6 +31,14 @@ module Actions: {
     ) =>
     Lwt_result.t(((float, float), (float, float)), OSnap_Response.t);
 
+  let get_quads_all:
+    (
+      ~document: Cdp.Commands.DOM.GetDocument.Response.result,
+      ~selector: string,
+      Target.target
+    ) =>
+    Lwt_result.t(list(((float, float), (float, float))), OSnap_Response.t);
+
   let scroll:
     (
       ~document: Cdp.Commands.DOM.GetDocument.Response.result,

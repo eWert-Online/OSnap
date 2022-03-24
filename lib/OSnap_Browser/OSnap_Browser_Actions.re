@@ -40,6 +40,41 @@ let get_document = target => {
   );
 };
 
+let select_element_all = (~document, ~selector, ~sessionId) => {
+  Commands.DOM.QuerySelectorAll.(
+    Request.make(
+      ~sessionId,
+      ~params=
+        Params.make(
+          ~nodeId=document.Commands.DOM.GetDocument.Response.root.nodeId,
+          ~selector,
+          (),
+        ),
+    )
+    |> OSnap_Websocket.send
+    |> Lwt.map(Response.parse)
+    |> Lwt.map(response => {
+         switch (response.Response.error, response.Response.result) {
+         | (_, Some({nodeIds: []})) =>
+           Result.error(
+             OSnap_Response.CDP_Protocol_Error(
+               Printf.sprintf(
+                 "No node with the selector %S could not be found.",
+                 selector,
+               ),
+             ),
+           )
+         | (None, None) =>
+           Result.error(OSnap_Response.CDP_Protocol_Error(""))
+         | (Some({message, _}), None) =>
+           Result.error(OSnap_Response.CDP_Protocol_Error(message))
+         | (Some(_), Some(result))
+         | (None, Some(result)) => Result.ok(result)
+         }
+       })
+  );
+};
+
 let select_element = (~document, ~selector, ~sessionId) => {
   Commands.DOM.QuerySelector.(
     Request.make(
@@ -227,6 +262,52 @@ let type_text = (~document, ~selector, ~text, target) => {
     let loaderId = event_data.params.frame.loaderId;
     wait_for_network_idle(target, ~loaderId) |> Lwt_result.ok;
   };
+};
+
+let get_quads_all = (~document, ~selector, target) => {
+  open Commands.DOM;
+
+  let sessionId = target.sessionId;
+
+  let to_float =
+    fun
+    | `Float(f) => f
+    | `Int(i) => float_of_int(i);
+
+  let* {nodeIds} = select_element_all(~document, ~selector, ~sessionId);
+
+  nodeIds
+  |> Lwt_list.fold_left_s(
+       (acc, nodeId) => {
+         GetContentQuads.(
+           Request.make(~sessionId, ~params=Params.make(~nodeId, ()))
+           |> OSnap_Websocket.send
+           |> Lwt.map(Response.parse)
+           |> Lwt.map(response => {
+                switch (response.Response.error, response.Response.result) {
+                | (
+                    None | Some(_),
+                    Some({
+                      quads: [
+                        [x1, y1, x2, _y2, _x3, y2, _x4, _y4, ..._],
+                        ..._,
+                      ],
+                    }),
+                  ) => [
+                    (
+                      (to_float(x1), to_float(y1)),
+                      (to_float(x2), to_float(y2)),
+                    ),
+                    ...acc,
+                  ]
+                | _ => acc
+                }
+              })
+         )
+       },
+       [],
+     )
+  |> Lwt_result.ok;
 };
 
 let get_quads = (~document, ~selector, target) => {

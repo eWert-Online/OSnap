@@ -19,7 +19,8 @@ type action =
 
 type ignoreType =
   | Coordinates((int, int), (int, int), size_restriction)
-  | Selector(string, size_restriction);
+  | Selector(string, size_restriction)
+  | SelectorAll(string, size_restriction);
 
 type test = {
   only: bool,

@@ -23,12 +23,25 @@ module Common = {
     };
   };
 
-  let collect_ignore = (~debug, ~size_restriction, selector, x1, y1, x2, y2) => {
-    switch (selector, x1, y1, x2, y2) {
-    | (Some(selector), None, None, None, None) =>
+  let collect_ignore =
+      (
+        ~debug,
+        ~size_restriction,
+        ~selector,
+        ~selector_all,
+        ~x1,
+        ~y1,
+        ~x2,
+        ~y2,
+      ) => {
+    switch (selector_all, selector, x1, y1, x2, y2) {
+    | (Some(selector_all), None, None, None, None, None) =>
+      debug(Printf.sprintf("using selectorAll %S", selector_all));
+      SelectorAll(selector_all, size_restriction) |> Result.ok;
+    | (None, Some(selector), None, None, None, None) =>
       debug(Printf.sprintf("using selector %S", selector));
       Selector(selector, size_restriction) |> Result.ok;
-    | (None, Some(x1), Some(y1), Some(x2), Some(y2)) =>
+    | (None, None, Some(x1), Some(y1), Some(x2), Some(y2)) =>
       debug(
         Printf.sprintf("using coordinates (%i,%i),(%i,%i)", x1, y1, x2, y2),
       );
@@ -115,14 +128,26 @@ module JSON = {
         Result.error(OSnap_Response.Config_Parse_Error(message, None))
       };
 
+    let* selector_all =
+      try(
+        r
+        |> Yojson.Basic.Util.member("selectorAll")
+        |> Yojson.Basic.Util.to_string_option
+        |> Result.ok
+      ) {
+      | Yojson.Basic.Util.Type_error(message, _) =>
+        Result.error(OSnap_Response.Config_Parse_Error(message, None))
+      };
+
     Common.collect_ignore(
       ~debug,
       ~size_restriction,
-      selector,
-      x1,
-      y1,
-      x2,
-      y2,
+      ~selector,
+      ~selector_all,
+      ~x1,
+      ~y1,
+      ~x2,
+      ~y2,
     );
   };
 
@@ -290,14 +315,18 @@ module YAML = {
     let* selector =
       r |> OSnap_Config_Utils.YAML.get_string_option("selector");
 
+    let* selector_all =
+      r |> OSnap_Config_Utils.YAML.get_string_option("selectorAll");
+
     Common.collect_ignore(
       ~debug,
       ~size_restriction,
-      selector,
-      x1,
-      y1,
-      x2,
-      y2,
+      ~selector,
+      ~selector_all,
+      ~x1,
+      ~y1,
+      ~x2,
+      ~y2,
     );
   };
 
