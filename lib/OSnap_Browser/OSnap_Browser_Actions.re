@@ -1,5 +1,6 @@
 open Cdp;
 open OSnap_Browser_Target;
+open Lwt_result.Syntax;
 
 let wait_for = (~timeout=?, ~look_behind=?, ~event, target) => {
   let sessionId = target.sessionId;
@@ -19,31 +20,36 @@ let wait_for = (~timeout=?, ~look_behind=?, ~event, target) => {
   };
 };
 
-let select_element = (~selector, ~sessionId) => {
-  open Commands.DOM;
-  open Lwt_result.Syntax;
+let get_document = target => {
+  let sessionId = target.sessionId;
 
-  let* document =
-    GetDocument.(
-      Request.make(~sessionId, ~params=Params.make())
-      |> OSnap_Websocket.send
-      |> Lwt.map(Response.parse)
-      |> Lwt.map(response => {
-           let error =
-             response.Response.error
-             |> Option.map((error: Response.error) =>
-                  OSnap_Response.CDP_Protocol_Error(error.message)
-                )
-             |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
+  Commands.DOM.GetDocument.(
+    Request.make(~sessionId, ~params=Params.make())
+    |> OSnap_Websocket.send
+    |> Lwt.map(Response.parse)
+    |> Lwt.map(response => {
+         let error =
+           response.Response.error
+           |> Option.map((error: Response.error) =>
+                OSnap_Response.CDP_Protocol_Error(error.message)
+              )
+           |> Option.value(~default=OSnap_Response.CDP_Protocol_Error(""));
 
-           Option.to_result(response.Response.result, ~none=error);
-         })
-    );
+         Option.to_result(response.Response.result, ~none=error);
+       })
+  );
+};
 
-  QuerySelector.(
+let select_element = (~document, ~selector, ~sessionId) => {
+  Commands.DOM.QuerySelector.(
     Request.make(
       ~sessionId,
-      ~params=Params.make(~nodeId=document.root.nodeId, ~selector, ()),
+      ~params=
+        Params.make(
+          ~nodeId=document.Commands.DOM.GetDocument.Response.root.nodeId,
+          ~selector,
+          (),
+        ),
     )
     |> OSnap_Websocket.send
     |> Lwt.map(Response.parse)
@@ -93,7 +99,6 @@ let wait_for_network_idle = (target, ~loaderId) => {
 
 let go_to = (~url, target) => {
   open Commands.Page;
-  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
@@ -130,13 +135,12 @@ let go_to = (~url, target) => {
   };
 };
 
-let type_text = (~selector, ~text, target) => {
+let type_text = (~document, ~selector, ~text, target) => {
   open Commands.DOM;
-  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
-  let* node = select_element(~selector, ~sessionId);
+  let* node = select_element(~document, ~selector, ~sessionId);
 
   let* () =
     Focus.(
@@ -225,13 +229,12 @@ let type_text = (~selector, ~text, target) => {
   };
 };
 
-let get_quads = (~selector, target) => {
+let get_quads = (~document, ~selector, target) => {
   open Commands.DOM;
-  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
-  let* {nodeId} = select_element(~selector, ~sessionId);
+  let* {nodeId} = select_element(~document, ~selector, ~sessionId);
 
   let* result =
     GetContentQuads.(
@@ -265,13 +268,12 @@ let get_quads = (~selector, target) => {
   };
 };
 
-let click = (~selector, target) => {
+let click = (~document, ~selector, target) => {
   open Commands.Input;
-  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
-  let* ((x1, y1), (x2, y2)) = get_quads(~selector, target);
+  let* ((x1, y1), (x2, y2)) = get_quads(~document, ~selector, target);
 
   let x = `Float(x1 +. (x2 -. x1) /. 2.0);
   let y = `Float(y1 +. (y2 -. y1) /. 2.0);
@@ -345,16 +347,14 @@ let click = (~selector, target) => {
   };
 };
 
-let scroll = (~selector, ~px, target) => {
-  open Lwt_result.Syntax;
-
+let scroll = (~document, ~selector, ~px, target) => {
   let sessionId = target.sessionId;
 
   switch (px, selector) {
   | (None, None) => assert(false)
   | (Some(_), Some(_)) => assert(false)
   | (None, Some(selector)) =>
-    let* {nodeId} = select_element(~selector, ~sessionId);
+    let* {nodeId} = select_element(~document, ~selector, ~sessionId);
     Commands.DOM.ScrollIntoViewIfNeeded.(
       Request.make(~sessionId, ~params=Params.make(~nodeId, ()))
       |> OSnap_Websocket.send
@@ -399,7 +399,6 @@ let scroll = (~selector, ~px, target) => {
 
 let get_content_size = target => {
   open Commands.Page;
-  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
@@ -428,7 +427,6 @@ let get_content_size = target => {
 
 let set_size = (~width, ~height, target) => {
   open Commands.Emulation;
-  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
@@ -464,7 +462,6 @@ let set_size = (~width, ~height, target) => {
 
 let screenshot = (~full_size=false, target) => {
   open Commands.Page;
-  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 
@@ -507,7 +504,6 @@ let screenshot = (~full_size=false, target) => {
 
 let clear_cookies = target => {
   open Commands.Storage;
-  open Lwt_result.Syntax;
 
   let sessionId = target.sessionId;
 

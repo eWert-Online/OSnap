@@ -50,43 +50,56 @@ let read_file_contents = (~path) => {
   Lwt_result.return(data);
 };
 
-let rec execute_action = (~global_config, target, size_name, action) => {
+let rec execute_action =
+        (~document, ~global_config, target, size_name, action) => {
   Config.Types.(
     switch (action, size_name) {
     | (Scroll(_, Some(_)), None) => Lwt_result.return()
     | (Scroll(`Selector(selector), None), _) =>
-      target |> Browser.Actions.scroll(~selector=Some(selector), ~px=None)
+      target
+      |> Browser.Actions.scroll(
+           ~document,
+           ~selector=Some(selector),
+           ~px=None,
+         )
     | (Scroll(`PxAmount(px), None), _) =>
-      target |> Browser.Actions.scroll(~selector=None, ~px=Some(px))
+      target
+      |> Browser.Actions.scroll(~document, ~selector=None, ~px=Some(px))
     | (Scroll(`Selector(selector), Some(size_restr)), Some(size_name)) =>
       if (size_restr |> List.mem(size_name)) {
-        target |> Browser.Actions.scroll(~selector=Some(selector), ~px=None);
+        target
+        |> Browser.Actions.scroll(
+             ~document,
+             ~selector=Some(selector),
+             ~px=None,
+           );
       } else {
         Lwt_result.return();
       }
     | (Scroll(`PxAmount(px), Some(size_restr)), Some(size_name)) =>
       if (size_restr |> List.mem(size_name)) {
-        target |> Browser.Actions.scroll(~selector=None, ~px=Some(px));
+        target
+        |> Browser.Actions.scroll(~document, ~selector=None, ~px=Some(px));
       } else {
         Lwt_result.return();
       }
 
     | (Click(_, Some(_)), None) => Lwt_result.return()
     | (Click(selector, None), _) =>
-      target |> Browser.Actions.click(~selector)
+      target |> Browser.Actions.click(~document, ~selector)
     | (Click(selector, Some(size_restr)), Some(size_name)) =>
       if (size_restr |> List.mem(size_name)) {
-        target |> Browser.Actions.click(~selector);
+        target |> Browser.Actions.click(~document, ~selector);
       } else {
         Lwt_result.return();
       }
 
     | (Type(_, _, Some(_)), None) => Lwt_result.return()
     | (Type(selector, text, None), _) =>
-      target |> Browser.Actions.type_text(~selector, ~text)
+      target |> Browser.Actions.type_text(~document, ~selector, ~text)
     | (Type(selector, text, Some(size)), Some(size_name)) =>
       if (size |> List.mem(size_name)) {
-        target |> Browser.Actions.type_text(~selector, ~text);
+        target |> Browser.Actions.type_text(~document, ~selector, ~text);
       } else {
         Lwt_result.return();
       }
@@ -111,7 +124,12 @@ let rec execute_action = (~global_config, target, size_name, action) => {
           Lwt.Infix.(
             actions
             |> Lwt_list.map_s(
-                 execute_action(~global_config, target, Some(size_name)),
+                 execute_action(
+                   ~document,
+                   ~global_config,
+                   target,
+                   Some(size_name),
+                 ),
                )
             >>= Lwt_list.fold_left_s(
                   (acc: Result.t(unit, OSnap_Response.t), curr) =>
@@ -139,7 +157,7 @@ let rec execute_action = (~global_config, target, size_name, action) => {
         Lwt.Infix.(
           actions
           |> Lwt_list.map_s(
-               execute_action(~global_config, target, size_name),
+               execute_action(~document, ~global_config, target, size_name),
              )
           >>= Lwt_list.fold_left_s(
                 (acc: Result.t(unit, OSnap_Response.t), curr) =>
@@ -162,7 +180,7 @@ let rec execute_action = (~global_config, target, size_name, action) => {
   );
 };
 
-let get_ignore_regions = (target, size_name, regions) => {
+let get_ignore_regions = (~document, target, size_name, regions) => {
   Lwt_result.Syntax.(
     Config.Types.(
       regions
@@ -183,7 +201,7 @@ let get_ignore_regions = (target, size_name, regions) => {
            | Coordinates(a, b, _) => Lwt_result.return((a, b))
            | Selector(selector, _) =>
              let* ((x1, y1), (x2, y2)) =
-               target |> Browser.Actions.get_quads(~selector);
+               target |> Browser.Actions.get_quads(~document, ~selector);
              let x1 = Int.of_float(x1);
              let y1 = Int.of_float(y1);
              let x2 = Int.of_float(x2);
@@ -226,10 +244,12 @@ let run = (global_config: Config.Types.global, target, test) => {
     |> Browser.Actions.wait_for_network_idle(~loaderId)
     |> Lwt_result.ok;
 
+  let* document = target |> Browser.Actions.get_document;
+
   let* () =
     test.actions
     |> Lwt_list.map_s(
-         execute_action(~global_config, target, test.size_name),
+         execute_action(~document, ~global_config, target, test.size_name),
        )
     >>= Lwt_list.fold_left_s(
           (acc: Result.t(unit, OSnap_Response.t), curr) =>
@@ -267,7 +287,7 @@ let run = (global_config: Config.Types.global, target, test) => {
     } else {
       let* ignoreRegions =
         test.ignore_regions
-        |> get_ignore_regions(target, test.size_name)
+        |> get_ignore_regions(~document, target, test.size_name)
         >>= Lwt_list.fold_left_s(
               (acc, curr) => {
                 switch (acc, curr) {

@@ -16,19 +16,45 @@ module Target: {
 };
 
 module Actions: {
+  let get_document:
+    Target.target =>
+    Lwt_result.t(
+      Cdp.Commands.DOM.GetDocument.Response.result,
+      OSnap_Response.t,
+    );
+
   let get_quads:
-    (~selector: string, Target.target) =>
+    (
+      ~document: Cdp.Commands.DOM.GetDocument.Response.result,
+      ~selector: string,
+      Target.target
+    ) =>
     Lwt_result.t(((float, float), (float, float)), OSnap_Response.t);
 
   let scroll:
-    (~selector: option(string), ~px: option(int), Target.target) =>
+    (
+      ~document: Cdp.Commands.DOM.GetDocument.Response.result,
+      ~selector: option(string),
+      ~px: option(int),
+      Target.target
+    ) =>
     Lwt_result.t(unit, OSnap_Response.t);
 
   let click:
-    (~selector: string, Target.target) => Lwt_result.t(unit, OSnap_Response.t);
+    (
+      ~document: Cdp.Commands.DOM.GetDocument.Response.result,
+      ~selector: string,
+      Target.target
+    ) =>
+    Lwt_result.t(unit, OSnap_Response.t);
 
   let type_text:
-    (~selector: string, ~text: string, Target.target) =>
+    (
+      ~document: Cdp.Commands.DOM.GetDocument.Response.result,
+      ~selector: string,
+      ~text: string,
+      Target.target
+    ) =>
     Lwt_result.t(unit, OSnap_Response.t);
 
   let wait_for:
