@@ -67,18 +67,19 @@
     "@opam/yojson": "1.7.0",
     "@opam/zarith": "1.11",
     "cdp": "eWert-Online/reason-cdp#5e8421e13ab7aa4386aba0fb0b075a61af20e015",
-    "esy-libpng": "*",
+    "esy-libspng": "eWert-Online/esy-libspng#f9b6e73acd9029143384aa797f7ed9a68cf8b8c8",
     "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117"
   },
   "devDependencies": {
     "@opam/reason": "3.7.0",
     "@opam/dune": "2.9.2",
+    "@opam/dune-configurator": "< 3.0.0",
     "@opam/ocaml-lsp-server": "1.5.0",
     "ocaml": "4.12.0"
   },
   "resolutions": {
     "ocaml": "4.12.0-musl.static.flambda",
-    "esy-libpng": "esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048",
+    "esy-zlib": "esy-packages/esy-zlib#65faba12e4aed539d8fd2444fede2f1136389f6f",
     "@opam/topkg": "1.0.4",
     "@opam/ocamlbuild": "0.14.0",
     "@opam/conf-gmp": "esy-packages/esy-gmp#e27cb300adfb0c0b320c273082c5affafcd225fa",

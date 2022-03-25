@@ -1,48 +1,37 @@
+open Bigarray;
 open Odiff;
 
+type data = Array1.t(int32, int32_elt, c_layout);
+
 module PNG = {
-  type t = Image.image;
-  type row = int;
+  type t = data;
 
-  let loadImage = (data): ImageIO.img(t) => {
-    let image =
-      data |> ImageUtil.chunk_reader_of_string |> ImageLib.PNG.parsefile;
-
-    let width = image.Image.width;
-    let height = image.Image.height;
-
-    {width, height, image};
+  let readDirectPixel = (~x: int, ~y: int, img: ImageIO.img(t)) => {
+    let image: data = img.image;
+    Array1.unsafe_get(image, y * img.width + x);
   };
 
-  let readRow = (_, y) => y;
+  let setImgColor = (~x, ~y, color, img: ImageIO.img(t)) => {
+    let image: data = img.image;
+    Array1.unsafe_set(image, y * img.width + x, color);
+  };
+
+  let loadImage = (buffer): ImageIO.img(t) => {
+    let (width, height, data, _buffer) = ReadPng.read_png_buffer(buffer);
+
+    {width, height, image: data};
+  };
 
   let saveImage = (img: ImageIO.img(t), filename) => {
-    ImageLib.PNG.write(
-      ImageUtil_unix.chunk_writer_of_path(filename),
-      img.image,
-    );
+    WritePng.write_png_bigarray(filename, img.image, img.width, img.height);
   };
 
-  let readDirectPixel = (~x, ~y, img: ImageIO.img(t)) => {
-    Image.read_rgba(img.image, x, y, (r, g, b, a) => {
-      Int32.of_int(a lsl 24 + b lsl 16 + g lsl 8 + r)
-    });
+  let freeImage = (_img: ImageIO.img(t)) => {
+    ();
   };
-
-  let readImgColor = (x, y, img: ImageIO.img(t)) => {
-    readDirectPixel(~x, ~y, img);
-  };
-
-  let setImgColor = (x, y, (r, g, b), img: ImageIO.img(t)) => {
-    Image.write_rgba(img.image, x, y, r, g, b, 255);
-  };
-
-  let freeImage = _ => ();
 
   let makeSameAsLayout = (img: ImageIO.img(t)) => {
-    let image = Image.create_rgb(~alpha=true, img.width, img.height);
-    Image.fill_rgb(image, 0, 0, 0, ~alpha=0);
-
+    let image = Array1.create(int32, c_layout, Array1.dim(img.image));
     {...img, image};
   };
 };

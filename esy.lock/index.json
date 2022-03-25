@@ -1,5 +1,5 @@
 {
-  "checksum": "ceedbe7ff8ff479f325c650686a1f4d9",
+  "checksum": "25f9f58dfd4c48969fe60b4db9d22966",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -55,38 +55,55 @@
       "dependencies": [],
       "devDependencies": []
     },
-    "esy-zlib@github:esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3@d41d8cd9": {
+    "esy-zlib@github:esy-packages/esy-zlib#65faba12e4aed539d8fd2444fede2f1136389f6f@d41d8cd9": {
       "id":
-        "esy-zlib@github:esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3@d41d8cd9",
+        "esy-zlib@github:esy-packages/esy-zlib#65faba12e4aed539d8fd2444fede2f1136389f6f@d41d8cd9",
       "name": "esy-zlib",
       "version":
-        "github:esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
+        "github:esy-packages/esy-zlib#65faba12e4aed539d8fd2444fede2f1136389f6f",
       "source": {
         "type": "install",
         "source": [
-          "github:esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3"
+          "github:esy-packages/esy-zlib#65faba12e4aed539d8fd2444fede2f1136389f6f"
         ]
       },
       "overrides": [],
       "dependencies": [],
       "devDependencies": []
     },
-    "esy-libpng@github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048@d41d8cd9": {
+    "esy-libspng@github:eWert-Online/esy-libspng#f9b6e73acd9029143384aa797f7ed9a68cf8b8c8@d41d8cd9": {
       "id":
-        "esy-libpng@github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048@d41d8cd9",
-      "name": "esy-libpng",
+        "esy-libspng@github:eWert-Online/esy-libspng#f9b6e73acd9029143384aa797f7ed9a68cf8b8c8@d41d8cd9",
+      "name": "esy-libspng",
       "version":
-        "github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048",
+        "github:eWert-Online/esy-libspng#f9b6e73acd9029143384aa797f7ed9a68cf8b8c8",
       "source": {
         "type": "install",
         "source": [
-          "github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048"
+          "github:eWert-Online/esy-libspng#f9b6e73acd9029143384aa797f7ed9a68cf8b8c8"
         ]
       },
       "overrides": [],
       "dependencies": [
-        "esy-zlib@github:esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3@d41d8cd9"
+        "esy-zlib@github:esy-packages/esy-zlib#65faba12e4aed539d8fd2444fede2f1136389f6f@d41d8cd9",
+        "esy-cmake@github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869@d41d8cd9"
       ],
+      "devDependencies": []
+    },
+    "esy-cmake@github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869@d41d8cd9": {
+      "id":
+        "esy-cmake@github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869@d41d8cd9",
+      "name": "esy-cmake",
+      "version":
+        "github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869",
+      "source": {
+        "type": "install",
+        "source": [
+          "github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [],
       "devDependencies": []
     },
     "cdp@github:eWert-Online/reason-cdp#5e8421e13ab7aa4386aba0fb0b075a61af20e015@d41d8cd9": {
@@ -123,7 +140,7 @@
       "overrides": [],
       "dependencies": [
         "odiff-core@github:dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117@d41d8cd9",
-        "esy-libpng@github:esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048@d41d8cd9",
+        "esy-libspng@github:eWert-Online/esy-libspng#f9b6e73acd9029143384aa797f7ed9a68cf8b8c8@d41d8cd9",
         "cdp@github:eWert-Online/reason-cdp#5e8421e13ab7aa4386aba0fb0b075a61af20e015@d41d8cd9",
         "@opam/zarith@opam:1.11@6b66cdc1",
         "@opam/yojson@opam:1.7.0@69d87312", "@opam/yaml@opam:3.0.0@98570461",
@@ -147,6 +164,7 @@
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/reason@opam:3.7.0@5ea7a0b2",
         "@opam/ocaml-lsp-server@opam:1.5.0@a7ce3ad8",
+        "@opam/dune-configurator@opam:2.9.3@174e411b",
         "@opam/dune@opam:2.9.2@f48e8212"
       ]
     },
@@ -1908,20 +1926,20 @@
         "@opam/domain-name@opam:0.4.0@ab0ca2e3"
       ]
     },
-    "@opam/integers@opam:0.6.0@0cc267a8": {
-      "id": "@opam/integers@opam:0.6.0@0cc267a8",
+    "@opam/integers@opam:0.7.0@a2d78a42": {
+      "id": "@opam/integers@opam:0.7.0@a2d78a42",
       "name": "@opam/integers",
-      "version": "opam:0.6.0",
+      "version": "opam:0.7.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/a1/a1e2412f4a0d88757d1a4297f18b374e#md5:a1e2412f4a0d88757d1a4297f18b374e",
-          "archive:https://github.com/ocamllabs/ocaml-integers/archive/0.6.0.tar.gz#md5:a1e2412f4a0d88757d1a4297f18b374e"
+          "archive:https://opam.ocaml.org/cache/md5/20/201cf24143d7cb9a3921d572b6e6c42c#md5:201cf24143d7cb9a3921d572b6e6c42c",
+          "archive:https://github.com/ocamllabs/ocaml-integers/archive/0.7.0.tar.gz#md5:201cf24143d7cb9a3921d572b6e6c42c"
         ],
         "opam": {
           "name": "integers",
-          "version": "0.6.0",
-          "path": "esy.lock/opam/integers.0.6.0"
+          "version": "0.7.0",
+          "path": "esy.lock/opam/integers.0.7.0"
         }
       },
       "overrides": [],
@@ -2394,13 +2412,13 @@
       "dependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
         "@opam/ocamlfind@opam:1.9.3@781b30f3",
-        "@opam/integers@opam:0.6.0@0cc267a8",
+        "@opam/integers@opam:0.7.0@a2d78a42",
         "@opam/bigarray-compat@opam:1.1.0@84cda9d0",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
         "ocaml@4.12.0-musl.static.flambda@d41d8cd9",
-        "@opam/integers@opam:0.6.0@0cc267a8",
+        "@opam/integers@opam:0.7.0@a2d78a42",
         "@opam/bigarray-compat@opam:1.1.0@84cda9d0"
       ]
     },
@@ -2508,7 +2526,7 @@
         }
       ],
       "dependencies": [
-        "esy-zlib@github:esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3@d41d8cd9",
+        "esy-zlib@github:esy-packages/esy-zlib#65faba12e4aed539d8fd2444fede2f1136389f6f@d41d8cd9",
         "@opam/conf-pkg-config@opam:2@85f8644d",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
