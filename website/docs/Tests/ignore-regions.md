@@ -100,3 +100,35 @@ Everything inside these coordinates is ignored.
 </Tabs>
 
 When the element with the given selector is found, everything inside the bounds of the element is ignored.
+
+### Ignoring multiple elements by Selector
+
+#### Options:
+
+- `selectorAll`: A css selector matching all elements which should be ignored.
+
+#### Example:
+
+<Tabs>
+<TabItem value="yaml" label="YAML" default>
+
+```yaml
+- "@": ["xxs", "xs"]
+  selectorAll: ".class-to-ignore"
+```
+
+</TabItem>
+<TabItem value="json" label="JSON">
+
+```json
+[
+  {
+    "@": ["xxs", "xs"],
+    "selectorAll": ".class-to-ignore"
+  }
+]
+```
+
+</TabItem>
+</Tabs>
+
