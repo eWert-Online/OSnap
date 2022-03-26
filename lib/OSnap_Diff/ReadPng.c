@@ -9,22 +9,16 @@
 #include <caml/bigarray.h>
 
 CAMLprim value
-read_png_buffer(value file)
+read_png_buffer(value buffer, value length)
 {
-  CAMLparam1(file);
+  CAMLparam2(buffer, length);
   CAMLlocal2(res, ba);
 
   int result = 0;
-  FILE *png;
   spng_ctx *ctx = NULL;
   unsigned char *out = NULL;
-  const char *filename = String_val(file);
-
-  png = fopen(filename, "rb");
-  if (png == NULL)
-  {
-    caml_failwith("error opening input file");
-  }
+  uint8_t *buf = (uint8_t *)String_val(buffer);
+  size_t buf_len = (size_t)Int_val(length);
 
   ctx = spng_ctx_new(0);
 
@@ -32,7 +26,6 @@ read_png_buffer(value file)
   {
     caml_failwith("spng_ctx_new() failed");
     spng_ctx_free(ctx);
-    free(out);
   }
 
   /* Ignore and don't calculate chunk CRC's */
@@ -43,8 +36,8 @@ read_png_buffer(value file)
   size_t limit = 1024 * 1024 * 64;
   spng_set_chunk_limits(ctx, limit, limit);
 
-  /* Set source PNG */
-  spng_set_png_file(ctx, png);
+  /* Set source PNG Buffer */
+  spng_set_png_buffer(ctx, buf, buf_len);
 
   struct spng_ihdr ihdr;
   result = spng_get_ihdr(ctx, &ihdr);
@@ -53,7 +46,6 @@ read_png_buffer(value file)
   {
     caml_failwith("spng_get_ihdr() error!");
     spng_ctx_free(ctx);
-    free(out);
   }
 
   size_t out_size;

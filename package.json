@@ -35,8 +35,7 @@
         "osnap": "osnap"
       },
       "includePackages": [
-        "root",
-        "esy-libpng"
+        "root"
       ]
     }
   },
@@ -54,7 +53,6 @@
     "@opam/conf-gmp-powm-sec": "2",
     "@opam/fileutils": "0.6.3",
     "@opam/fmt": "0.8.9",
-    "@opam/imagelib": "20210511",
     "@opam/logs": "0.7.0",
     "@opam/lwt": "5.4.2",
     "@opam/lwt_ppx": "2.0.2",
@@ -68,7 +66,7 @@
     "@opam/zarith": "1.11",
     "cdp": "eWert-Online/reason-cdp#5e8421e13ab7aa4386aba0fb0b075a61af20e015",
     "esy-libspng": "eWert-Online/esy-libspng#f9b6e73acd9029143384aa797f7ed9a68cf8b8c8",
-    "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117"
+    "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#cba7252da605755cdb44786952c6e0a3e967a2ac"
   },
   "devDependencies": {
     "@opam/reason": "3.7.0",

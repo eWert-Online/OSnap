@@ -17,7 +17,8 @@ module PNG = {
   };
 
   let loadImage = (buffer): ImageIO.img(t) => {
-    let (width, height, data, _buffer) = ReadPng.read_png_buffer(buffer);
+    let (width, height, data) =
+      ReadPng.read_png_buffer(buffer, String.length(buffer));
 
     {width, height, image: data};
   };
