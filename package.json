@@ -81,6 +81,15 @@
     "@opam/topkg": "1.0.4",
     "@opam/ocamlbuild": "0.14.0",
     "@opam/conf-gmp": "esy-packages/esy-gmp#e27cb300adfb0c0b320c273082c5affafcd225fa",
+    "esy-cmake": {
+      "source": "Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869",
+      "override": {
+        "build": [
+          "./bootstrap --verbose --parallel=4 --prefix=#{self.install} -- -DCMAKE_USE_OPENSSL=OFF",
+          "make -j4"
+        ]
+      }
+    },
     "@opam/camlzip": {
       "source": "rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195",
       "override": {

@@ -1,5 +1,5 @@
 {
-  "checksum": "0fbbdc0827ec42b1c245a42e1b8452a2",
+  "checksum": "5595932d155e0133545d312812b8f264",
   "root": "@space-labs/osnap@link-dev:./package.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -86,13 +86,13 @@
       "overrides": [],
       "dependencies": [
         "esy-zlib@github:esy-packages/esy-zlib#65faba12e4aed539d8fd2444fede2f1136389f6f@d41d8cd9",
-        "esy-cmake@github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869@d41d8cd9"
+        "esy-cmake@github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869@e218c35b"
       ],
       "devDependencies": []
     },
-    "esy-cmake@github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869@d41d8cd9": {
+    "esy-cmake@github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869@e218c35b": {
       "id":
-        "esy-cmake@github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869@d41d8cd9",
+        "esy-cmake@github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869@e218c35b",
       "name": "esy-cmake",
       "version":
         "github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869",
@@ -102,7 +102,14 @@
           "github:Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869"
         ]
       },
-      "overrides": [],
+      "overrides": [
+        {
+          "build": [
+            "./bootstrap --verbose --parallel=4 --prefix=#{self.install} -- -DCMAKE_USE_OPENSSL=OFF",
+            "make -j4"
+          ]
+        }
+      ],
       "dependencies": [],
       "devDependencies": []
     },

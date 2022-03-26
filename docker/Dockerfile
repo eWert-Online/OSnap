@@ -3,7 +3,7 @@ FROM esydev/esy:nightly-alpine-latest as build
 RUN apk add --no-cache --update \
   yarn bash make curl perl-utils git patch gcc g++ \
   linux-headers pkgconfig m4 musl-dev perl \
-  autoconf automake bzip2 bzip2-dev zlib zlib-dev openssl
+  autoconf automake bzip2 bzip2-dev zlib zlib-dev
 
 WORKDIR /usr/app
 
