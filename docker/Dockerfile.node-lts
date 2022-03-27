@@ -1,6 +1,6 @@
-FROM debian:sid
+FROM node:lts-bullseye
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -yq nodejs npm yarn chromium=99.0.4844.74-1 && \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -yq chromium=99.0.4844.74-1~deb11u1 && \
   mkdir -p ~/osnap_chromium_961656/chrome-linux && \
   mv /usr/lib/chromium/* ~/osnap_chromium_961656/chrome-linux && \
   mv ~/osnap_chromium_961656/chrome-linux/chromium ~/osnap_chromium_961656/chrome-linux/chrome && \
