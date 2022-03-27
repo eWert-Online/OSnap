@@ -32,7 +32,7 @@ functions:
       selector: "#search_input_react"
       text: Let
     - action: wait
-      timeout: 200
+      timeout: 1000
     - "@": [xl, l, m, s]
       action: click
       selector: ".algolia-docsearch-suggestion--title"

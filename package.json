@@ -35,8 +35,7 @@
         "osnap": "osnap"
       },
       "includePackages": [
-        "root",
-        "esy-libpng"
+        "root"
       ]
     }
   },
@@ -54,7 +53,6 @@
     "@opam/conf-gmp-powm-sec": "2",
     "@opam/fileutils": "0.6.3",
     "@opam/fmt": "0.8.9",
-    "@opam/imagelib": "20210511",
     "@opam/logs": "0.7.0",
     "@opam/lwt": "5.4.2",
     "@opam/lwt_ppx": "2.0.2",
@@ -67,21 +65,31 @@
     "@opam/yojson": "1.7.0",
     "@opam/zarith": "1.11",
     "cdp": "eWert-Online/reason-cdp#5e8421e13ab7aa4386aba0fb0b075a61af20e015",
-    "esy-libpng": "*",
-    "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#347f5ac44f6f506b9ca5c96c9fa1c23585a38117"
+    "esy-libspng": "eWert-Online/esy-libspng#f9b6e73acd9029143384aa797f7ed9a68cf8b8c8",
+    "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#cba7252da605755cdb44786952c6e0a3e967a2ac"
   },
   "devDependencies": {
     "@opam/reason": "3.7.0",
     "@opam/dune": "2.9.2",
+    "@opam/dune-configurator": "< 3.0.0",
     "@opam/ocaml-lsp-server": "1.5.0",
     "ocaml": "4.12.0"
   },
   "resolutions": {
     "ocaml": "4.12.0-musl.static.flambda",
-    "esy-libpng": "esy-packages/esy-libpng#d846df4a8547b3299c7627773008bd97543d7048",
+    "esy-zlib": "esy-packages/esy-zlib#65faba12e4aed539d8fd2444fede2f1136389f6f",
     "@opam/topkg": "1.0.4",
     "@opam/ocamlbuild": "0.14.0",
     "@opam/conf-gmp": "esy-packages/esy-gmp#e27cb300adfb0c0b320c273082c5affafcd225fa",
+    "esy-cmake": {
+      "source": "Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869",
+      "override": {
+        "build": [
+          "./bootstrap --verbose --parallel=4 --prefix=#{self.install} -- -DCMAKE_USE_OPENSSL=OFF",
+          "make -j4"
+        ]
+      }
+    },
     "@opam/camlzip": {
       "source": "rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195",
       "override": {

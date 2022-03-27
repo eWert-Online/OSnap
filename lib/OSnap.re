@@ -187,10 +187,11 @@ let run = t => {
   let debug = Logger.debug(~header="RUN");
   let {tests_to_run, all_tests, config, start_time, browser} = t;
 
-  debug(Printf.sprintf("creating pool of %i runners", config.parallelism));
+  let parallelism = max(1, config.parallelism);
+  debug(Printf.sprintf("creating pool of %i runners", parallelism));
   let pool =
     Lwt_pool.create(
-      config.parallelism,
+      parallelism,
       () => Browser.Target.make(browser),
       ~validate=target => Lwt.return(Result.is_ok(target)),
     );
