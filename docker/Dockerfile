@@ -10,16 +10,16 @@ WORKDIR /usr/app
 COPY ./package.json .
 COPY ./esy.lock .
 
-RUN esy install --ocaml-pkg-name ocaml --ocaml-version 4.12.0-musl.static.flambda && \
-  esy build-dependencies --ocaml-pkg-name ocaml --ocaml-version 4.12.0-musl.static.flambda
+RUN esy install --ocaml-pkg-name ocaml --ocaml-version 4.14.0 && \
+  esy build-dependencies --ocaml-pkg-name ocaml --ocaml-version 4.14.0
 
 COPY . .
 
 RUN git -C /usr/app apply /usr/app/static.patch
 
-RUN esy install --ocaml-pkg-name ocaml --ocaml-version 4.12.0-musl.static.flambda
+RUN esy install --ocaml-pkg-name ocaml --ocaml-version 4.14.0
 
-RUN esy release --static --ocaml-pkg-name ocaml --ocaml-version 4.12.0-musl.static.flambda
+RUN esy release --static --ocaml-pkg-name ocaml --ocaml-version 4.14.0
 
 RUN yarn global remove esy && \
   rm -rf /usr/local/share/.cache/yarn && \
