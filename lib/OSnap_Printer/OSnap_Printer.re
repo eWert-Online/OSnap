@@ -37,34 +37,59 @@ let success_message = (~name, ~width, ~height) => {
   );
 };
 
-let layout_message = (~name, ~width, ~height) => {
-  Fmt.pr(
-    "%a\t%s %a @.",
-    styled(`Bold, styled(`Red, string)),
-    "FAIL",
-    test_name(~name, ~width, ~height),
-    styled(`Red, string),
-    "Images have different layout.",
-  );
-};
+let layout_message = (~print_head, ~name, ~width, ~height) =>
+  if (print_head) {
+    Fmt.pr(
+      "%a\t%s %a @.",
+      styled(`Bold, styled(`Red, string)),
+      "FAIL",
+      test_name(~name, ~width, ~height),
+      styled(`Red, string),
+      "Images have different layout.",
+    );
+  } else {
+    Fmt.pr(
+      "%s %a @.",
+      test_name(~name, ~width, ~height),
+      styled(`Red, string),
+      "Images have different layout.",
+    );
+  };
 
-let diff_message = (~name, ~width, ~height, ~diffCount, ~diffPercentage) => {
-  Fmt.pr(
-    "%a\t%s %a @.",
-    styled(`Bold, styled(`Red, string)),
-    "FAIL",
-    test_name(~name, ~width, ~height),
-    styled(`Red, string),
-    Printf.sprintf("Different pixels: %i (%f%%)", diffCount, diffPercentage),
-  );
-};
+let diff_message =
+    (~print_head, ~name, ~width, ~height, ~diffCount, ~diffPercentage) =>
+  if (print_head) {
+    Fmt.pr(
+      "%a\t%s %a @.",
+      styled(`Bold, styled(`Red, string)),
+      "FAIL",
+      test_name(~name, ~width, ~height),
+      styled(`Red, string),
+      Printf.sprintf(
+        "Different pixels: %i (%f%%)",
+        diffCount,
+        diffPercentage,
+      ),
+    );
+  } else {
+    Fmt.pr(
+      "%s %a @.",
+      test_name(~name, ~width, ~height),
+      styled(`Red, string),
+      Printf.sprintf(
+        "Different pixels: %i (%f%%)",
+        diffCount,
+        diffPercentage,
+      ),
+    );
+  };
 
 let stats =
     (
       ~test_count,
       ~create_count,
       ~passed_count,
-      ~failed_count,
+      ~failed_tests,
       ~skipped_count,
       ~seconds,
     ) => {
@@ -146,6 +171,7 @@ let stats =
     "Snapshots passed",
   );
 
+  let failed_count = List.length(failed_tests);
   if (failed_count > 0) {
     Fmt.pr(
       "%a %a @.",
@@ -154,5 +180,22 @@ let stats =
       styled(`Bold, styled(`Red, string)),
       "Snapshots failed",
     );
+
+    Fmt.pr("\n%a\n@.", styled(`Bold, string), "Summary of failed tests:");
+    failed_tests
+    |> List.iter(
+         fun
+         | `Failed(`Layout(name, width, height)) =>
+           layout_message(~print_head=false, ~name, ~width, ~height)
+         | `Failed(`Pixel(name, width, height, diffCount, diffPercentage)) =>
+           diff_message(
+             ~print_head=false,
+             ~name,
+             ~width,
+             ~height,
+             ~diffCount,
+             ~diffPercentage,
+           ),
+       );
   };
 };

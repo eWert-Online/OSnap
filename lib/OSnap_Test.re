@@ -327,14 +327,18 @@ let run = (global_config: Config.Types.global, target, test) => {
         Lwt_result.return(`Passed);
       | Error(Layout) =>
         Printer.layout_message(
+          ~print_head=true,
           ~name=test.name,
           ~width=test.width,
           ~height=test.height,
         );
         let* () = save_screenshot(screenshot, ~path=updated_snapshot);
-        Lwt_result.return(`Failed);
+        Lwt_result.return(
+          `Failed(`Layout((test.name, test.width, test.height))),
+        );
       | Error(Pixel(diffCount, diffPercentage)) =>
         Printer.diff_message(
+          ~print_head=true,
           ~name=test.name,
           ~width=test.width,
           ~height=test.height,
@@ -342,7 +346,17 @@ let run = (global_config: Config.Types.global, target, test) => {
           ~diffPercentage,
         );
         let* () = save_screenshot(screenshot, ~path=updated_snapshot);
-        Lwt_result.return(`Failed);
+        Lwt_result.return(
+          `Failed(
+            `Pixel((
+              test.name,
+              test.width,
+              test.height,
+              diffCount,
+              diffPercentage,
+            )),
+          ),
+        );
       };
     };
   };

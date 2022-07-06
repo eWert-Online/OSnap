@@ -231,23 +231,28 @@ let run = t => {
     test_results |> List.filter(r => r == `Created) |> List.length;
   let passed_count =
     test_results |> List.filter(r => r == `Passed) |> List.length;
-  let failed_count =
-    test_results |> List.filter(r => r == `Failed) |> List.length;
+  let failed_tests =
+    test_results
+    |> List.filter_map(
+         fun
+         | `Passed
+         | `Created => None
+         | `Failed(_) as r => Some(r),
+       );
   let test_count = tests_to_run |> List.length;
 
   Printer.stats(
     ~test_count,
     ~create_count,
     ~passed_count,
-    ~failed_count,
+    ~failed_tests,
     ~skipped_count=List.length(all_tests) - test_count,
     ~seconds,
   );
 
-  if (failed_count == 0) {
-    Lwt_result.return();
-  } else {
-    Lwt_result.fail(OSnap_Response.Test_Failure);
+  switch (failed_tests) {
+  | [] => Lwt_result.fail(OSnap_Response.Test_Failure)
+  | _ => Lwt_result.return()
   };
 };
 
