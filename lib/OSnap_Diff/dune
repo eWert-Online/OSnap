@@ -1,12 +1,7 @@
 (library
  (name OSnap_Diff)
  (flags
-  (:standard
-   -w
-   +A-42-48-66-40
-   -warn-error
-   +A-3-44-66-40
-   (:include png_flags.sexp)))
+  (:include png_flags.sexp))
  (foreign_stubs
   (language c)
   (names ReadPng)

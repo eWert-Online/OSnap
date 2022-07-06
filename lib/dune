@@ -1,7 +1,5 @@
 (library
  (name OSnap)
- (flags
-  (:standard -w +A-42-48-66-40 -warn-error +A-3-44-66-40))
  (ocamlopt_flags -O3)
  (libraries
   OSnap_Response
