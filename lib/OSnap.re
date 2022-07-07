@@ -251,8 +251,8 @@ let run = t => {
   );
 
   switch (failed_tests) {
-  | [] => Lwt_result.fail(OSnap_Response.Test_Failure)
-  | _ => Lwt_result.return()
+  | [] => Lwt_result.return()
+  | _ => Lwt_result.fail(OSnap_Response.Test_Failure)
   };
 };
 
