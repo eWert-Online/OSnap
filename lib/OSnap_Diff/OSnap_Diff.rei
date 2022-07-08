@@ -1,4 +1,5 @@
 type failState =
+  | Io
   | Pixel(int, float)
   | Layout;
 

@@ -338,6 +338,16 @@ let run = (global_config: Config.Types.global, target, test) => {
           ~height=test.height,
         );
         Lwt_result.return(`Passed);
+      | Error(Io) =>
+        Printer.corrupted_message(
+          ~print_head=true,
+          ~name=test.name,
+          ~width=test.width,
+          ~height=test.height,
+        );
+        Lwt_result.return(
+          `Failed(`Io((test.name, test.width, test.height))),
+        );
       | Error(Layout) =>
         Printer.layout_message(
           ~print_head=true,

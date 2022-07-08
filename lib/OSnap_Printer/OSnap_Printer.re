@@ -84,6 +84,25 @@ let diff_message =
     );
   };
 
+let corrupted_message = (~print_head, ~name, ~width, ~height) =>
+  if (print_head) {
+    Fmt.pr(
+      "%a\t%s %a @.",
+      styled(`Bold, styled(`Red, string)),
+      "FAIL",
+      test_name(~name, ~width, ~height),
+      styled(`Red, string),
+      "The base image for this test is corrupted. Please regenerate the snapshot by deleting the current base image!",
+    );
+  } else {
+    Fmt.pr(
+      "%s %a @.",
+      test_name(~name, ~width, ~height),
+      styled(`Red, string),
+      "The base image for this test is corrupted. Please regenerate the snapshot by deleting the current base image!",
+    );
+  };
+
 let stats =
     (
       ~test_count,
@@ -185,6 +204,8 @@ let stats =
     failed_tests
     |> List.iter(
          fun
+         | `Failed(`Io(name, width, height)) =>
+           corrupted_message(~print_head=false, ~name, ~width, ~height)
          | `Failed(`Layout(name, width, height)) =>
            layout_message(~print_head=false, ~name, ~width, ~height)
          | `Failed(`Pixel(name, width, height, diffCount, diffPercentage)) =>

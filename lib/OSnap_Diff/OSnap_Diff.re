@@ -1,8 +1,10 @@
 module Io = OSnap_Diff_Io;
 module Diff = Odiff.Diff.MakeDiff(Io.PNG, Io.PNG);
 open Bigarray;
+let ( let* ) = Result.bind;
 
 type failState =
+  | Io
   | Pixel(int, float)
   | Layout;
 
@@ -16,7 +18,10 @@ let diff =
       ~new_image_data,
       (),
     ) => {
-  let original_image = Io.PNG.loadImage(original_image_data);
+  let* original_image =
+    try(Io.PNG.loadImage(original_image_data) |> Result.ok) {
+    | _ => Result.error(Io)
+    };
   let new_image = Io.PNG.loadImage(new_image_data);
 
   Diff.diff(
