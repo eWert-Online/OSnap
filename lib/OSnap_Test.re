@@ -231,8 +231,12 @@ let get_ignore_regions = (~document, target, size_name, regions) => {
   );
 };
 
-let get_filename = (name, width, height) =>
-  Printf.sprintf("/%s_%ix%i.png", name, width, height);
+let get_filename = (~diff=false, name, width, height) =>
+  if (diff) {
+    Printf.sprintf("/diff_%s_%ix%i.png", name, width, height);
+  } else {
+    Printf.sprintf("/%s_%ix%i.png", name, width, height);
+  };
 
 let run = (global_config: Config.Types.global, target, test) => {
   open Lwt_result.Syntax;
@@ -241,10 +245,12 @@ let run = (global_config: Config.Types.global, target, test) => {
   let dirs = OSnap_Paths.get(global_config);
 
   let filename = get_filename(test.name, test.width, test.height);
+  let diff_filename =
+    get_filename(~diff=true, test.name, test.width, test.height);
   let url = global_config.base_url ++ test.url;
   let base_snapshot = dirs.base ++ filename;
   let updated_snapshot = dirs.updated ++ filename;
-  let diff_image = dirs.diff ++ filename;
+  let diff_image = dirs.diff ++ diff_filename;
 
   let* () = target |> Browser.Actions.clear_cookies;
 
@@ -268,7 +274,7 @@ let run = (global_config: Config.Types.global, target, test) => {
     target
     |> Browser.Actions.mousemove(
          ~document,
-         ~to_=`Coordinates((`Int(0), `Int(0))),
+         ~to_=`Coordinates((`Int(-100), `Int(-100))),
        );
 
   let* () =
