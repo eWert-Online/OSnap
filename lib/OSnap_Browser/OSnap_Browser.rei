@@ -48,6 +48,17 @@ module Actions: {
     ) =>
     Lwt_result.t(unit, OSnap_Response.t);
 
+  let mousemove:
+    (
+      ~document: Cdp.Commands.DOM.GetDocument.Response.result,
+      ~to_: [
+              | `Selector(string)
+              | `Coordinates(Cdp.Types.number, Cdp.Types.number)
+            ],
+      Target.target
+    ) =>
+    Lwt_result.t(unit, OSnap_Response.t);
+
   let click:
     (
       ~document: Cdp.Commands.DOM.GetDocument.Response.result,

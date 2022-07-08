@@ -349,6 +349,33 @@ let get_quads = (~document, ~selector, target) => {
   };
 };
 
+let mousemove = (~document, ~to_, target) => {
+  open Commands.Input;
+
+  let sessionId = target.sessionId;
+
+  let* (x, y) =
+    switch (to_) {
+    | `Selector(selector) =>
+      let* ((x1, y1), (x2, y2)) = get_quads(~document, ~selector, target);
+
+      let x = `Float(x1 +. (x2 -. x1) /. 2.0);
+      let y = `Float(y1 +. (y2 -. y1) /. 2.0);
+      Lwt_result.return((x, y));
+    | `Coordinates(x, y) => Lwt_result.return((x, y))
+    };
+
+  DispatchMouseEvent.(
+    Request.make(
+      ~sessionId,
+      ~params=Params.make(~x, ~y, ~type_=`mouseMoved, ()),
+    )
+    |> OSnap_Websocket.send
+    |> Lwt.map(ignore)
+    |> Lwt_result.ok
+  );
+};
+
 let click = (~document, ~selector, target) => {
   open Commands.Input;
 
@@ -359,16 +386,7 @@ let click = (~document, ~selector, target) => {
   let x = `Float(x1 +. (x2 -. x1) /. 2.0);
   let y = `Float(y1 +. (y2 -. y1) /. 2.0);
 
-  let* () =
-    DispatchMouseEvent.(
-      Request.make(
-        ~sessionId,
-        ~params=Params.make(~x, ~y, ~type_=`mouseMoved, ()),
-      )
-      |> OSnap_Websocket.send
-      |> Lwt.map(ignore)
-      |> Lwt_result.ok
-    );
+  let* () = mousemove(~document, ~to_=`Coordinates((x, y)), target);
 
   let* _ =
     DispatchMouseEvent.(

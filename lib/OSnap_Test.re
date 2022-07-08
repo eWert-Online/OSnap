@@ -265,6 +265,13 @@ let run = (global_config: Config.Types.global, target, test) => {
   let* document = target |> Browser.Actions.get_document;
 
   let* () =
+    target
+    |> Browser.Actions.mousemove(
+         ~document,
+         ~to_=`Coordinates((`Int(0), `Int(0))),
+       );
+
+  let* () =
     test.actions
     |> Lwt_list.map_s(
          execute_action(~document, ~global_config, target, test.size_name),
