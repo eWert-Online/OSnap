@@ -3,7 +3,7 @@ name: Publish to npm / Docker
 on:
   push:
     branches:
-      - "**"
+      - '**'
   release:
     types: [prereleased, released]
 
@@ -19,7 +19,7 @@ jobs:
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
       # Checkout the projects sources
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -38,18 +38,17 @@ jobs:
       - name: Get packages from container
         run: |
           docker create -ti --name build osnap:build sh
-          docker cp build:/usr/app/_release ./_release
-          docker cp build:/usr/local ./_build
+          docker cp build:/usr/app/_build ./_build
           docker rm -f build
 
       - name: Tar static build
         run: |
           tar -cvf static-build.tar _build
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: static-build
-          path: static-build.tar
+      - name: Move binary
+        run: |
+          mkdir -p _release/bin
+          mv _build/default/bin/Main.exe _release/bin/osnap
 
       # Upload the npm package as an artifact
       - uses: actions/upload-artifact@v2
@@ -65,35 +64,28 @@ jobs:
         os:
           - windows-latest
           - macOS-latest
+        ocaml-compiler:
+          - 4.14.x
     runs-on: ${{ matrix.os }}
     steps:
-      # Setup node to install esy
-      - uses: actions/setup-node@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v2
         with:
-          node-version: 14
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
-      # Install esy globally
-      - name: Install esy
+      - name: Install dependencies
+        run: opam install . --deps-only --with-test --yes
+
+      - name: Build OSnap
+        run: opam exec -- dune build -p osnap --profile=release
+
+      - name: Move binary
         run: |
-          npm install -g @esy-nightly/esy
-
-      # Checkout the projects sources
-      - uses: actions/checkout@v2
-
-      # Add an esyrc to set the cache path for esy.
-      # We do this because of this issue with esy: https://github.com/esy/esy/issues/1083
-      - name: Add esyrc
-        run: |
-          echo '{ "prefixPath": ".esy" }' > .esyrc
-
-      - uses: esy/github-action@master
-        with:
-          cache-key: ${{ matrix.os }}-${{ hashFiles('esy.lock/index.json') }}
-          esy-prefix: .esy
-
-      # Create the NPM package for this platform
-      - name: Create npm package
-        run: esy release
+          mkdir -p _release/bin
+          mv _build/default/bin/Main.exe _release/bin/osnap
 
       # Upload the npm package as an artifact
       - uses: actions/upload-artifact@v2
@@ -137,8 +129,11 @@ jobs:
           name: macOS-latest
           path: macOS-latest
 
+      - name: Prepare _release directory
+        run: node .github/workflows/bundle-release.js
+
       # Move artifacts in place
-      - name: Move artifacts
+      - name: Move artifacts into release
         run: |
           mkdir -p _release/platform-linux
           mkdir -p _release/platform-windows-x64
@@ -146,9 +141,6 @@ jobs:
           cp -a ubuntu-latest/. _release/platform-linux
           cp -a windows-latest/. _release/platform-windows-x64
           cp -a macOS-latest/. _release/platform-darwin
-
-      - name: Prepare package
-        run: node .github/workflows/bundle-release.js
 
       - name: Increment nightly version
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -225,14 +217,19 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: npm publish prerelease
-        if: ${{ github.event_name == 'release' }}
-        run: npm publish ./osnap.tgz --tag=next --access=public
+        if: ${{ github.event_name == 'release' && github.event.release.prerelease }}
+        run: |
+          npm publish ./osnap.tgz --tag=next --access=public
+          npm dist-tag add @space-labs/osnap@$(npm pkg get version | sed 's/"//g') nightly
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: npm publish
         if: ${{ github.event_name == 'release' && !github.event.release.prerelease }}
-        run: npm publish ./osnap.tgz --tag=latest --access=public
+        run: |
+          npm publish ./osnap.tgz --tag=latest --access=public
+          npm dist-tag add @space-labs/osnap@$(npm pkg get version | sed 's/"//g') next
+          npm dist-tag add @space-labs/osnap@$(npm pkg get version | sed 's/"//g') nightly
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -253,28 +250,24 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-      - uses: actions/checkout@v2
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: static-build
-          path: .
-
-      - name: Extract Artifacts
-        run: |
-          tar -xvf static-build.tar
-
-      - name: List binaries
-        run: |
-          ls -lah ./_build/bin
-          ls -lah ./_build/share/.config/yarn/global/node_modules/.bin
-          ls -lah ./_build/share/.config/yarn/global/node_modules/@space-labs/osnap/bin
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: ubuntu-latest
+          path: ./_build
+
+      # - name: List binaries
+      #   run: |
+      #     ls -lah ./_build/bin
+      #     ls -lah ./_build/share/.config/yarn/global/node_modules/.bin
+      #     ls -lah ./_build/share/.config/yarn/global/node_modules/@space-labs/osnap/bin
 
       - name: Login to DockerHub
         uses: docker/login-action@v1

@@ -126,7 +126,7 @@ let default_cmd = {
 
       try%lwt(
         OSnap.run(t)
-        |> Lwt_result.map_err(e => {
+        |> Lwt_result.map_error(e => {
              let () = OSnap.teardown(t);
              e;
            })
@@ -150,7 +150,7 @@ let default_cmd = {
       $ config
       $ setup_log
     ),
-    Term.info(
+    Cmd.info(
       "osnap",
       ~man=[
         `S(Manpage.s_description),
@@ -169,11 +169,11 @@ let default_cmd = {
         ),
       ],
       ~exits=
-        Term.[
-          exit_info(0, ~doc="on success"),
-          exit_info(1, ~doc="on failed test runs"),
-          exit_info(124, ~doc="on command line parsing errors."),
-          exit_info(125, ~doc="on unexpected internal errors."),
+        Cmd.Exit.[
+          info(0, ~doc="on success"),
+          info(1, ~doc="on failed test runs"),
+          info(124, ~doc="on command line parsing errors."),
+          info(125, ~doc="on unexpected internal errors."),
         ],
     ),
   );
@@ -186,7 +186,7 @@ let cleanup_cmd = {
 
   (
     Term.(const(exec) $ config),
-    Term.info(
+    Cmd.info(
       "cleanup",
       ~man=[
         `S(Manpage.s_description),
@@ -198,10 +198,10 @@ let cleanup_cmd = {
         ),
       ],
       ~exits=
-        Term.[
-          exit_info(0, ~doc="on success"),
-          exit_info(124, ~doc="on command line parsing errors."),
-          exit_info(125, ~doc="on unexpected internal errors."),
+        Cmd.Exit.[
+          info(0, ~doc="on success"),
+          info(124, ~doc="on command line parsing errors."),
+          info(125, ~doc="on unexpected internal errors."),
         ],
     ),
   );
@@ -226,7 +226,7 @@ let download_chromium_cmd = {
 
   (
     Term.(const(exec) $ const()),
-    Term.info(
+    Cmd.info(
       "download-chromium",
       ~man=[
         `S(Manpage.s_description),
@@ -237,15 +237,19 @@ let download_chromium_cmd = {
         ),
       ],
       ~exits=
-        Term.[
-          exit_info(0, ~doc="on success"),
-          exit_info(124, ~doc="on command line parsing errors."),
-          exit_info(125, ~doc="on unexpected internal errors."),
+        Cmd.Exit.[
+          info(0, ~doc="on success"),
+          info(124, ~doc="on command line parsing errors."),
+          info(125, ~doc="on unexpected internal errors."),
         ],
     ),
   );
 };
 
-let cmds = [cleanup_cmd, download_chromium_cmd];
+let cmds = [
+  Cmd.v(snd(cleanup_cmd), fst(cleanup_cmd)),
+  Cmd.v(snd(download_chromium_cmd), fst(download_chromium_cmd)),
+];
 
-let () = Term.eval_choice(default_cmd, cmds) |> Term.exit_status;
+let (default, info) = default_cmd;
+Cmd.eval'(Cmd.group(~default, info, cmds));

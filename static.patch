@@ -1,11 +1,11 @@
 diff --git a/bin/dune b/bin/dune
-index 5a34caf..4fe5dbb 100644
+index b1363fb..8cf38ba 100644
 --- a/bin/dune
 +++ b/bin/dune
-@@ -2,6 +2,8 @@
-  (name Main)
+@@ -3,6 +3,8 @@
   (modules Main)
   (public_name osnap)
+  (package osnap)
 + (flags
 +  (-ccopt -static))
   (ocamlopt_flags -O3)

@@ -126,16 +126,15 @@ let connect = url => {
 
   let%lwt endpoint = Resolver_lwt.resolve_uri(~uri, Resolver_lwt_unix.system);
 
+  let default_context = Lazy.force(Conduit_lwt_unix.default_ctx);
   let%lwt client =
-    endpoint
-    |> Conduit_lwt_unix.endp_to_client(~ctx=Conduit_lwt_unix.default_ctx);
+    endpoint |> Conduit_lwt_unix.endp_to_client(~ctx=default_context);
 
-  let%lwt (recv, send) =
-    Websocket_lwt_unix.with_connection(
-      ~ctx=Conduit_lwt_unix.default_ctx,
-      client,
-      uri,
-    );
+  let%lwt conn =
+    Websocket_lwt_unix.connect(~ctx=default_context, client, uri);
+
+  let recv = () => Websocket_lwt_unix.read(conn);
+  let send = Websocket_lwt_unix.write(conn);
 
   websocket_handler(recv, send);
 };
