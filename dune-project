@@ -24,7 +24,6 @@
    (and
     (>= 4.14.0)
     (< 5.0.0)))
-  ocaml-option-flambda
   reason
   dune
   ocaml-lsp-server

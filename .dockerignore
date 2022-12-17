@@ -1,5 +1,6 @@
 .merlin
 node_modules/
+_build
 _opam
 *.byte
 *.native

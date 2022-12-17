@@ -7,8 +7,11 @@ RUN sudo apk add --no-cache --update \
 
 WORKDIR /usr/app
 
-COPY . .
+COPY ./osnap.opam .
 
-RUN opam install . --with-test --yes
+RUN opam install . --with-test --yes && \
+  eval $(opam env)
+
+COPY . .
 
 RUN opam exec -- dune build -p osnap --profile=static
