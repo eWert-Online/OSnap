@@ -57,7 +57,6 @@ jobs:
           path: _release/
 
   build-platform:
-    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/master' }}
     strategy:
       fail-fast: false
       matrix:
