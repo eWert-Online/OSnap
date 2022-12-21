@@ -20,20 +20,17 @@
  (synopsis
   "The speedy and easy to use snapshot testing tool for your project!")
  (depends
-  (ocaml
-   (and
-    (>= 4.14.0)
-    (< 5.0.0)))
+  ocaml
   reason
   dune
   ocaml-lsp-server
   ocamlformat
   base64
-  camlzip
   cdp
   cmdliner
   cohttp
   cohttp-lwt-unix
+  decompress
   fileutils
   fmt
   libspng
@@ -54,10 +51,7 @@
  (synopsis
   "A resolver for the current available chromium version across all platforms")
  (depends
-  (ocaml
-   (and
-    (>= 4.14.0)
-    (< 5.0.0)))
+  ocaml
   reason
   dune
   ocaml-lsp-server

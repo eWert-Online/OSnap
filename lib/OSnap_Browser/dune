@@ -6,9 +6,9 @@
   OSnap_Logger
   OSnap_Websocket
   cdp
-  camlzip
   cohttp
   cohttp-lwt-unix
+  decompress.zl
   fileutils
   lwt)
  (preprocess

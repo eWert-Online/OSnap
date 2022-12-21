@@ -14,8 +14,8 @@ let main c =
           let new_pkg_config_path =
             let prefix = String.trim (C.Process.run_capture_exn c brew [ "--prefix" ]) in
             let p = Printf.sprintf "%s/opt/%s/lib/pkgconfig" prefix lib in
-            print_endline p;
-            if Sys.is_directory p then Some p else None
+            try if Sys.is_directory p then Some p else None with
+            | _ -> None
           in
           new_pkg_config_path
           |> Option.map (fun new_pkg_config_path ->
@@ -43,4 +43,4 @@ let main c =
   C.Flags.write_sexp "png_flags.sexp" [ "-cclib"; libspng ]
 ;;
 
-C.main ~name:"odiff-c-lib-package-resolver" main
+C.main ~name:"c-lib-package-resolver" main

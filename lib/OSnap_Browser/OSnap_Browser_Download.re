@@ -62,7 +62,7 @@ let download = (~revision, dir) => {
 
 let extract_zip = (~dest="", source) => {
   let extract_entry = (in_file, entry: Zip.entry) => {
-    let out_file = Filename.concat(dest, entry.filename);
+    let out_file = Filename.concat(dest, entry.name);
     if (entry.is_directory && !Sys.file_exists(out_file)) {
       FileUtil.mkdir(~parent=true, ~mode=`Octal(511), out_file);
     } else {
@@ -77,10 +77,6 @@ let extract_zip = (~dest="", source) => {
         {
           Zip.copy_entry_to_channel(in_file, entry, oc);
           close_out(oc);
-          try(Unix.utimes(out_file, entry.mtime, entry.mtime)) {
-          | Unix.Unix_error(_, _, _)
-          | Invalid_argument(_) => ()
-          };
         }
       ) {
       | err =>
