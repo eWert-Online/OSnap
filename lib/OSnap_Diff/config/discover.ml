@@ -30,6 +30,8 @@ let main c =
       in
       C.Process.run_capture_exn c ?env pkgcfg [ lib; "--variable=" ^ dir ]
   in
+  Sys.getenv_opt "OPAM_SWITCH_PREFIX" |> Option.iter print_endline;
+  Unix.environment () |> Array.iter print_endline;
   let spng_lib_path = get_path "libspng" "libdir" |> String.trim in
   let spng_include_path = get_path "libspng" "includedir" |> String.trim in
   let libspng = spng_lib_path ^ "/libspng_static.a" in

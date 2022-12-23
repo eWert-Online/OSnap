@@ -19,16 +19,17 @@ RUN sudo apk add --no-cache --update \
   linux-headers pkgconfig m4 musl-dev perl \
   autoconf automake bzip2-dev gmp-dev
 
+COPY --from=zlib-build /lib/libz.a /lib/libz.a
+COPY --from=zlib-build /usr/lib/pkgconfig/zlib.pc /usr/lib/pkgconfig/zlib.pc
+COPY --from=zlib-build /usr/include/zlib.h /usr/include/zlib.h
+COPY --from=zlib-build /usr/include/zconf.h /usr/include/zconf.h
+
 WORKDIR /usr/app
 
 COPY ./osnap.opam .
 
 RUN opam install . --with-test --yes && \
   eval $(opam env)
-
-COPY --from=zlib-build /lib/libz.a /lib/libz.a
-COPY --from=zlib-build /usr/lib/pkgconfig/zlib.pc /usr/lib/pkgconfig/zlib.pc
-COPY --from=zlib-build /usr/include/zlib.h /usr/include/zlib.h
 
 COPY . .
 
