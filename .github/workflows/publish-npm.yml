@@ -78,9 +78,6 @@ jobs:
       - name: Install dependencies
         run: opam install . --deps-only --with-test --yes
 
-      - name: Print env
-        run: env
-
       - name: Build OSnap
         run: opam exec -- dune build -p osnap --profile=release
 

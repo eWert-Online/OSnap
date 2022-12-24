@@ -28,6 +28,7 @@ let main c =
                ])
         | _ -> None
       in
+      C.Process.run_capture_exn c ?env pkgcfg [ "--list-all" ] |> print_endline;
       C.Process.run_capture_exn c ?env pkgcfg [ lib; "--variable=" ^ dir ]
   in
   Sys.getenv_opt "OPAM_SWITCH_PREFIX" |> Option.iter print_endline;
