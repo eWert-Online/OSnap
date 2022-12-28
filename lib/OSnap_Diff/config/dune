@@ -2,4 +2,4 @@
  (name discover)
  (ocamlc_flags str.cma)
  (ocamlopt_flags str.cmxa)
- (libraries dune-configurator))
+ (libraries dune-configurator fileutils))
