@@ -31,13 +31,14 @@ let main c =
           |> Option.map (fun s ->
                let new_path =
                  s
-                 |> String.split_on_char ':'
+                 |> String.split_on_char ';'
                  |> List.map (fun path -> C.Process.run_capture_exn c cygpath [ path ])
-                 |> String.concat ":"
+                 |> String.concat ";"
                in
                [ Printf.sprintf "PKG_CONFIG_PATH=%s" new_path ])
         | _, None -> None
       in
+      env |> Option.iter (List.iter print_endline);
       C.Process.run_capture_exn c ?env pkgcfg [ "--list-all" ] |> print_endline;
       C.Process.run_capture_exn c ?env pkgcfg [ lib; "--variable=" ^ dir ]
   in
