@@ -2,22 +2,6 @@ module C = Configurator.V1
 
 let ( let* ) = Option.bind
 
-let walk directory =
-  let rec loop prefix directory =
-    let dirs = FileUtil.ls directory in
-    let length = List.length dirs in
-    dirs
-    |> List.iteri (fun index file ->
-         let is_last = index = length - 1 in
-         let name = FilePath.basename file in
-         Printf.printf "%s%s%s\n" prefix (if is_last then "└── " else "├──") name;
-         if Sys.is_directory file
-         then loop (prefix ^ if is_last then "    " else "│   ") file)
-  in
-  loop "" directory;
-  flush stdout
-;;
-
 let main c =
   let get_path lib dir =
     match C.which c "pkg-config" with
@@ -47,6 +31,7 @@ let main c =
       C.Process.run_capture_exn c ?env pkgcfg [ "--list-all" ] |> print_endline;
       C.Process.run_capture_exn c ?env pkgcfg [ lib; "--variable=" ^ dir ]
   in
+  Unix.environment () |> Array.iter print_endline;
   let spng_lib_path = get_path "libspng" "libdir" |> String.trim in
   let spng_include_path = get_path "libspng" "includedir" |> String.trim in
   let libspng = spng_lib_path ^ "/libspng_static.a" in
@@ -60,5 +45,4 @@ let main c =
   C.Flags.write_sexp "png_flags.sexp" [ "-cclib"; libspng ]
 ;;
 
-Sys.getenv_opt "OPAM_SWITCH_PREFIX" |> Option.iter walk;
 C.main ~name:"c-lib-package-resolver" main

@@ -78,6 +78,9 @@ jobs:
       - name: Install dependencies
         run: opam install . --deps-only --with-test --yes -v
 
+      - name: TEST
+        run: cat _opam/lib/pkgconfig/libspng.pc
+
       - name: Build OSnap
         run: opam exec -- dune build -p osnap --profile=release
 
@@ -262,11 +265,10 @@ jobs:
           name: ubuntu-latest
           path: ./_build
 
-      # - name: List binaries
-      #   run: |
-      #     ls -lah ./_build/bin
-      #     ls -lah ./_build/share/.config/yarn/global/node_modules/.bin
-      #     ls -lah ./_build/share/.config/yarn/global/node_modules/@space-labs/osnap/bin
+      - name: List binaries
+        run: |
+          ls -lah ./_build
+          ls -lah ./_build/bin
 
       - name: Login to DockerHub
         uses: docker/login-action@v1
