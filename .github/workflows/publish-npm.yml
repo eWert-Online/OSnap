@@ -76,7 +76,7 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
       - name: Install dependencies
-        run: opam install . --deps-only --with-test --yes
+        run: opam install . --deps-only --with-test --yes -vvv
 
       - name: Build OSnap
         run: opam exec -- dune build -p osnap --profile=release
