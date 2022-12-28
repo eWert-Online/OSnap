@@ -8,8 +8,8 @@ let main c =
     | None -> raise Not_found
     | Some pkgcfg ->
       let env =
-        match C.ocaml_config_var c "system" with
-        | Some "macosx" ->
+        match C.ocaml_config_var c "system", C.which c "cygpath" with
+        | Some "macosx", _ ->
           let* brew = C.which c "brew" in
           let new_pkg_config_path =
             let prefix = String.trim (C.Process.run_capture_exn c brew [ "--prefix" ]) in
@@ -20,13 +20,23 @@ let main c =
           new_pkg_config_path
           |> Option.map (fun new_pkg_config_path ->
                let pkg_config_path =
-                 match Sys.getenv "PKG_CONFIG_PATH" with
-                 | s -> s ^ ":"
-                 | exception Not_found -> ""
+                 match Sys.getenv_opt "PKG_CONFIG_PATH" with
+                 | Some s -> s ^ ":"
+                 | None -> ""
                in
                [ Printf.sprintf "PKG_CONFIG_PATH=%s%s" pkg_config_path new_pkg_config_path
                ])
-        | _ -> None
+        | _, Some cygpath ->
+          Sys.getenv_opt "PKG_CONFIG_PATH"
+          |> Option.map (fun s ->
+               let new_path =
+                 s
+                 |> String.split_on_char ':'
+                 |> List.map (fun path -> C.Process.run_capture_exn c cygpath [ path ])
+                 |> String.concat ":"
+               in
+               [ Printf.sprintf "PKG_CONFIG_PATH=%s" new_path ])
+        | _, None -> None
       in
       C.Process.run_capture_exn c ?env pkgcfg [ "--list-all" ] |> print_endline;
       C.Process.run_capture_exn c ?env pkgcfg [ lib; "--variable=" ^ dir ]
