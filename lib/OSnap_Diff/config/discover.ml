@@ -57,8 +57,8 @@ let main c =
   C.Flags.write_sexp "png_write_flags.sexp" [ "-cclib"; libspng ];
   C.Flags.write_sexp "png_c_flags.sexp" [ "-fPIC"; "-I" ^ spng_include_path ];
   C.Flags.write_sexp "png_c_library_flags.sexp" [ libspng; zlib ];
-  C.Flags.write_sexp "png_flags.sexp" [ "-cclib"; libspng ];
-  Sys.getenv_opt "OPAM_SWITCH_PREFIX" |> Option.iter walk
+  C.Flags.write_sexp "png_flags.sexp" [ "-cclib"; libspng ]
 ;;
 
+Sys.getenv_opt "OPAM_SWITCH_PREFIX" |> Option.iter walk;
 C.main ~name:"c-lib-package-resolver" main
