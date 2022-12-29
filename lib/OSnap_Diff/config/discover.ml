@@ -8,8 +8,8 @@ let main c =
     | None -> raise Not_found
     | Some pkgcfg ->
       let env =
-        match C.ocaml_config_var c "system", C.which c "cygpath" with
-        | Some "macosx", _ ->
+        match C.ocaml_config_var c "system" with
+        | Some "macosx" ->
           let* brew = C.which c "brew" in
           let new_pkg_config_path =
             let prefix = String.trim (C.Process.run_capture_exn c brew [ "--prefix" ]) in
@@ -26,26 +26,13 @@ let main c =
                in
                [ Printf.sprintf "PKG_CONFIG_PATH=%s%s" pkg_config_path new_pkg_config_path
                ])
-        | _, Some cygpath ->
-          Sys.getenv_opt "PKG_CONFIG_PATH"
-          |> Option.map (fun s ->
-               let new_path =
-                 s
-                 |> String.split_on_char ';'
-                 |> List.map (fun path -> C.Process.run_capture_exn c cygpath [ path ])
-                 |> String.concat ";"
-               in
-               [ Printf.sprintf "PKG_CONFIG_PATH=%s" new_path ])
-        | _, None -> None
+        | _ -> None
       in
-      env |> Option.iter (List.iter print_endline);
-      C.Process.run_capture_exn c ?env pkgcfg [ "--list-all" ] |> print_endline;
       C.Process.run_capture_exn c ?env pkgcfg [ lib; "--variable=" ^ dir ]
   in
-  Unix.environment () |> Array.iter print_endline;
-  let spng_lib_path = get_path "libspng" "libdir" |> String.trim in
-  let spng_include_path = get_path "libspng" "includedir" |> String.trim in
-  let libspng = spng_lib_path ^ "/libspng_static.a" in
+  let switch_prefix = Sys.getenv "OPAM_SWITCH_PREFIX" in
+  let spng_include_path = switch_prefix ^ "/include" in
+  let libspng = switch_prefix ^ "/lib/libspng_static.a" in
   let z_lib_path = get_path "zlib" "libdir" |> String.trim in
   let zlib = z_lib_path ^ "/libz.a" in
   C.Flags.write_sexp "png_write_c_flags.sexp" [ "-fPIC"; "-I" ^ spng_include_path ];
