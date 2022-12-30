@@ -278,11 +278,6 @@ jobs:
         run: |
           tar -xvf static-build.tar
 
-      - name: List binaries
-        run: |
-          ls -lah ./_build
-          ls -lah ./_build/bin
-
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
