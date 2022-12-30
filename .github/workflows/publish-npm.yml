@@ -79,7 +79,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ./_opam
-          key: osnap-${{ matrix.ocaml-compiler }}-${{ hashFiles('osnap.opam.locked') }}
+          key: osnap-${{ matrix.os }}-${{ matrix.ocaml-compiler }}-${{ hashFiles('osnap.opam.locked') }}
 
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v2
