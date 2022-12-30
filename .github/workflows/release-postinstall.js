@@ -95,7 +95,7 @@ var copyPlatformBinaries = (platformPath) => {
   var platformBuildPath = path.join(__dirname, 'platform-' + platformPath);
 
   var sourcePath = path.join(platformBuildPath, 'bin');
-  var destPath = path.join(__dirname, folderPath);
+  var destPath = path.join(__dirname, 'bin');
   copyRecursive(sourcePath, destPath);
 
   binariesToCopy.forEach((binaryPath) => {

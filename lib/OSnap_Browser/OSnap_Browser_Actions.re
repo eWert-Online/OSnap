@@ -345,7 +345,10 @@ let get_quads = (~document, ~selector, target) => {
       (to_float(x1), to_float(y1)),
       (to_float(x2), to_float(y2)),
     ))
-  | _ => Lwt_result.fail(OSnap_Response.CDP_Protocol_Error(""))
+  | _ =>
+    Lwt_result.fail(
+      OSnap_Response.CDP_Protocol_Error("no content quads returned"),
+    )
   };
 };
 
