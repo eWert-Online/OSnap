@@ -41,14 +41,19 @@ jobs:
           docker cp build:/usr/app/_build ./_build
           docker rm -f build
 
+      - name: Copy binary
+        run: |
+          mkdir -p _release/bin
+          cp _build/default/bin/Main.exe _release/bin/osnap
+
       - name: Tar static build
         run: |
           tar -cvf static-build.tar _build
 
-      - name: Move binary
-        run: |
-          mkdir -p _release/bin
-          mv _build/default/bin/Main.exe _release/bin/osnap
+      - uses: actions/upload-artifact@v2
+        with:
+          name: static-build
+          path: static-build.tar
 
       # Upload the npm package as an artifact
       - uses: actions/upload-artifact@v2
@@ -70,13 +75,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Cache dependencies
+        id: cache-opam
+        uses: actions/cache@v2
+        with:
+          path: ./_opam
+          key: osnap-${{ matrix.ocaml-compiler }}-${{ hashFiles('osnap.opam.locked') }}
+
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v2
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
       - name: Install dependencies
-        run: opam install . --deps-only --with-test --yes -v
+        run: opam install ./osnap.opam --locked --deps-only --with-test --yes
 
       - name: Build OSnap
         run: opam exec -- dune build -p osnap --profile=release
@@ -239,7 +251,7 @@ jobs:
       fail-fast: false
       matrix:
         container:
-          - ubuntu
+          - debian
           - node-lts
     steps:
       - name: Free Disk Space
@@ -259,8 +271,12 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: ubuntu-latest
-          path: ./_build
+          name: static-build
+          path: .
+
+      - name: Extract Artifacts
+        run: |
+          tar -xvf static-build.tar
 
       - name: List binaries
         run: |

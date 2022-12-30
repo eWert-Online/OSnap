@@ -1,4 +1,4 @@
-FROM node:lts-bullseye
+FROM debian:bullseye
 
 RUN apt-get update && \ 
   DEBIAN_FRONTEND=noninteractive apt-get install -yq chromium-sandbox=108.0.5359.94-1~deb11u1 && \
