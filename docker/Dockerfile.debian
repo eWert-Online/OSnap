@@ -10,3 +10,5 @@ RUN apt-get update && \
   rm -f /usr/bin/chromium
 
 COPY _release /usr/local
+
+RUN chmod +x /usr/local/bin/osnap
