@@ -18,7 +18,6 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-      # Checkout the projects sources
       - uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
@@ -46,15 +45,6 @@ jobs:
           mkdir -p _release/bin
           cp _build/default/bin/Main.exe _release/bin/osnap
 
-      # - name: Tar static build
-      #   run: |
-      #     tar -cvf static-build.tar _build
-
-      # - uses: actions/upload-artifact@v2
-      #   with:
-      #     name: static-build
-      #     path: static-build.tar
-
       - uses: actions/upload-artifact@v2
         with:
           name: ubuntu-latest
@@ -73,13 +63,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Cache dependencies
-        id: cache-opam
-        uses: actions/cache@v2
-        with:
-          path: ./_opam
-          key: osnap-${{ matrix.os }}-${{ matrix.ocaml-compiler }}-${{ hashFiles('osnap.opam.locked') }}
 
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v2
@@ -105,7 +88,6 @@ jobs:
 
   prepare-publish:
     name: Prepare publish to npm
-    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/master' }}
     needs: [build-platform, build-static]
     runs-on: ubuntu-latest
     steps:
@@ -114,7 +96,7 @@ jobs:
           node-version: 14
           registry-url: https://registry.npmjs.org/
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1
           ref: ${{ github.ref }}
@@ -177,7 +159,6 @@ jobs:
 
   test-platform:
     name: Test installing ${{ matrix.os }}
-    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/master' }}
     needs: prepare-publish
     runs-on: ${{ matrix.os }}
     strategy:
@@ -273,8 +254,6 @@ jobs:
         with:
           name: ubuntu-latest
           path: ./_release
-
-      - run: tree
 
       - name: Login to DockerHub
         uses: docker/login-action@v1

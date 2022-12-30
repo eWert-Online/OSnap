@@ -30,9 +30,9 @@ depends: [
   "cohttp" {= "5.0.0"}
   "cohttp-lwt" {= "5.0.0"}
   "cohttp-lwt-unix" {= "5.0.0"}
-  "conduit" {= "6.0.1"}
-  "conduit-lwt" {= "6.0.1"}
-  "conduit-lwt-unix" {= "6.0.1"}
+  "conduit" {= "6.1.0"}
+  "conduit-lwt" {= "6.1.0"}
+  "conduit-lwt-unix" {= "6.1.0"}
   "conf-cmake" {= "1"}
   "conf-gmp" {= "4"}
   "conf-gmp-powm-sec" {= "3"}
@@ -79,15 +79,15 @@ depends: [
   "mirage-crypto-rng" {= "0.10.7"}
   "mirage-no-solo5" {= "1"}
   "mirage-no-xen" {= "1"}
-  "mtime" {= "1.4.0"}
+  "mtime" {= "2.0.0"}
   "num" {= "1.4"}
-  "ocaml" {= "4.14.0"}
+  "ocaml" {= "4.14.1"}
+  "ocaml-base-compiler" {= "4.14.1"}
   "ocaml-compiler-libs" {= "v0.12.4"}
   "ocaml-config" {= "2"}
   "ocaml-lsp-server" {= "1.14.2"}
-  "ocaml-option-flambda" {= "1"}
+  "ocaml-options-vanilla" {= "1"}
   "ocaml-syntax-shims" {= "1.0.0"}
-  "ocaml-variants" {= "4.14.0+options"}
   "ocaml-version" {= "3.5.0"}
   "ocamlbuild" {= "0.14.2"}
   "ocamlc-loc" {= "3.6.1"}
@@ -100,7 +100,7 @@ depends: [
   "odiff-core" {= "dev"}
   "odoc-parser" {= "2.0.0"}
   "omd" {= "1.3.2"}
-  "optint" {= "0.2.0"}
+  "optint" {= "0.3.0"}
   "ordering" {= "3.6.1"}
   "parsexp" {= "v0.15.0"}
   "pbkdf" {= "1.2.0"}
@@ -111,7 +111,7 @@ depends: [
   "ppx_yojson_conv" {= "v0.15.1"}
   "ppx_yojson_conv_lib" {= "v0.15.0"}
   "ppxlib" {= "0.28.0"}
-  "ptime" {= "1.0.0"}
+  "ptime" {= "1.1.0"}
   "re" {= "1.10.4"}
   "reason" {= "3.8.2"}
   "result" {= "1.5"}
@@ -156,11 +156,12 @@ build: [
 dev-repo: "git+https://github.com/eWert-Online/OSnap.git"
 pin-depends: [
   [
-  "cdp.dev"
-  "git+https://github.com/eWert-Online/reason-cdp.git#bb98b733b7373042b9443fbb34327c0581b9232b"
-]
+    "cdp.dev"
+    "git+https://github.com/eWert-Online/reason-cdp.git#bb98b733b7373042b9443fbb34327c0581b9232b"
+  ]
   ["libspng.dev" "git+https://github.com/eWert-Online/esy-libspng.git#opam"]
   [
-    "odiff-core.dev" "git+https://github.com/dmtrKovalenko/odiff.git#fix-dune"
+    "odiff-core.dev"
+    "git+https://github.com/dmtrKovalenko/odiff.git#7421b908ec1d904ae7fe267d35709f66b48378e2"
   ]
 ]
