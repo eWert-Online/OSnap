@@ -1,5 +1,3 @@
 (library
  (name OSnap_Config)
- (libraries OSnap_Response OSnap_Logger OSnap_Utils re fileutils yaml yojson)
- (preprocess
-  (pps lwt_ppx ppx_yojson_conv)))
+ (libraries OSnap_Response OSnap_Logger OSnap_Utils re fileutils yaml yojson))

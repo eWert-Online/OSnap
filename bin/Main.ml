@@ -116,16 +116,16 @@ let default_cmd =
     let open Lwt_result.Syntax in
     let run =
       let* t = OSnap.setup ~config_path ~noCreate ~noOnly ~noSkip ~parallelism in
-      [%lwt
-        try
+      Lwt.catch
+        (fun () ->
           OSnap.run t
           |> Lwt_result.map_error (fun e ->
                let () = OSnap.teardown t in
-               e)
-        with
-        | exn ->
-          let () = OSnap.teardown t in
-          Lwt_result.fail (OSnap_Response.Unknown_Error exn)]
+               e))
+        (function
+         | exn ->
+           let () = OSnap.teardown t in
+           Lwt_result.fail (OSnap_Response.Unknown_Error exn))
     in
     Lwt_main.run run |> handle_response
   in
@@ -181,12 +181,11 @@ let cleanup_cmd =
 let download_chromium_cmd =
   let exec () =
     let run =
-      [%lwt
-        try OSnap.download_chromium () with
+      Lwt.catch OSnap.download_chromium (function
         | Failure message ->
           print_error "%s" message;
           Lwt_result.fail ()
-        | exn -> raise exn]
+        | exn -> raise exn)
     in
     match Lwt_main.run run with
     | Ok () -> 0

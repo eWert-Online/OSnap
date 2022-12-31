@@ -2,6 +2,8 @@ open Cdp
 open OSnap_Browser_Target
 open Lwt_result.Syntax
 
+let ( let** ) = Lwt.Syntax.( let* )
+
 let wait_for ?timeout ?look_behind ~event target =
   let sessionId = target.sessionId in
   let p, resolver = Lwt.wait () in
@@ -146,40 +148,38 @@ let type_text ~document ~selector ~text target =
          in
          match definition with
          | Some def ->
-           [%lwt
-             let () =
-               let open Commands.Input.DispatchKeyEvent in
-               Request.make
-                 ~sessionId
-                 ~params:
-                   (Params.make
-                      ~type_:`keyDown
-                      ~windowsVirtualKeyCode:
-                        (def.keyCode
-                        |> Option.map (fun i -> `Int i)
-                        |> Option.value ~default:(`Int 0))
-                      ~key:def.key
-                      ~code:def.code
-                      ~text:def.text
-                      ~unmodifiedText:def.text
-                      ~location:(`Int def.location)
-                      ~isKeypad:(def.location = 3)
-                      ())
-               |> OSnap_Websocket.send
-               |> Lwt.map ignore
-             in
-             let open Commands.Input.DispatchKeyEvent in
+           let open Commands.Input.DispatchKeyEvent in
+           let** () =
              Request.make
                ~sessionId
                ~params:
                  (Params.make
-                    ~type_:`keyUp
+                    ~type_:`keyDown
+                    ~windowsVirtualKeyCode:
+                      (def.keyCode
+                      |> Option.map (fun i -> `Int i)
+                      |> Option.value ~default:(`Int 0))
                     ~key:def.key
                     ~code:def.code
+                    ~text:def.text
+                    ~unmodifiedText:def.text
                     ~location:(`Int def.location)
+                    ~isKeypad:(def.location = 3)
                     ())
              |> OSnap_Websocket.send
-             |> Lwt.map ignore]
+             |> Lwt.map ignore
+           in
+           Request.make
+             ~sessionId
+             ~params:
+               (Params.make
+                  ~type_:`keyUp
+                  ~key:def.key
+                  ~code:def.code
+                  ~location:(`Int def.location)
+                  ())
+           |> OSnap_Websocket.send
+           |> Lwt.map ignore
          | None -> Lwt.return ())
     |> Lwt_result.ok
   in

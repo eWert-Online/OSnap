@@ -10,6 +10,4 @@
   cohttp-lwt-unix
   decompress.zl
   fileutils
-  lwt)
- (preprocess
-  (pps lwt_ppx)))
+  lwt))

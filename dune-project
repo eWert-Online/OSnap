@@ -36,9 +36,7 @@
   libspng
   logs
   lwt
-  lwt_ppx
   odiff-core
-  ppx_yojson_conv
   re
   uri
   websocket
