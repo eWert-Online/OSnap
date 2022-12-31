@@ -1,7 +1,7 @@
 .merlin
 node_modules/
-_esy
-_release
+_build
+_opam
 *.byte
 *.native
 *.install
@@ -9,4 +9,3 @@ _release
 docker/
 .github
 .vscode
-.editorconfig

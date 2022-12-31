@@ -1,26 +1,36 @@
-FROM esydev/esy:nightly-alpine-latest as build
+FROM alpine:latest as zlib-build
 
-RUN apk add --no-cache --update \
-  yarn bash make curl perl-utils git patch gcc g++ \
+ENV CFLAGS="-fPIC -O3"
+WORKDIR /usr/zlib
+
+RUN apk add --no-cache --update make git gcc g++
+
+RUN git clone https://github.com/madler/zlib.git .
+
+RUN ./configure --prefix=/usr --libdir=/lib --static && \
+  make && \
+  make install pkgconfigdir="/usr/lib/pkgconfig"
+
+
+FROM ocaml/opam:alpine-ocaml-4.14-flambda
+
+RUN sudo apk add --no-cache --update \
+  bash make cmake curl perl-utils git patch gcc g++ \
   linux-headers pkgconfig m4 musl-dev perl \
-  autoconf automake bzip2 bzip2-dev zlib zlib-dev
+  autoconf automake bzip2-dev gmp-dev
+
+COPY --from=zlib-build /lib/libz.a /lib/libz.a
+COPY --from=zlib-build /usr/lib/pkgconfig/zlib.pc /usr/lib/pkgconfig/zlib.pc
+COPY --from=zlib-build /usr/include/zlib.h /usr/include/zlib.h
+COPY --from=zlib-build /usr/include/zconf.h /usr/include/zconf.h
 
 WORKDIR /usr/app
 
-COPY ./package.json .
-COPY ./esy.lock .
+COPY ./osnap.opam .
 
-RUN esy install --ocaml-pkg-name ocaml --ocaml-version 4.14.0 && \
-  esy build-dependencies --ocaml-pkg-name ocaml --ocaml-version 4.14.0
+RUN opam install . --with-test --yes && \
+  eval $(opam env)
 
 COPY . .
 
-RUN git -C /usr/app apply /usr/app/static.patch
-
-RUN esy install --ocaml-pkg-name ocaml --ocaml-version 4.14.0
-
-RUN esy release --static --ocaml-pkg-name ocaml --ocaml-version 4.14.0
-
-RUN yarn global remove esy && \
-  rm -rf /usr/local/share/.cache/yarn && \
-  yarn global --prefix=/usr/local --force add /usr/app/_release
+RUN opam exec -- dune build -p osnap --profile=static

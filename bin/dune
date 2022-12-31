@@ -2,6 +2,7 @@
  (name Main)
  (modules Main)
  (public_name osnap)
+ (package osnap)
  (ocamlopt_flags -O3)
  (libraries OSnap cmdliner fmt logs logs.cli logs.fmt)
  (preprocess
@@ -11,6 +12,5 @@
  (name ChromiumVersion)
  (modules ChromiumVersion)
  (public_name chromium-version)
- (libraries OSnap cmdliner fmt cohttp cohttp-lwt-unix fileutils lwt)
- (preprocess
-  (pps lwt_ppx)))
+ (package chromium-version)
+ (libraries cohttp cohttp-lwt cohttp-lwt-unix fmt uri lwt lwt.unix))

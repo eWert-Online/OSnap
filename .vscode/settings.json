@@ -1,6 +1,6 @@
 {
   "ocaml.sandbox": {
-    "kind": "esy",
-    "root": "${workspaceFolder:osnap}"
+    "kind": "opam",
+    "switch": "${workspaceFolder:osnap}"
   }
 }

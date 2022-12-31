@@ -61,8 +61,8 @@ let download = (~revision, dir) => {
 };
 
 let extract_zip = (~dest="", source) => {
-  let extract_entry = (in_file, entry: Camlzip.Zip.entry) => {
-    let out_file = Filename.concat(dest, entry.filename);
+  let extract_entry = (in_file, entry: Zip.entry) => {
+    let out_file = Filename.concat(dest, entry.name);
     if (entry.is_directory && !Sys.file_exists(out_file)) {
       FileUtil.mkdir(~parent=true, ~mode=`Octal(511), out_file);
     } else {
@@ -75,12 +75,8 @@ let extract_zip = (~dest="", source) => {
         open_out_gen([Open_creat, Open_binary, Open_append], 511, out_file);
       try(
         {
-          Camlzip.Zip.copy_entry_to_channel(in_file, entry, oc);
+          Zip.copy_entry_to_channel(in_file, entry, oc);
           close_out(oc);
-          try(Unix.utimes(out_file, entry.mtime, entry.mtime)) {
-          | Unix.Unix_error(_, _, _)
-          | Invalid_argument(_) => ()
-          };
         }
       ) {
       | err =>
@@ -93,9 +89,9 @@ let extract_zip = (~dest="", source) => {
 
   print_endline("Extracting Chromium...");
 
-  let ic = Camlzip.Zip.open_in(source);
-  ic |> Camlzip.Zip.entries |> List.iter(extract_entry(ic));
-  Camlzip.Zip.close_in(ic);
+  let ic = Zip.open_in(source);
+  ic |> Zip.entries |> List.iter(extract_entry(ic));
+  Zip.close_in(ic);
 };
 
 let download = () => {

@@ -1,6 +1,6 @@
 {
   "name": "@space-labs/osnap",
-  "version": "1.4.1",
+  "version": "1.4.8",
   "description": "The speedy and easy to use snapshot testing tool for your project!",
   "license": "MIT",
   "repository": {
@@ -26,87 +26,5 @@
     "ocaml",
     "reason",
     "reasonml"
-  ],
-  "esy": {
-    "build": "dune build -p osnap",
-    "buildDev": "dune build --promote-install-files --root . --only-package osnap",
-    "release": {
-      "bin": {
-        "osnap": "osnap"
-      },
-      "includePackages": [
-        "root"
-      ]
-    }
-  },
-  "scripts": {
-    "run": "esy x osnap",
-    "test:yaml": "esy x osnap --config ./test/yaml/osnap.config.yaml",
-    "test:json": "esy x osnap --config ./test/json/osnap.config.json"
-  },
-  "dependencies": {
-    "@opam/base64": "3.5.0",
-    "@opam/camlzip": "*",
-    "@opam/cmdliner": "1.0.4",
-    "@opam/cohttp": "4.0.0",
-    "@opam/cohttp-lwt-unix": "4.0.0",
-    "@opam/conf-gmp-powm-sec": "2",
-    "@opam/fileutils": "0.6.3",
-    "@opam/fmt": "0.8.9",
-    "@opam/logs": "0.7.0",
-    "@opam/lwt": "5.4.2",
-    "@opam/lwt_ppx": "2.0.2",
-    "@opam/ppx_yojson_conv": "v0.14.0",
-    "@opam/re": "*",
-    "@opam/uri": "4.2.0",
-    "@opam/websocket": "2.14",
-    "@opam/websocket-lwt-unix": "2.14",
-    "@opam/yaml": "3.0.0",
-    "@opam/yojson": "1.7.0",
-    "@opam/zarith": "1.11",
-    "cdp": "eWert-Online/reason-cdp#ed7536ff1b92363e56b3e9139bf210a8a39dffd9",
-    "esy-libspng": "eWert-Online/esy-libspng#f9b6e73acd9029143384aa797f7ed9a68cf8b8c8",
-    "odiff-core": "dmtrKovalenko/odiff:odiff-core.opam#cba7252da605755cdb44786952c6e0a3e967a2ac"
-  },
-  "devDependencies": {
-    "@opam/reason": "3.8.1",
-    "@opam/dune": "3.3.1",
-    "@opam/dune-configurator": "3.3.1",
-    "@opam/ocaml-lsp-server": "1.12.2",
-    "ocaml": "4.14.0"
-  },
-  "resolutions": {
-    "ocaml": {
-      "version": "4.14.0",
-      "override": {
-        "build": [
-          "./esy-configure --enable-flambda --prefix $cur__install",
-          "./esy-build"
-        ]
-      }
-    },
-    "esy-zlib": "esy-packages/esy-zlib#65faba12e4aed539d8fd2444fede2f1136389f6f",
-    "@opam/topkg": "1.0.4",
-    "@opam/ocamlbuild": "0.14.0",
-    "@opam/conf-gmp": "esy-packages/esy-gmp#e27cb300adfb0c0b320c273082c5affafcd225fa",
-    "esy-cmake": {
-      "source": "Et7f3/CMake#1cead3871bbb27a45adab2263ef2dff4a38a8869",
-      "override": {
-        "build": [
-          "./bootstrap --verbose --parallel=4 --prefix=#{self.install} -- -DCMAKE_USE_OPENSSL=OFF",
-          "make -j4"
-        ]
-      }
-    },
-    "@opam/camlzip": {
-      "source": "rvantonder/camlzip:camlzip.opam#6b7ed9c8537d23b9f1781257f4f978ea0f493195",
-      "override": {
-        "dependencies": {
-          "@opam/dune": "*",
-          "@opam/dune-configurator": "*",
-          "@opam/conf-zlib": "*"
-        }
-      }
-    }
-  }
+  ]
 }
