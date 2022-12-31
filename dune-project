@@ -21,7 +21,6 @@
   "The speedy and easy to use snapshot testing tool for your project!")
  (depends
   ocaml
-  reason
   dune
   ocaml-lsp-server
   ocamlformat
@@ -50,7 +49,6 @@
   "A resolver for the current available chromium version across all platforms")
  (depends
   ocaml
-  reason
   dune
   ocaml-lsp-server
   ocamlformat

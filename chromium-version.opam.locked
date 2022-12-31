@@ -61,7 +61,6 @@ depends: [
   "menhir" {= "20220210"}
   "menhirLib" {= "20220210"}
   "menhirSdk" {= "20220210"}
-  "merlin-extend" {= "0.6.1"}
   "mirage-crypto" {= "0.10.7"}
   "mirage-crypto-ec" {= "0.10.7"}
   "mirage-crypto-pk" {= "0.10.7"}
@@ -98,7 +97,6 @@ depends: [
   "ppxlib" {= "0.28.0"}
   "ptime" {= "1.1.0"}
   "re" {= "1.10.4"}
-  "reason" {= "3.8.2"}
   "result" {= "1.5"}
   "rresult" {= "0.7.0"}
   "seq" {= "base"}
