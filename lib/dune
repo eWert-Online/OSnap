@@ -8,4 +8,10 @@
   OSnap_Printer
   OSnap_Logger
   OSnap_Config
-  OSnap_Browser))
+  OSnap_Browser
+  lwt
+  lwt.unix
+  cdp
+  base64
+  fileutils
+  fmt))

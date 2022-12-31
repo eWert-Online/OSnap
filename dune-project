@@ -2,7 +2,7 @@
 
 (name osnap)
 
-; (implicit_transitive_deps false)
+(implicit_transitive_deps false)
 
 (generate_opam_files true)
 
