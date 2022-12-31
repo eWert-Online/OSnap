@@ -7,6 +7,4 @@
   lwt.unix
   yojson
   websocket
-  websocket-lwt-unix)
- (preprocess
-  (pps lwt_ppx)))
+  websocket-lwt-unix))
