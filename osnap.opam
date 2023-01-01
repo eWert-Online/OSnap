@@ -9,7 +9,6 @@ homepage: "https://github.com/eWert-Online/OSnap"
 bug-reports: "https://github.com/eWert-Online/OSnap/issues"
 depends: [
   "ocaml"
-  "reason"
   "dune" {>= "3.1"}
   "ocaml-lsp-server"
   "ocamlformat"
@@ -24,9 +23,7 @@ depends: [
   "libspng"
   "logs"
   "lwt"
-  "lwt_ppx"
   "odiff-core"
-  "ppx_yojson_conv"
   "re"
   "uri"
   "websocket"

@@ -1,12 +1,11 @@
 (library
  (name OSnap_Websocket)
  (libraries
-  OSnap_Logger
+  conduit-lwt
+  conduit-lwt-unix
   uri
   lwt
   lwt.unix
   yojson
   websocket
-  websocket-lwt-unix)
- (preprocess
-  (pps lwt_ppx)))
+  websocket-lwt-unix))

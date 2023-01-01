@@ -4,9 +4,16 @@
  (public_name osnap)
  (package osnap)
  (ocamlopt_flags -O3)
- (libraries OSnap cmdliner fmt logs logs.cli logs.fmt)
- (preprocess
-  (pps lwt_ppx)))
+ (libraries
+  OSnap
+  OSnap_Response
+  cmdliner
+  lwt
+  lwt.unix
+  fmt
+  logs
+  logs.cli
+  logs.fmt))
 
 (executable
  (name ChromiumVersion)

@@ -2,7 +2,7 @@
 
 (name osnap)
 
-; (implicit_transitive_deps false)
+(implicit_transitive_deps false)
 
 (generate_opam_files true)
 
@@ -21,7 +21,6 @@
   "The speedy and easy to use snapshot testing tool for your project!")
  (depends
   ocaml
-  reason
   dune
   ocaml-lsp-server
   ocamlformat
@@ -36,9 +35,7 @@
   libspng
   logs
   lwt
-  lwt_ppx
   odiff-core
-  ppx_yojson_conv
   re
   uri
   websocket
@@ -52,7 +49,6 @@
   "A resolver for the current available chromium version across all platforms")
  (depends
   ocaml
-  reason
   dune
   ocaml-lsp-server
   ocamlformat

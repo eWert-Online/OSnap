@@ -6,8 +6,11 @@
   OSnap_Utils
   OSnap_Diff
   OSnap_Printer
-  OSnap_Logger
   OSnap_Config
-  OSnap_Browser)
- (preprocess
-  (pps lwt_ppx)))
+  OSnap_Browser
+  lwt
+  lwt.unix
+  cdp
+  base64
+  fileutils
+  fmt))

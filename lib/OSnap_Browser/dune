@@ -3,13 +3,14 @@
  (libraries
   OSnap_Response
   OSnap_Utils
-  OSnap_Logger
   OSnap_Websocket
+  bigstringaf
   cdp
   cohttp
+  cohttp-lwt
   cohttp-lwt-unix
-  decompress.zl
+  decompress.de
   fileutils
-  lwt)
- (preprocess
-  (pps lwt_ppx)))
+  lwt
+  lwt.unix
+  uri))
