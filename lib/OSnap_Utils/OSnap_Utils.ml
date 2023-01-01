@@ -25,13 +25,7 @@ let detect_platform () =
     else Linux
 ;;
 
-let get_file_contents filename =
-  let ic = open_in_bin filename in
-  let file_length = in_channel_length ic in
-  let data = really_input_string ic file_length in
-  close_in ic;
-  data
-;;
+let get_file_contents filename = In_channel.with_open_bin filename In_channel.input_all
 
 let contains_substring ~search str =
   let search_length = String.length search in
@@ -53,10 +47,11 @@ let find_duplicates get_key list =
   let hash = Hashtbl.create (List.length list) in
   list
   |> List.filter (fun item ->
-       if Hashtbl.mem hash (get_key item)
+       let key = get_key item in
+       if Hashtbl.mem hash key
        then true
        else (
-         Hashtbl.add hash (get_key item) true;
+         Hashtbl.add hash key true;
          false))
 ;;
 
