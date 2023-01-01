@@ -6,7 +6,6 @@
   OSnap_Utils
   OSnap_Diff
   OSnap_Printer
-  OSnap_Logger
   OSnap_Config
   OSnap_Browser
   lwt

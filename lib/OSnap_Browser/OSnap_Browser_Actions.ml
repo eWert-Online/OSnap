@@ -97,8 +97,6 @@ let wait_for_network_idle target ~loaderId =
 let go_to ~url target =
   let open Commands.Page in
   let sessionId = target.sessionId in
-  let debug = OSnap_Logger.debug ~header:"Browser.go_to" in
-  debug (Printf.sprintf "session %S navigationg to %S" sessionId url);
   let params = Navigate.Params.make ~url () in
   let* result =
     let open Navigate in

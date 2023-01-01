@@ -3,34 +3,25 @@ open OSnap_Config_Types
 let ( let* ) = Result.bind
 
 module Common = struct
-  let collect_duplicates ~debug sizes =
-    debug "looking for duplicate names in defined sizes";
+  let collect_duplicates sizes =
     let duplicates =
       sizes
       |> List.filter (fun (s : OSnap_Config_Types.size) -> Option.is_some s.name)
       |> OSnap_Utils.find_duplicates (fun (s : OSnap_Config_Types.size) -> s.name)
-      |> List.map (fun (s : OSnap_Config_Types.size) ->
-           let name = Option.value s.name ~default:"" in
-           debug (Printf.sprintf "found size with duplicate name %S" name);
-           name)
+      |> List.map (fun (s : OSnap_Config_Types.size) -> Option.value s.name ~default:"")
     in
     if List.length duplicates <> 0
     then Result.error (OSnap_Response.Config_Duplicate_Size_Names duplicates)
-    else (
-      debug "did not find duplicates";
-      Result.ok ())
+    else Result.ok ()
   ;;
 
-  let collect_ignore ~debug ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2 =
+  let collect_ignore ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2 =
     match selector_all, selector, x1, y1, x2, y2 with
     | Some selector_all, None, None, None, None, None ->
-      debug (Printf.sprintf "using selectorAll %S" selector_all);
       SelectorAll (selector_all, size_restriction) |> Result.ok
     | None, Some selector, None, None, None, None ->
-      debug (Printf.sprintf "using selector %S" selector);
       Selector (selector, size_restriction) |> Result.ok
     | None, None, Some x1, Some y1, Some x2, Some y2 ->
-      debug (Printf.sprintf "using coordinates (%i,%i),(%i,%i)" x1 y1 x2 y2);
       Coordinates ((x1, y1), (x2, y2), size_restriction) |> Result.ok
     | _ ->
       Result.error
@@ -41,7 +32,6 @@ end
 
 module JSON = struct
   let parse_ignore r =
-    let debug = OSnap_Logger.debug ~header:"Config.Test.parse_ignore" in
     let* size_restriction =
       try
         r
@@ -101,11 +91,10 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, None))
     in
-    Common.collect_ignore ~debug ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2
+    Common.collect_ignore ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2
   ;;
 
   let parse_single_test (global_config : OSnap_Config_Types.global) test =
-    let debug = OSnap_Logger.debug ~header:"Config.Test.parse" in
     let* name =
       try
         test
@@ -116,7 +105,6 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, None))
     in
-    debug (Printf.sprintf "name: %S" name);
     let* only =
       try
         test
@@ -128,7 +116,6 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, None))
     in
-    debug (Printf.sprintf "only: %b" only);
     let* skip =
       try
         test
@@ -140,7 +127,6 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, None))
     in
-    debug (Printf.sprintf "skip: %b" only);
     let* threshold =
       try
         test
@@ -152,7 +138,6 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, None))
     in
-    debug (Printf.sprintf "threshold: %i" threshold);
     let* url =
       try
         test |> Yojson.Basic.Util.member "url" |> Yojson.Basic.Util.to_string |> Result.ok
@@ -160,16 +145,12 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, None))
     in
-    debug (Printf.sprintf "url: %s" url);
     let* sizes =
       test
       |> Yojson.Basic.Util.member "sizes"
       |> function
-      | `Null ->
-        debug "no sizes present. using default sizes";
-        Result.ok global_config.default_sizes
+      | `Null -> Result.ok global_config.default_sizes
       | `List list ->
-        debug "parsing sizes";
         list |> OSnap_Utils.List.map_until_exception OSnap_Config_Utils.JSON.parse_size
       | _ ->
         Result.error
@@ -180,7 +161,6 @@ module JSON = struct
       |> Yojson.Basic.Util.member "actions"
       |> function
       | `List list ->
-        debug "parsing actions";
         OSnap_Utils.List.map_until_exception OSnap_Config_Utils.JSON.parse_action list
       | _ -> Result.ok []
     in
@@ -188,19 +168,15 @@ module JSON = struct
       test
       |> Yojson.Basic.Util.member "ignore"
       |> function
-      | `List list ->
-        debug "parsing ignore regions";
-        OSnap_Utils.List.map_until_exception parse_ignore list
+      | `List list -> OSnap_Utils.List.map_until_exception parse_ignore list
       | _ -> Result.ok []
     in
-    let* () = Common.collect_duplicates ~debug sizes in
+    let* () = Common.collect_duplicates sizes in
     Result.ok { only; skip; threshold; name; url; sizes; actions; ignore }
   ;;
 
   let parse global_config path =
-    let debug = OSnap_Logger.debug ~header:"Config.Test.parse" in
     let config = OSnap_Utils.get_file_contents path in
-    debug (Printf.sprintf "parsing test file %S" path);
     let json = config |> Yojson.Basic.from_string ~fname:path in
     try
       json
@@ -214,7 +190,6 @@ end
 
 module YAML = struct
   let parse_ignore r =
-    let debug = OSnap_Logger.debug ~header:"Config.Test.YAML.parse_ignore" in
     let* size_restriction = r |> OSnap_Config_Utils.YAML.get_string_list_option "@" in
     let* x1 = r |> OSnap_Config_Utils.YAML.get_int_option "x1" in
     let* y1 = r |> OSnap_Config_Utils.YAML.get_int_option "y1" in
@@ -222,33 +197,27 @@ module YAML = struct
     let* y2 = r |> OSnap_Config_Utils.YAML.get_int_option "y2" in
     let* selector = r |> OSnap_Config_Utils.YAML.get_string_option "selector" in
     let* selector_all = r |> OSnap_Config_Utils.YAML.get_string_option "selectorAll" in
-    Common.collect_ignore ~debug ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2
+    Common.collect_ignore ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2
   ;;
 
   let parse_single_test (global_config : OSnap_Config_Types.global) test =
-    let debug = OSnap_Logger.debug ~header:"Config.Test.YAML.parse" in
     let* name = test |> OSnap_Config_Utils.YAML.get_string "name" in
-    debug (Printf.sprintf "name: %S" name);
     let* url = test |> OSnap_Config_Utils.YAML.get_string "url" in
-    debug (Printf.sprintf "url: %s" url);
     let* only =
       test
       |> OSnap_Config_Utils.YAML.get_bool_option "only"
       |> Result.map (Option.value ~default:false)
     in
-    debug (Printf.sprintf "only: %b" only);
     let* skip =
       test
       |> OSnap_Config_Utils.YAML.get_bool_option "skip"
       |> Result.map (Option.value ~default:false)
     in
-    debug (Printf.sprintf "skip: %b" only);
     let* threshold =
       test
       |> OSnap_Config_Utils.YAML.get_int_option "threshold"
       |> Result.map (Option.value ~default:global_config.threshold)
     in
-    debug (Printf.sprintf "threshold: %i" threshold);
     let* sizes =
       test
       |> OSnap_Config_Utils.YAML.get_list_option
@@ -268,14 +237,12 @@ module YAML = struct
       |> OSnap_Config_Utils.YAML.get_list_option "ignore" ~parser:parse_ignore
       |> Result.map (Option.value ~default:[])
     in
-    let* () = Common.collect_duplicates ~debug sizes in
+    let* () = Common.collect_duplicates sizes in
     Result.ok { only; skip; threshold; name; url; sizes; actions; ignore }
   ;;
 
   let parse global_config path =
-    let debug = OSnap_Logger.debug ~header:"Config.Test.YAML.parse" in
     let config = OSnap_Utils.get_file_contents path in
-    debug (Printf.sprintf "parsing test file %S" path);
     let* yaml =
       config
       |> Yaml.of_string
@@ -320,30 +287,13 @@ module YAML = struct
 end
 
 let find ?(root_path = "/") ?(pattern = "**/*.osnap.json") ?(ignore_patterns = []) () =
-  let debug = OSnap_Logger.debug ~header:"Config.Test.find" in
-  debug (Printf.sprintf "looking for test files matching %S" pattern);
   let pattern = pattern |> Re.Glob.glob |> Re.compile in
   let ignore_patterns =
-    ignore_patterns
-    |> List.map (fun pattern ->
-         debug (Printf.sprintf "adding %S to ignore patterns" pattern);
-         pattern |> Re.Glob.glob |> Re.compile)
+    ignore_patterns |> List.map (fun pattern -> pattern |> Re.Glob.glob |> Re.compile)
   in
-  let is_ignored path =
-    let ignored = ignore_patterns |> List.exists (fun __x -> Re.execp __x path) in
-    if ignored then debug (Printf.sprintf "ignoring %S" path);
-    ignored
-  in
+  let is_ignored path = ignore_patterns |> List.exists (fun __x -> Re.execp __x path) in
   FileUtil.find
-    (Custom
-       (fun path ->
-         if not (is_ignored path)
-         then (
-           let matches = Re.execp pattern path in
-           debug (Printf.sprintf "checking: %S" path);
-           if matches then debug (Printf.sprintf "matched:  %S" path);
-           matches)
-         else false))
+    (Custom (fun path -> (not (is_ignored path)) && Re.execp pattern path))
     root_path
     (fun acc curr -> curr :: acc)
     []
@@ -353,8 +303,6 @@ let find ?(root_path = "/") ?(pattern = "**/*.osnap.json") ?(ignore_patterns = [
 ;;
 
 let init config =
-  let debug = OSnap_Logger.debug ~header:"Config.Test.init" in
-  debug "looking for test files";
   let* tests =
     find
       ~root_path:config.root_path
@@ -370,17 +318,13 @@ let init config =
               | OSnap_Config_Types.YAML -> YAML.parse config path)))
     |> Result.map List.flatten
   in
-  debug "looking for duplicate names in test files";
   let duplicates =
-    tests
-    |> OSnap_Utils.find_duplicates (fun (t : OSnap_Config_Types.test) -> t.name)
-    |> List.map (fun (t : OSnap_Config_Types.test) ->
-         debug (Printf.sprintf "found test with duplicate name %S" t.name);
-         t.name)
+    tests |> OSnap_Utils.find_duplicates (fun (t : OSnap_Config_Types.test) -> t.name)
   in
-  if List.length duplicates <> 0
-  then Result.error (OSnap_Response.Config_Duplicate_Tests duplicates)
-  else (
-    debug "did not find duplicates";
-    Result.ok tests)
+  match duplicates with
+  | [] -> Result.ok tests
+  | duplicates ->
+    Result.error
+      (OSnap_Response.Config_Duplicate_Tests
+         (duplicates |> List.map (fun (t : OSnap_Config_Types.test) -> t.name)))
 ;;

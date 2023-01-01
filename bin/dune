@@ -6,7 +6,6 @@
  (ocamlopt_flags -O3)
  (libraries
   OSnap
-  OSnap_Logger
   OSnap_Response
   cmdliner
   lwt

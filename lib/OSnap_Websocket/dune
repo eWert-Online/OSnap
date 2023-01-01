@@ -1,7 +1,6 @@
 (library
  (name OSnap_Websocket)
  (libraries
-  OSnap_Logger
   conduit-lwt
   conduit-lwt-unix
   uri

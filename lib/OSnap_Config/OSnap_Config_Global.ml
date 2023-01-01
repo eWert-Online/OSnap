@@ -4,7 +4,6 @@ module YAML = struct
   let ( let* ) = Result.bind
 
   let parse path =
-    let debug = OSnap_Logger.debug ~header:"Config.Global.YAML.parse" in
     let config = OSnap_Utils.get_file_contents path in
     let* yaml =
       config
@@ -14,26 +13,21 @@ module YAML = struct
              (Printf.sprintf "YAML could not be parsed", Some path))
     in
     let* base_url = yaml |> OSnap_Config_Utils.YAML.get_string "baseUrl" in
-    debug (Printf.sprintf "baseUrl is set to %S" base_url);
     let* fullscreen =
       yaml
       |> OSnap_Config_Utils.YAML.get_bool_option "fullScreen"
       |> Result.map (Option.value ~default:false)
     in
-    debug (Printf.sprintf "fullScreen is set to %b" fullscreen);
     let* threshold =
       yaml
       |> OSnap_Config_Utils.YAML.get_int_option "threshold"
       |> Result.map (Option.value ~default:0)
     in
-    debug (Printf.sprintf "threshold is set to %i" threshold);
     let* ignore_patterns =
       yaml
       |> OSnap_Config_Utils.YAML.get_string_list_option "ignorePatterns"
       |> Result.map (Option.value ~default:[ "**/node_modules/**" ])
     in
-    debug
-      (Printf.sprintf "ignore_patterns are set to %s" (String.concat "," ignore_patterns));
     let* default_sizes =
       yaml
       |> OSnap_Config_Utils.YAML.get_list_option
@@ -63,24 +57,20 @@ module YAML = struct
       |> OSnap_Config_Utils.YAML.get_string_option "snapshotDirectory"
       |> Result.map (Option.value ~default:"__snapshots__")
     in
-    debug (Printf.sprintf "snapshot directory is set to %s" snapshot_directory);
     let* parallelism =
       yaml
       |> OSnap_Config_Utils.YAML.get_int_option "parallelism"
       |> Result.map (Option.value ~default:8)
       |> Result.map (max 1)
     in
-    debug (Printf.sprintf "parallelism is set to %i" parallelism);
     let root_path =
       String.sub path 0 (String.length path - String.length "osnap.config.yaml")
     in
-    debug (Printf.sprintf "setting root path to %s" root_path);
     let* test_pattern =
       yaml
       |> OSnap_Config_Utils.YAML.get_string_option "testPattern"
       |> Result.map (Option.value ~default:"**/*.osnap.yaml")
     in
-    debug (Printf.sprintf "test pattern is set to %s" test_pattern);
     let* diff_pixel_color =
       yaml
       |> Yaml.Util.find "diffPixelColor"
@@ -131,22 +121,17 @@ module YAML = struct
       |> Result.join
       |> Result.map (Option.value ~default:(255, 0, 0))
     in
-    let r, g, b = diff_pixel_color in
-    debug (Printf.sprintf "diff pixel color is set to %i,%i,%i" r g b);
-    debug "looking for duplicate names in defined sizes";
     let duplicates =
       default_sizes
       |> List.filter (fun (s : OSnap_Config_Types.size) -> Option.is_some s.name)
       |> OSnap_Utils.find_duplicates (fun (s : OSnap_Config_Types.size) -> s.name)
       |> List.map (fun (s : OSnap_Config_Types.size) ->
            let name = Option.value s.name ~default:"" in
-           debug (Printf.sprintf "found size with duplicate name %S" name);
            name)
     in
     if List.length duplicates <> 0
     then Result.error (OSnap_Response.Config_Duplicate_Size_Names duplicates)
-    else (
-      debug "did not find duplicates";
+    else
       Result.ok
         { root_path
         ; threshold
@@ -159,7 +144,7 @@ module YAML = struct
         ; snapshot_directory
         ; diff_pixel_color
         ; parallelism
-        })
+        }
   ;;
 end
 
@@ -167,7 +152,6 @@ module JSON = struct
   let ( let* ) = Result.bind
 
   let parse path =
-    let debug = OSnap_Logger.debug ~header:"Config.Global.JSON.parse" in
     let config = OSnap_Utils.get_file_contents path in
     let json = config |> Yojson.Basic.from_string ~fname:path in
     let* base_url =
@@ -180,7 +164,6 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
     in
-    debug (Printf.sprintf "baseUrl is set to %S" base_url);
     let* fullscreen =
       try
         json
@@ -192,7 +175,6 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
     in
-    debug (Printf.sprintf "fullScreen is set to %b" fullscreen);
     let* threshold =
       try
         json
@@ -204,7 +186,6 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
     in
-    debug (Printf.sprintf "threshold is set to %i" threshold);
     let* default_sizes =
       try
         json
@@ -250,7 +231,6 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
     in
-    debug (Printf.sprintf "snapshot directory is set to %s" snapshot_directory);
     let* parallelism =
       try
         json
@@ -263,11 +243,9 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
     in
-    debug (Printf.sprintf "parallelism is set to %i" parallelism);
     let root_path =
       String.sub path 0 (String.length path - String.length "osnap.config.json")
     in
-    debug (Printf.sprintf "setting root path to %s" root_path);
     let* ignore_patterns =
       try
         json
@@ -284,10 +262,6 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
     in
-    debug
-      (Printf.sprintf
-         "ignore_patterns are set to %s"
-         (List.fold_left (fun curr acc -> acc ^ " " ^ curr) "" ignore_patterns));
     let* test_pattern =
       try
         json
@@ -299,7 +273,6 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
     in
-    debug (Printf.sprintf "test pattern is set to %s" test_pattern);
     let* diff_pixel_color =
       json
       |> Yojson.Basic.Util.member "diffPixelColor"
@@ -323,22 +296,17 @@ module JSON = struct
           (OSnap_Response.Config_Parse_Error
              ("diffPixelColor does not have a correct format", Some path))
     in
-    let r, g, b = diff_pixel_color in
-    debug (Printf.sprintf "diff pixel color is set to %i,%i,%i" r g b);
-    debug "looking for duplicate names in defined sizes";
     let duplicates =
       default_sizes
       |> List.filter (fun (s : OSnap_Config_Types.size) -> Option.is_some s.name)
       |> OSnap_Utils.find_duplicates (fun (s : OSnap_Config_Types.size) -> s.name)
       |> List.map (fun (s : OSnap_Config_Types.size) ->
            let name = Option.value s.name ~default:"" in
-           debug (Printf.sprintf "found size with duplicate name %S" name);
            name)
     in
     if List.length duplicates <> 0
     then Result.error (OSnap_Response.Config_Duplicate_Size_Names duplicates)
-    else (
-      debug "did not find duplicates";
+    else
       Result.ok
         { root_path
         ; threshold
@@ -351,20 +319,14 @@ module JSON = struct
         ; snapshot_directory
         ; diff_pixel_color
         ; parallelism
-        })
+        }
   ;;
 end
 
 let find config_names =
-  let debug = OSnap_Logger.debug ~header:"Config.Global.find" in
   let rec scan_dir ~config_names segments =
     let current_path = segments |> OSnap_Utils.path_of_segments in
     let elements = current_path |> Sys.readdir |> Array.to_list in
-    debug
-      (Printf.sprintf
-         "looking for %S in %S"
-         (String.concat "," config_names)
-         current_path);
     let files =
       elements
       |> List.find_all (fun el ->
@@ -372,53 +334,38 @@ let find config_names =
            let is_direcoty = path |> Sys.is_directory in
            not is_direcoty)
     in
-    debug (Printf.sprintf "found %i files in this directory" (List.length files));
     let found_file = files |> List.find_opt (fun file -> List.mem file config_names) in
     match found_file with
     | Some file -> Some (file, segments)
     | None ->
       let parent_dir_segments = ".." :: segments in
       let parent_dir = parent_dir_segments |> OSnap_Utils.path_of_segments in
-      debug "did not find a config file in this directory";
       (try
          if parent_dir |> Sys.is_directory
-         then (
-           debug "looking in parent directory";
-           scan_dir ~config_names parent_dir_segments)
-         else (
-           debug "there is no parent directory anymore";
-           None)
+         then scan_dir ~config_names parent_dir_segments
+         else None
        with
        | Sys_error _ -> None)
   in
   let base_path = Sys.getcwd () in
   let config_path = scan_dir ~config_names [ base_path ] in
   match config_path with
-  | None ->
-    debug "no config file was found";
-    None
+  | None -> None
   | Some (file, segments) ->
     let path = file :: segments |> OSnap_Utils.path_of_segments in
-    debug (Printf.sprintf "found config file at %S" path);
     Some path
 ;;
 
 let init ~config_path =
   let ( let* ) = Result.bind in
-  let debug = OSnap_Logger.debug ~header:"Config.Global.init" in
   let* config =
     if config_path = ""
     then (
-      debug "looking for global config file";
       match find [ "osnap.config.json"; "osnap.config.yaml" ] with
       | Some path -> Result.ok path
       | None -> Result.error OSnap_Response.Config_Global_Not_Found)
-    else (
-      debug (Printf.sprintf "using provided config path %S" config_path);
-      Result.ok config_path)
+    else Result.ok config_path
   in
-  debug ("found global config file at " ^ config);
-  debug "parsing config file";
   let* format = OSnap_Config_Utils.get_format config in
   match format with
   | OSnap_Config_Types.JSON -> JSON.parse config

@@ -1,7 +1,6 @@
 module Config = OSnap_Config
 module Browser = OSnap_Browser
 module Printer = OSnap_Printer
-module Logger = OSnap_Logger
 module Utils = OSnap_Utils
 
 module Lwt_list = struct
@@ -40,16 +39,11 @@ type t =
   }
 
 let init_folder_structure config =
-  let debug = Logger.debug ~header:"SETUP" in
   let dirs = OSnap_Paths.get config in
   if not (Sys.file_exists dirs.base)
-  then (
-    debug ("creating base images folder at " ^ dirs.base);
-    FileUtil.mkdir ~parent:true ~mode:(`Octal 0o755) dirs.base);
-  debug ("(re)creating " ^ dirs.updated);
+  then FileUtil.mkdir ~parent:true ~mode:(`Octal 0o755) dirs.base;
   FileUtil.rm ~recurse:true [ dirs.updated ];
   FileUtil.mkdir ~parent:true ~mode:(`Octal 0o755) dirs.updated;
-  debug ("(re)creating " ^ dirs.diff);
   FileUtil.rm ~recurse:true [ dirs.diff ];
   FileUtil.mkdir ~parent:true ~mode:(`Octal 0o755) dirs.diff
 ;;
@@ -57,7 +51,6 @@ let init_folder_structure config =
 let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
   let open Config.Types in
   let open Lwt_result.Syntax in
-  let debug = Logger.debug ~header:"SETUP" in
   let start_time = Unix.gettimeofday () in
   let* config = Config.Global.init ~config_path |> Lwt_result.lift in
   let config =
@@ -67,10 +60,7 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
   in
   let () = init_folder_structure config in
   let snapshot_dir = OSnap_Paths.get_base_images_dir config in
-  debug "looking for test files";
   let* tests = Config.Test.init config |> Lwt_result.lift in
-  debug (Printf.sprintf "found %i test files" (List.length tests));
-  debug "collecting test sizes to run";
   let* all_tests =
     tests
     |> Lwt_list.map_p_until_exception (fun test ->
@@ -90,7 +80,6 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
               else Lwt_result.return (test, size, exists)))
     |> Lwt_result.map List.flatten
   in
-  debug "checking for \"only\" flags";
   let only_tests = all_tests |> List.find_all (fun (test, _, _) -> test.only) in
   let* tests_to_run =
     if noOnly && List.length only_tests > 0
@@ -109,7 +98,6 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
     then Lwt_result.return only_tests
     else Lwt_result.return all_tests
   in
-  debug "checking for \"skip\" flags";
   let skipped_tests, tests_to_run =
     tests_to_run |> List.partition (fun (test, _, _) -> test.skip)
   in
@@ -134,13 +122,11 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
       Lwt_result.return tests_to_run)
     else Lwt_result.return tests_to_run
   in
-  debug "setting test priority";
   let tests_to_run =
     tests_to_run
     |> List.fast_sort (fun (_test, _size, exists1) (_test, _size, exists2) ->
          Bool.compare exists1 exists2)
   in
-  debug "launching browser";
   let* browser = Browser.Launcher.make () in
   Lwt_result.return { config; all_tests; tests_to_run; start_time; browser }
 ;;
@@ -150,10 +136,8 @@ let teardown t = Browser.Launcher.shutdown t.browser
 let run t =
   let open Config.Types in
   let open Lwt_result.Syntax in
-  let debug = Logger.debug ~header:"RUN" in
   let { tests_to_run; all_tests; config; start_time; browser } = t in
   let parallelism = max 1 config.parallelism in
-  debug (Printf.sprintf "creating pool of %i runners" parallelism);
   let pool =
     Lwt_pool.create
       parallelism

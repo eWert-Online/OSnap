@@ -1,9 +1,6 @@
 open OSnap_Browser_Types
-module Logger = OSnap_Logger
 open Lwt_result.Syntax
 module Websocket = OSnap_Websocket
-
-let debug = Logger.debug ~header:"BROWSER"
 
 let make () =
   let base_path = OSnap_Browser_Path.get_chromium_path () in
@@ -15,7 +12,6 @@ let make () =
     | Win64 -> Filename.concat base_path "chrome-win/chrome.exe"
     | Win32 -> ""
   in
-  debug (Printf.sprintf "Launching browser from %S" executable_path);
   let process =
     Lwt_process.open_process_full
       ( ""
@@ -57,7 +53,6 @@ let make () =
     match proc#state with
     | Lwt_process.Running ->
       Lwt.bind (Lwt_io.read_line proc#stderr) (fun line ->
-        debug (Printf.sprintf "STDERR: %S" line);
         match line with
         | line
           when line |> OSnap_Utils.contains_substring ~search:"Cannot start http server"
@@ -74,9 +69,7 @@ let make () =
     | Lwt_process.Exited _ -> Lwt_result.fail OSnap_Response.CDP_Connection_Failed
   in
   let* url = get_ws_url process in
-  debug (Printf.sprintf "Connecting to: %S" url);
   let _ = Websocket.connect url in
-  debug (Printf.sprintf "Connected!");
   let* result =
     let open Cdp.Commands.Target.CreateBrowserContext in
     Request.make ?sessionId:None ~params:(Params.make ())

@@ -3,11 +3,6 @@ open Cmdliner;;
 Printexc.record_backtrace true;;
 Fmt.set_style_renderer Fmt.stdout `Ansi_tty
 
-let setup_log =
-  let open Term in
-  const OSnap.Logger.init $ Fmt_cli.style_renderer () $ Logs_cli.level ()
-;;
-
 let print_error msg =
   let printer = Fmt.pr "%a @." (Fmt.styled `Red Fmt.string) in
   Printf.ksprintf printer msg
@@ -112,7 +107,7 @@ let default_cmd =
     let open Arg in
     value & opt (some int) None & info [ "p"; "parallelism" ] ~doc
   in
-  let exec noCreate noOnly noSkip parallelism config_path () =
+  let exec noCreate noOnly noSkip parallelism config_path =
     let open Lwt_result.Syntax in
     let run =
       let* t = OSnap.setup ~config_path ~noCreate ~noOnly ~noSkip ~parallelism in
@@ -130,7 +125,7 @@ let default_cmd =
     Lwt_main.run run |> handle_response
   in
   ( (let open Term in
-    const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config $ setup_log)
+    const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config)
   , Cmd.info
       "osnap"
       ~man:
@@ -217,4 +212,4 @@ let cmds =
 
 let default, info = default_cmd;;
 
-Cmd.eval' (Cmd.group ~default info cmds)
+cmds |> Cmd.group ~default info |> Cmd.eval'

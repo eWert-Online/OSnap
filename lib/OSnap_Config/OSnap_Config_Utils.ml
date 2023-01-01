@@ -14,10 +14,9 @@ let to_result_option = function
   | Some (Error e) -> Error e
 ;;
 
-let collect_action ~debug ~selector ~size_restriction ~name ~text ~timeout ~px action =
+let collect_action ~selector ~size_restriction ~name ~text ~timeout ~px action =
   match action with
   | "scroll" ->
-    debug "found scroll action";
     (match selector, px with
      | None, None ->
        Result.error
@@ -32,51 +31,37 @@ let collect_action ~debug ~selector ~size_restriction ~name ~text ~timeout ~px a
                one of them."
             , None ))
      | None, Some px ->
-       debug (Printf.sprintf "scroll px amount is %i" px);
        OSnap_Config_Types.Scroll (`PxAmount px, size_restriction) |> Result.ok
      | Some selector, None ->
-       debug (Printf.sprintf "scroll selector is %S" selector);
        OSnap_Config_Types.Scroll (`Selector selector, size_restriction) |> Result.ok)
   | "click" ->
-    debug "found click action";
     (match selector with
      | None ->
        Result.error
          (OSnap_Response.Config_Invalid ("no selector for click action provided", None))
-     | Some selector ->
-       debug (Printf.sprintf "click selector is %S" selector);
-       OSnap_Config_Types.Click (selector, size_restriction) |> Result.ok)
+     | Some selector -> OSnap_Config_Types.Click (selector, size_restriction) |> Result.ok)
   | "type" ->
-    debug "found type action";
     (match selector, text with
      | None, _ ->
-       debug "";
        Result.error
          (OSnap_Response.Config_Invalid ("no selector for type action provided", None))
      | _, None ->
        Result.error
          (OSnap_Response.Config_Invalid ("no text for type action provided", None))
      | Some selector, Some text ->
-       debug (Printf.sprintf "type action selector is %S with text %S" selector text);
        OSnap_Config_Types.Type (selector, text, size_restriction) |> Result.ok)
   | "wait" ->
-    debug "found wait action";
     (match timeout with
      | None ->
        Result.error
          (OSnap_Response.Config_Invalid ("no timeout for wait action provided", None))
-     | Some timeout ->
-       debug (Printf.sprintf "timeout for wait action is %i" timeout);
-       OSnap_Config_Types.Wait (timeout, size_restriction) |> Result.ok)
+     | Some timeout -> OSnap_Config_Types.Wait (timeout, size_restriction) |> Result.ok)
   | "function" ->
-    debug "found function action";
     (match name with
      | None ->
        Result.error
          (OSnap_Response.Config_Invalid ("no name for function action provided", None))
-     | Some name ->
-       debug (Printf.sprintf "name for function action is %s" name);
-       OSnap_Config_Types.Function (name, size_restriction) |> Result.ok)
+     | Some name -> OSnap_Config_Types.Function (name, size_restriction) |> Result.ok)
   | action ->
     Result.error
       (OSnap_Response.Config_Invalid
@@ -87,7 +72,6 @@ module JSON = struct
   let ( let* ) = Result.bind
 
   let parse_size size =
-    let debug = OSnap_Logger.debug ~header:"Config.Test.parse_size" in
     let* name =
       try
         size
@@ -132,12 +116,10 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, None))
     in
-    debug (Printf.sprintf "size is set to %ix%i" width height);
     OSnap_Config_Types.{ name; width; height } |> Result.ok
   ;;
 
   let parse_action a =
-    let debug = OSnap_Logger.debug ~header:"Config.Test.parse_action" in
     let* action =
       try
         a |> Yojson.Basic.Util.member "action" |> Yojson.Basic.Util.to_string |> Result.ok
@@ -203,7 +185,7 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, None))
     in
-    collect_action ~debug ~selector ~size_restriction ~text ~timeout ~name ~px action
+    collect_action ~selector ~size_restriction ~text ~timeout ~name ~px action
   ;;
 end
 
@@ -363,16 +345,13 @@ module YAML = struct
   ;;
 
   let parse_size size =
-    let debug = OSnap_Logger.debug ~header:"Config.Test.parse_size" in
     let* name = size |> get_string_option "name" in
     let* height = size |> get_int "height" in
     let* width = size |> get_int "width" in
-    debug (Printf.sprintf "adding size %ix%i" width height);
     OSnap_Config_Types.{ name; width; height } |> Result.ok
   ;;
 
   let parse_action a =
-    let debug = OSnap_Logger.debug ~header:"Config.Test.YAML.parse_action" in
     let* size_restriction = a |> get_string_list_option "@" in
     let* action = a |> get_string "action" in
     let* selector = a |> get_string_option "selector" in
@@ -380,6 +359,6 @@ module YAML = struct
     let* name = a |> get_string_option "name" in
     let* text = a |> get_string_option "text" in
     let* timeout = a |> get_int_option "timeout" in
-    collect_action ~debug ~selector ~size_restriction ~text ~name ~timeout ~px action
+    collect_action ~selector ~size_restriction ~text ~name ~timeout ~px action
   ;;
 end

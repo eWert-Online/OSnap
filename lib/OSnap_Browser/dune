@@ -3,7 +3,6 @@
  (libraries
   OSnap_Response
   OSnap_Utils
-  OSnap_Logger
   OSnap_Websocket
   bigstringaf
   cdp
