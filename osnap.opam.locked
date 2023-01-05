@@ -130,8 +130,8 @@ depends: [
   "uucp" {= "15.0.0"}
   "uuseg" {= "15.0.0"}
   "uutf" {= "1.0.3"}
-  "websocket" {= "2.15"}
-  "websocket-lwt-unix" {= "2.15"}
+  "websocket" {= "2.16"}
+  "websocket-lwt-unix" {= "2.16"}
   "x509" {= "0.16.2"}
   "xdg" {= "3.6.1"}
   "yaml" {= "3.1.0"}
