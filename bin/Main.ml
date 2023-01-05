@@ -210,6 +210,5 @@ let cmds =
   ]
 ;;
 
-let default, info = default_cmd;;
-
-cmds |> Cmd.group ~default info |> Cmd.eval'
+let default, info = default_cmd
+let () = cmds |> Cmd.group ~default info |> Cmd.eval' |> exit
