@@ -78,7 +78,6 @@ read_png_buffer(value buffer, value length)
   Store_field(res, 2, ba);
 
   spng_ctx_free(ctx);
-  free(out);
 
   CAMLreturn(res);
 }

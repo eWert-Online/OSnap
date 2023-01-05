@@ -25,7 +25,7 @@ module PNG = struct
     WritePng.write_png_bigarray filename img.image img.width img.height
   ;;
 
-  let freeImage (_img : t ImageIO.img) = ()
+  let freeImage (img : t ImageIO.img) = ReadPng.free_png_buffer img.image |> ignore
 
   let makeSameAsLayout (img : t ImageIO.img) =
     let image = Array1.create int32 c_layout (Array1.dim img.image) in
