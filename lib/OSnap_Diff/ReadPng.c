@@ -70,15 +70,15 @@ read_png_buffer(value buffer, value length)
     caml_failwith(spng_strerror(result));
   }
 
-  res = caml_alloc(4, 0);
+  res = caml_alloc(3, 0);
   ba = caml_ba_alloc_dims(CAML_BA_INT32 | CAML_BA_C_LAYOUT, 1, out, out_size);
 
   Store_field(res, 0, Val_int(ihdr.width));
   Store_field(res, 1, Val_int(ihdr.height));
   Store_field(res, 2, ba);
-  Store_field(res, 3, Val_bp(out));
 
   spng_ctx_free(ctx);
+  free(out);
 
   CAMLreturn(res);
 }
