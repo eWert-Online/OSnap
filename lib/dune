@@ -7,8 +7,10 @@
   OSnap_Utils
   OSnap_Config
   OSnap_Browser
-  lwt
-  lwt.unix
   cdp
   base64
-  fmt))
+  fileutils
+  fmt
+  lwt
+  lwt.unix
+  unix))
