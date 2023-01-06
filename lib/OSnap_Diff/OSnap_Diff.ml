@@ -22,7 +22,14 @@ let diff
     try Io.PNG.loadImage original_image_data |> Result.ok with
     | _ -> Result.error Io
   in
-  let new_image = Io.PNG.loadImage new_image_data in
+  let* new_image =
+    try Io.PNG.loadImage new_image_data |> Result.ok with
+    | _ -> Result.error Io
+  in
+  let free_images () =
+    Io.PNG.freeImage original_image;
+    Io.PNG.freeImage new_image
+  in
   Diff.diff
     original_image
     new_image
@@ -34,8 +41,12 @@ let diff
     ~diffPixel
     ()
   |> function
-  | Pixel (_, diffCount, _) when diffCount <= threshold -> Result.ok ()
-  | Layout -> Result.error Layout
+  | Pixel (_, diffCount, _) when diffCount <= threshold ->
+    free_images ();
+    Result.ok ()
+  | Layout ->
+    free_images ();
+    Result.error Layout
   | Pixel (diff_mask, diffCount, diffPercentage) ->
     let original_image = original_image in
     let diff_mask = diff_mask in
@@ -107,6 +118,7 @@ let diff
       in
       Array1.unsafe_set complete_image offset fill_with
     done;
+    free_images ();
     WritePng.write_png_bigarray output complete_image complete_width complete_height;
     Result.error (Pixel (diffCount, diffPercentage))
 ;;

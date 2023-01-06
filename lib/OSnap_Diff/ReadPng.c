@@ -81,3 +81,9 @@ read_png_buffer(value buffer, value length)
 
   CAMLreturn(res);
 }
+
+void free_png_buffer(value buffer)
+{
+  struct caml_ba_array *b = Caml_ba_array_val(buffer);
+  free(b->data);
+}
