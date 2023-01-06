@@ -1,5 +1,5 @@
 pin-depends: [
   [ "libspng.dev" "git+https://github.com/eWert-Online/esy-libspng.git#opam"]
-  [ "cdp.dev" "git+https://github.com/eWert-Online/reason-cdp.git#bb98b733b7373042b9443fbb34327c0581b9232b"]
-  [ "odiff-core.dev" "git+https://github.com/dmtrKovalenko/odiff.git#7421b908ec1d904ae7fe267d35709f66b48378e2"]
+  [ "cdp.dev" "git+https://github.com/eWert-Online/reason-cdp.git#ebb07093e93a27e302afde04296fbc4d22f83948"]
+  [ "odiff-core.dev" "git+https://github.com/dmtrKovalenko/odiff.git#5a9a1976c553b6c57c32c4e9dcf185bbcdaf1fca"]
 ]

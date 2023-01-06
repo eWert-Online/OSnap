@@ -12,4 +12,5 @@
   fileutils
   lwt
   lwt.unix
+  unix
   uri))
