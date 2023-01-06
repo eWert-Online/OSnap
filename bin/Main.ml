@@ -75,6 +75,17 @@ let config =
 ;;
 
 let default_cmd =
+  let serve =
+    let doc = "A relative path to a directory from where to serve static files from." in
+    let open Arg in
+    value & opt ~vopt:None (some dir) None & info [ "serve" ] ~doc
+  in
+  let port =
+    let doc = "The port on which the static server listens on." in
+    let default = 3000 in
+    let open Arg in
+    value & opt int default & info [ "port" ] ~doc
+  in
   let noCreate =
     let doc =
       "With this option enabled, new snapshots will not be created, but fail the whole \
@@ -107,25 +118,33 @@ let default_cmd =
     let open Arg in
     value & opt (some int) None & info [ "p"; "parallelism" ] ~doc
   in
-  let exec noCreate noOnly noSkip parallelism config_path =
+  let exec noCreate noOnly noSkip parallelism config_path serve_directory port =
     let open Lwt_result.Syntax in
     let run =
       let* t = OSnap.setup ~config_path ~noCreate ~noOnly ~noSkip ~parallelism in
+      let stop_server =
+        match serve_directory with
+        | None -> fun () -> ()
+        | Some serve_directory ->
+          let server = OSnap.Server.serve ~port serve_directory in
+          fun () -> Lwt.cancel server
+      in
       Lwt.catch
         (fun () ->
-          OSnap.run t
-          |> Lwt_result.map_error (fun e ->
-               let () = OSnap.teardown t in
-               e))
+          let* response = OSnap.run t in
+          let () = stop_server () in
+          let () = OSnap.teardown t in
+          response |> Lwt_result.return)
         (function
          | exn ->
+           let () = stop_server () in
            let () = OSnap.teardown t in
            Lwt_result.fail (OSnap_Response.Unknown_Error exn))
     in
     Lwt_main.run run |> handle_response
   in
   ( (let open Term in
-    const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config)
+    const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config $ serve $ port)
   , Cmd.info
       "osnap"
       ~man:

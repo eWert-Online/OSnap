@@ -1,0 +1,3 @@
+(library
+ (name OSnap_Server)
+ (libraries cohttp cohttp-lwt cohttp-lwt-unix conduit-lwt-unix lwt))

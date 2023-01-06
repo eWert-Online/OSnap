@@ -2,6 +2,7 @@ module Config = OSnap_Config
 module Browser = OSnap_Browser
 module Printer = OSnap_Printer
 module Utils = OSnap_Utils
+module Server = OSnap_Server
 
 module Lwt_list = struct
   include Lwt_list

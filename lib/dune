@@ -8,6 +8,7 @@
   OSnap_Printer
   OSnap_Config
   OSnap_Browser
+  OSnap_Server
   lwt
   lwt.unix
   cdp
