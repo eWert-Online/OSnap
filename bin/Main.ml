@@ -24,6 +24,10 @@ let handle_response response =
       "Please create a \"osnap.config.json\" at the root of your project or specifiy the \
        location using the --config option.";
     1
+  | Error (OSnap_Response.Config_Global_Invalid s) ->
+    print_error "Your global config file is invalid.";
+    print_error "%s" s;
+    1
   | Error (OSnap_Response.Config_Unsupported_Format path) ->
     print_error "Your config file has an unknown format.";
     print_error "Tried to parse %S." path;

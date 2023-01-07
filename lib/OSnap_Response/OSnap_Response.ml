@@ -1,6 +1,7 @@
 type t =
   | Config_Parse_Error of string * string option
   | Config_Global_Not_Found
+  | Config_Global_Invalid of string
   | Config_Unsupported_Format of string
   | Config_Invalid of string * string option
   | Config_Duplicate_Tests of string list

@@ -267,6 +267,8 @@ module YAML = struct
            OSnap_Response.Config_Parse_Error (err, Some path)
          | OSnap_Response.Config_Global_Not_Found ->
            OSnap_Response.Config_Global_Not_Found
+         | OSnap_Response.Config_Global_Invalid s ->
+           OSnap_Response.Config_Global_Invalid s
          | OSnap_Response.Config_Unsupported_Format f ->
            OSnap_Response.Config_Unsupported_Format f
          | OSnap_Response.Config_Invalid (msg, None) ->
@@ -287,6 +289,32 @@ module YAML = struct
 end
 
 let find ?(root_path = "/") ?(pattern = "**/*.osnap.json") ?(ignore_patterns = []) () =
+  let _, path_segments, pattern_segments =
+    pattern
+    |> String.split_on_char Filename.dir_sep.[0]
+    |> List.fold_left
+         (fun acc curr ->
+           match acc, curr with
+           | (true, left, right), s -> true, left, s :: right
+           | (false, left, right), s when s = "**" || String.starts_with ~prefix:"*" s ->
+             true, left, s :: right
+           | (false, left, right), s -> false, s :: left, right)
+         (false, [], [])
+  in
+  let pattern = pattern_segments |> OSnap_Utils.path_of_segments in
+  let* root_path =
+    try
+      FilePath.make_absolute
+        (FileUtil.pwd ())
+        (Filename.concat root_path (OSnap_Utils.path_of_segments path_segments))
+      |> Unix.realpath
+      |> Result.ok
+    with
+    | _ ->
+      Result.error
+        (OSnap_Response.Config_Global_Invalid
+           "The testPattern path could not be resolved. Please make sure it exists")
+  in
   let pattern = pattern |> Re.Glob.glob |> Re.compile in
   let ignore_patterns =
     ignore_patterns |> List.map (fun pattern -> pattern |> Re.Glob.glob |> Re.compile)
