@@ -63,9 +63,7 @@ module YAML = struct
       |> Result.map (Option.value ~default:8)
       |> Result.map (max 1)
     in
-    let root_path =
-      String.sub path 0 (String.length path - String.length "osnap.config.yaml")
-    in
+    let root_path = Filename.dirname path in
     let* test_pattern =
       yaml
       |> OSnap_Config_Utils.YAML.get_string_option "testPattern"
@@ -243,9 +241,7 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
     in
-    let root_path =
-      String.sub path 0 (String.length path - String.length "osnap.config.json")
-    in
+    let root_path = Filename.dirname path in
     let* ignore_patterns =
       try
         json
