@@ -4,20 +4,4 @@
  (public_name osnap)
  (package osnap)
  (ocamlopt_flags -O3)
- (libraries
-  OSnap
-  OSnap_Response
-  cmdliner
-  lwt
-  lwt.unix
-  fmt
-  logs
-  logs.cli
-  logs.fmt))
-
-(executable
- (name ChromiumVersion)
- (modules ChromiumVersion)
- (public_name chromium-version)
- (package chromium-version)
- (libraries cohttp cohttp-lwt cohttp-lwt-unix fmt uri lwt lwt.unix))
+ (libraries OSnap OSnap_Response cmdliner lwt lwt.unix fmt))
