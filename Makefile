@@ -1,5 +1,5 @@
-.PHONY: all build install update fmt clean clear chromium-version
-.SILENT: all build install update fmt clean clear chromium-version
+.PHONY: all build install update fmt clean clear
+.SILENT: all build install update fmt clean clear
 
 all: build
 
@@ -10,7 +10,8 @@ install:
 	if ! [ -e _opam ]; then \
 		opam switch create . --empty ; \
 	fi
-	opam install ./*.opam --locked --deps-only --with-test --yes
+	opam install . --locked --deps-only --with-test --yes
+	opam install -y ocaml-lsp-server ocamlformat
 	opam lock .
 
 update:
@@ -26,6 +27,3 @@ clean:
 
 clear: clean
 	rm -rf _opam
-
-chromium-version:
-	opam exec -- dune exec chromium-version

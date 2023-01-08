@@ -22,8 +22,6 @@
  (depends
   ocaml
   dune
-  ocaml-lsp-server
-  ocamlformat
   base64
   cdp
   cmdliner
@@ -33,7 +31,6 @@
   fileutils
   fmt
   libspng
-  logs
   lwt
   odiff-core
   re
@@ -42,19 +39,3 @@
   websocket-lwt-unix
   yaml
   yojson))
-
-(package
- (name chromium-version)
- (synopsis
-  "A resolver for the current available chromium version across all platforms")
- (depends
-  ocaml
-  dune
-  ocaml-lsp-server
-  ocamlformat
-  cmdliner
-  fmt
-  cohttp
-  cohttp-lwt-unix
-  fileutils
-  lwt))
