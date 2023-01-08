@@ -12,33 +12,39 @@
 </div>
 <br />
 <div align="center">
-    <img src="https://forthebadge.com/images/badges/built-with-love.svg" alt="<3"/>
-    <img src="https://forthebadge.com/images/badges/made-with-reason.svg" alt="made with reason">
+    <img src="https://forthebadge.com/images/badges/built-with-love.svg" alt="<3">
+    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTkuOTQiIGhlaWdodD0iMzUiIHZpZXdCb3g9IjAgMCAxOTkuOTQgMzUiPjxyZWN0IGNsYXNzPSJzdmdfX3JlY3QiIHg9IjAiIHk9IjAiIHdpZHRoPSIxMTUuMzEiIGhlaWdodD0iMzUiIGZpbGw9IiNFRTZBMUEiLz48cmVjdCBjbGFzcz0ic3ZnX19yZWN0IiB4PSIxMTMuMzEiIHk9IjAiIHdpZHRoPSI4Ni42MyIgaGVpZ2h0PSIzNSIgZmlsbD0iI0RDNTQwMiIvPjxwYXRoIGNsYXNzPSJzdmdfX3RleHQiIGQ9Ik0xNS42OSAyMkwxNC4yMiAyMkwxNC4yMiAxMy40N0wxNi4xNCAxMy40N0wxOC42MCAyMC4wMUwyMS4wNiAxMy40N0wyMi45NyAxMy40N0wyMi45NyAyMkwyMS40OSAyMkwyMS40OSAxOS4xOUwyMS42NCAxNS40M0wxOS4xMiAyMkwxOC4wNiAyMkwxNS41NSAxNS40M0wxNS42OSAxOS4xOUwxNS42OSAyMlpNMjguNDkgMjJMMjYuOTUgMjJMMzAuMTcgMTMuNDdMMzEuNTAgMTMuNDdMMzQuNzMgMjJMMzMuMTggMjJMMzIuNDkgMjAuMDFMMjkuMTggMjAuMDFMMjguNDkgMjJaTTMwLjgzIDE1LjI4TDI5LjYwIDE4LjgyTDMyLjA3IDE4LjgyTDMwLjgzIDE1LjI4Wk00MS4xNCAyMkwzOC42OSAyMkwzOC42OSAxMy40N0w0MS4yMSAxMy40N1E0Mi4zNCAxMy40NyA0My4yMSAxMy45N1E0NC4wOSAxNC40OCA0NC41NyAxNS40MFE0NS4wNSAxNi4zMyA0NS4wNSAxNy41Mkw0NS4wNSAxNy41Mkw0NS4wNSAxNy45NVE0NS4wNSAxOS4xNiA0NC41NyAyMC4wOFE0NC4wOCAyMS4wMCA0My4xOSAyMS41MFE0Mi4zMCAyMiA0MS4xNCAyMkw0MS4xNCAyMlpNNDAuMTcgMTQuNjZMNDAuMTcgMjAuODJMNDEuMTQgMjAuODJRNDIuMzAgMjAuODIgNDIuOTMgMjAuMDlRNDMuNTUgMTkuMzYgNDMuNTYgMTcuOTlMNDMuNTYgMTcuOTlMNDMuNTYgMTcuNTJRNDMuNTYgMTYuMTMgNDIuOTYgMTUuNDBRNDIuMzUgMTQuNjYgNDEuMjEgMTQuNjZMNDEuMjEgMTQuNjZMNDAuMTcgMTQuNjZaTTU1LjA5IDIyTDQ5LjUxIDIyTDQ5LjUxIDEzLjQ3TDU1LjA1IDEzLjQ3TDU1LjA1IDE0LjY2TDUxLjAwIDE0LjY2TDUxLjAwIDE3LjAyTDU0LjUwIDE3LjAyTDU0LjUwIDE4LjE5TDUxLjAwIDE4LjE5TDUxLjAwIDIwLjgyTDU1LjA5IDIwLjgyTDU1LjA5IDIyWk02Ni42NSAyMkw2NC42OCAxMy40N0w2Ni4xNSAxMy40N0w2Ny40NyAxOS44OEw2OS4xMCAxMy40N0w3MC4zNCAxMy40N0w3MS45NiAxOS44OUw3My4yNyAxMy40N0w3NC43NCAxMy40N0w3Mi43NyAyMkw3MS4zNSAyMkw2OS43MyAxNS43N0w2OC4wNyAyMkw2Ni42NSAyMlpNODAuMzggMjJMNzguOTAgMjJMNzguOTAgMTMuNDdMODAuMzggMTMuNDdMODAuMzggMjJaTTg2Ljg3IDE0LjY2TDg0LjIzIDE0LjY2TDg0LjIzIDEzLjQ3TDkxLjAwIDEzLjQ3TDkxLjAwIDE0LjY2TDg4LjM0IDE0LjY2TDg4LjM0IDIyTDg2Ljg3IDIyTDg2Ljg3IDE0LjY2Wk05Ni4yNCAyMkw5NC43NSAyMkw5NC43NSAxMy40N0w5Ni4yNCAxMy40N0w5Ni4yNCAxNy4wMkwxMDAuMDUgMTcuMDJMMTAwLjA1IDEzLjQ3TDEwMS41MyAxMy40N0wxMDEuNTMgMjJMMTAwLjA1IDIyTDEwMC4wNSAxOC4yMUw5Ni4yNCAxOC4yMUw5Ni4yNCAyMloiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBjbGFzcz0ic3ZnX190ZXh0IiBkPSJNMTI3LjA3IDE3LjgwTDEyNy4wNyAxNy44MFExMjcuMDcgMTYuNTUgMTI3LjY3IDE1LjU1UTEyOC4yOCAxNC41NiAxMjkuMzQgMTQuMDBRMTMwLjQwIDEzLjQzIDEzMS43MyAxMy40M0wxMzEuNzMgMTMuNDNRMTMzLjA2IDEzLjQzIDEzNC4xMyAxNC4wMFExMzUuMTkgMTQuNTYgMTM1LjgwIDE1LjU1UTEzNi40MCAxNi41NSAxMzYuNDAgMTcuODBMMTM2LjQwIDE3LjgwUTEzNi40MCAxOS4wNSAxMzUuODAgMjAuMDRRMTM1LjE5IDIxLjA0IDEzNC4xMyAyMS42MFExMzMuMDcgMjIuMTcgMTMxLjczIDIyLjE3TDEzMS43MyAyMi4xN1ExMzAuNDAgMjIuMTcgMTI5LjM0IDIxLjYwUTEyOC4yOCAyMS4wNCAxMjcuNjcgMjAuMDRRMTI3LjA3IDE5LjA1IDEyNy4wNyAxNy44MFpNMTI5LjQ3IDE3LjgwTDEyOS40NyAxNy44MFExMjkuNDcgMTguNTEgMTI5Ljc3IDE5LjA1UTEzMC4wNyAxOS42MCAxMzAuNTkgMTkuOTBRMTMxLjEwIDIwLjIwIDEzMS43MyAyMC4yMEwxMzEuNzMgMjAuMjBRMTMyLjM3IDIwLjIwIDEzMi44OSAxOS45MFExMzMuNDAgMTkuNjAgMTMzLjcwIDE5LjA1UTEzNC4wMCAxOC41MSAxMzQuMDAgMTcuODBMMTM0LjAwIDE3LjgwUTEzNC4wMCAxNy4wOSAxMzMuNzAgMTYuNTRRMTMzLjQwIDE2IDEzMi44OSAxNS43MFExMzIuMzcgMTUuNDAgMTMxLjczIDE1LjQwTDEzMS43MyAxNS40MFExMzEuMTAgMTUuNDAgMTMwLjU4IDE1LjcwUTEzMC4wNyAxNiAxMjkuNzcgMTYuNTRRMTI5LjQ3IDE3LjA5IDEyOS40NyAxNy44MFpNMTQwLjcwIDE3LjgwTDE0MC43MCAxNy44MFExNDAuNzAgMTYuNTQgMTQxLjMwIDE1LjU0UTE0MS45MCAxNC41NSAxNDIuOTUgMTMuOTlRMTQ0LjAwIDEzLjQzIDE0NS4zMiAxMy40M0wxNDUuMzIgMTMuNDNRMTQ2LjQ4IDEzLjQzIDE0Ny40MCAxMy44NFExNDguMzIgMTQuMjUgMTQ4Ljk0IDE1LjAyTDE0OC45NCAxNS4wMkwxNDcuNDMgMTYuMzlRMTQ2LjYxIDE1LjQwIDE0NS40NSAxNS40MEwxNDUuNDUgMTUuNDBRMTQ0Ljc2IDE1LjQwIDE0NC4yMyAxNS43MFExNDMuNjkgMTYgMTQzLjQwIDE2LjU0UTE0My4xMCAxNy4wOSAxNDMuMTAgMTcuODBMMTQzLjEwIDE3LjgwUTE0My4xMCAxOC41MSAxNDMuNDAgMTkuMDVRMTQzLjY5IDE5LjYwIDE0NC4yMyAxOS45MFExNDQuNzYgMjAuMjAgMTQ1LjQ1IDIwLjIwTDE0NS40NSAyMC4yMFExNDYuNjEgMjAuMjAgMTQ3LjQzIDE5LjIyTDE0Ny40MyAxOS4yMkwxNDguOTQgMjAuNThRMTQ4LjMzIDIxLjM1IDE0Ny40MCAyMS43NlExNDYuNDggMjIuMTcgMTQ1LjMyIDIyLjE3TDE0NS4zMiAyMi4xN1ExNDQuMDAgMjIuMTcgMTQyLjk1IDIxLjYxUTE0MS45MCAyMS4wNSAxNDEuMzAgMjAuMDVRMTQwLjcwIDE5LjA2IDE0MC43MCAxNy44MFpNMTU0Ljg5IDIyTDE1Mi40NiAyMkwxNTYuMTcgMTMuNjBMMTU4LjUyIDEzLjYwTDE2Mi4yMyAyMkwxNTkuNzcgMjJMMTU5LjEwIDIwLjM3TDE1NS41NSAyMC4zN0wxNTQuODkgMjJaTTE1Ny4zMyAxNS45M0wxNTYuMjQgMTguNjFMMTU4LjQxIDE4LjYxTDE1Ny4zMyAxNS45M1pNMTY4LjU4IDIyTDE2Ni4zOSAyMkwxNjYuMzkgMTMuNjBMMTY4LjM0IDEzLjYwTDE3MS4zMCAxOC40NUwxNzQuMTggMTMuNjBMMTc2LjEzIDEzLjYwTDE3Ni4xNSAyMkwxNzMuOTcgMjJMMTczLjk1IDE3LjU1TDE3MS43OSAyMS4xN0wxNzAuNzMgMjEuMTdMMTY4LjU4IDE3LjY3TDE2OC41OCAyMlpNMTg3LjcwIDIyTDE4MS4zMiAyMkwxODEuMzIgMTMuNjBMMTgzLjcwIDEzLjYwTDE4My43MCAyMC4xMUwxODcuNzAgMjAuMTFMMTg3LjcwIDIyWiIgZmlsbD0iI0ZGRkZGRiIgeD0iMTI2LjMxIi8+PC9zdmc+" alt="made with ocaml">
 </div>
 
 <br />
-
-**NOTE: We are currently working on a documentation website. It is still work in progress, but you may look at it here: https://ewert-online.github.io/OSnap**
-
 <br />
 
 # Table of contents
 
 - [How do I install it?](#how-do-i-install-it)
 - [How do I use it?](#how-do-i-use-it)
-  - [Global Config](#global-config)
-  - [Test Config](#test-config)
-  - [Using Actions](#using-actions)
-  - [Ignore Regions](#ignore-regions)
-  - [CLI Flags](#cli-flags)
-  - [Updating Snapshots](#updating-snapshots)
-  - [Cleanup](#cleanup-command)
 - [Credits](#credits)
 - [Contributing](#contributing)
 
 <br />
 
 # How do I install it?
+
+## Docker (recommended)
+
+Use one of the official Docker images at https://hub.docker.com/u/osnap.
+
+<br />
+
+**NOTICE:** <br />
+We do recommend using a Docker Container to run the tests, because snapshot tests are by nature pretty susceptible to the smallest changes in rendering. <br />
+The biggest problem is, that Browsers render (mainly fonts and images) differently on different devices and operating systems. For the human eye, this is mostly not noticeable, but for an diffing algorithm, these changes are noticeable and will fail the test. <br />
+So it is important to always run the tests in the same environment.
+
+<br />
+<br />
+
+## npm / yarn
 
 OSnap may be installed with yarn or npm using one of the following commands:
 
@@ -52,261 +58,21 @@ or
 npm install @space-labs/osnap --save-dev
 ```
 
-or **(the preferred way)** use one of the official Docker images at https://hub.docker.com/u/osnap.
-
-**NOTICE:** <br />
-We do recommend using a Docker Container to run the tests, because snapshot tests are by nature pretty susceptible to the smallest changes in rendering. <br />
-The biggest problem is, that Browsers render (mainly fonts and images) differently on different devices and operating systems. For the human eye, this is mostly not noticeable, but for an diffing algorithm, these changes are noticeable and will fail the test. <br />
-So it is important to always run the tests in the same environment.
-
 <br />
 
 # How do I use it?
 
-Before you can run your first test suite, OSnap needs to be configured. To do this, you need at least two files. The global config file and at least one test file.
+Before you can run your first test suite, OSnap needs to be configured. To do this, you need at least two files. The global config file and one test file.
 
-After you have created them as explained below, you just have to run `yarn osnap`, `npx osnap` or create a npm script running `osnap` with the optional [cli flags](#cli-flags) available.
+After you have created them you have to run `yarn osnap`, `npx osnap` or create a npm script running `osnap` with the optional [cli flags](https://ewert-online.github.io/OSnap/cli) available.
 
-<br />
+In in-depth documentation with configuration options and examples can be found at:
 
-### Global Config
-
-The global config file has to be named `osnap.config.json` and lives in the root folder of your project (where your `package.json` is located).
-If you want to have the config file in a different location, you may specify the `--config` option as a cli option.
-
-The following options are available:
-
-| Key                 | Type                                            | Description                                                                                                                                    | Default                            |
-| ------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| baseUrl **\***      | string                                          | The base url used for all of your test                                                                                                         |                                    |
-| fullScreen          | boolean                                         | `true`: if you want to capture a screenshot of the whole page <br /> `false`: if you want to capture a screenshot of just the visible viewport | `false`                            |
-| threshold           | int                                             | The number of pixels allowed to be different, before the test will be marked as failed.                                                        | `0`                                |
-| parallelism         | int                                             | The number of workers OSnap should spawn to run your tests.                                                                                    | `3`                                |
-| testPattern         | string                                          | A glob pattern used to locate the test files to run                                                                                            | `**/*.osnap.json`                  |
-| ignorePatterns      | Array\<string>                                  | An array of glob patterns to not search for test files in                                                                                      | `["**/node_modules/**"]`           |
-| defaultSizes **\*** | Array<{name: string?, width: int, height: int}> | An array of default sizes to run your tests in. If fullScreen is set to true, the height is the minimum height of the snapshot.                |                                    |
-| snapshotDirectory   | string                                          | The relative path to a folder, where OSnap will save the base images in.                                                                       | `__snapshots__`                    |
-| diffPixelColor      | {r: int, g: int, b: int}                        | The color used to highlight different pixels in the diff image.                                                                                | `{"r": 255, "g": 0, "b": 0}` (red) |
-
-_Keys marked with **\*** are required!_
-
-**Full example of a `osnap.config.json`:**
-
-```json
-{
-  "baseUrl": "http://localhost:3000",
-  "fullScreen": true,
-  "threshold": 3,
-  "parallelism": 20,
-  "testPattern": "src/**/*.osnap.json",
-  "ignorePatterns": ["node_modules", "vendor", "dist"],
-  "defaultSizes": [
-    { "name": "xxl", "width": 1600, "height": 900 },
-    { "name": "xl", "width": 1366, "height": 768 },
-    { "name": "md", "width": 1024, "height": 576 },
-    { "name": "sm", "width": 768, "height": 432 },
-    { "name": "xs", "width": 640, "height": 360 },
-    { "name": "xxs", "width": 320, "height": 180 }
-  ],
-  "snapshotDirectory": "./__image-snapshots__",
-  "diffPixelColor": {
-    "r": 0,
-    "g": 255,
-    "b": 0
-  }
-}
-```
+### **https://ewert-online.github.io/OSnap**
 
 <br />
 
-### Test Config
-
-The test config files (`**.osnap.json` by default), are used to specify a single test to be executed on all `defaultSizes`. A test file consists of an array of tests with the following possible options:
-
-| Key         | Type                                            | Description                                                                                                                                | Default                                         |
-| ----------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
-| name **\*** | string                                          | The name of the test. <br /> This has to be **unique**, as it will be used to name the base image of this snapshot.                        |                                                 |
-| url **\***  | string                                          | The url (concatenated with the `baseUrl`) to screenshot                                                                                    |                                                 |
-| only        | boolean                                         | If set to `true`, OSnap will only run tests with `only` set to true and skip all other tests.                                              | `false`                                         |
-| skip        | boolean                                         | If set to `true`, this test will be skipped.                                                                                               | `false`                                         |
-| threshold   | int                                             | The number of pixels allowed to be different, before the test will be marked as failed.                                                    | _Whatever is specified in the global threshold_ |
-| sizes       | Array<{name: string?, width: int, height: int}> | An array of sizes (width and height with an optional name) to run this test in. If this is not specified, the `defaultSizes` will be used. | `[]`                                            |
-| ignore      | Array\<regions>                                 | An array of regions to ignore in your screenshot. (Possible options are explained below)                                                   | `[]`                                            |
-| actions     | Array\<action>                                  | An array of actions to run before the screenshot is taken. (Possible options are explained below)                                          | `[]`                                            |
-
-_Keys marked with **\*** are required!_
-
-The smallest possible test file would look like this:
-
-```json
-[
-  {
-    "name": "Login",
-    "url": "/path/to/login.html"
-  }
-]
-```
-
-**Full example of a test file:**
-
-```json
-[
-  {
-    "name": "Home",
-    "url": "/",
-    "threshold": 20,
-    "sizes": [{ "width": 768, "height": 1024 }],
-    "ignore": [
-      {
-        "@": ["xxs"],
-        "x1": 0,
-        "y1": 0,
-        "x2": 100,
-        "y2": 100
-      },
-      { "selector": ".my-animation" }
-    ],
-    "actions": [
-      { "action": "type", "selector": "#search", "text": "some text to type" },
-      { "action": "click", "selector": "#id .class" },
-      { "@": ["xxs", "xs"], "action": "wait", "timeout": 2000 }
-    ]
-  }
-]
-```
-
-<br />
-
-### Using Actions
-
-As seen in the full example above, you are able to run some actions, before the screenshot will be taken.
-This is useful to bring the page into a specific state, you want to capture.
-For example: opening a dropdown, typing something in an input or waiting for an animation to be completed.
-
-The currently available actions are `wait`, `click` and `type`. They may be configured like this:
-
-**Wait:**
-
-| Key     | Type            | Description                                                                                       |
-| ------- | --------------- | ------------------------------------------------------------------------------------------------- |
-| action  | `"wait"`        |                                                                                                   |
-| timeout | int             | The number of ms to wait, before executing the next action or taking the screenshot.              |
-| @       | Array\<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes |
-
-```json
-{ "action": "wait", "timeout": 2000 }
-```
-
-**Click:**
-
-| Key      | Type            | Description                                                                                                                          |
-| -------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| action   | `"click"`       |                                                                                                                                      |
-| selector | string          | A css selector of an element which should be clicked. If the selector evaluates to multiple elements, only the first one is clicked. |
-| @        | Array\<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes                                    |
-
-```json
-{ "action": "click", "selector": "#id-to-click" }
-```
-
-**Type:**
-
-| Key      | Type            | Description                                                                                                                        |
-| -------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| action   | `"type"`        |                                                                                                                                    |
-| selector | string          | A css selector of an element which should be typed in. If the selector evaluates to multiple elements, the first one will be used. |
-| text     | string          | The text to type into the element                                                                                                  |
-| @        | Array\<string>? | (Optional) The sizes to run this action on. If @ is not present, the action does run on all sizes                                  |
-
-```json
-{ "action": "type", "selector": "#search", "text": "some searchword" }
-```
-
-<br />
-
-### Ignore Regions
-
-Sometimes you might want to ignore specific regions, because you know, they will always be different.
-You may either ignore a region by specifying its coordinates (x1, y1) & (x2, y2) or ignore a specific element by its selector.
-It is also possible, to ignore multiple regions, by specifying multiple coordinates and / or selectors.
-
-Ignoring by coordinates can be done in the following way:
-
-```json
-{
-  "ignore": [
-    {
-      "@": ["xxs", "xs"],
-      "x1": 0,
-      "y1": 0,
-      "x2": 100,
-      "y2": 100
-    }
-  ]
-}
-```
-
-The given coordinates are used to create a rectangle.
-The point specified by `(x1, y1)` is the top-left and `(x2, y2)` is the bottom-right corner of the rectangle.
-Everything inside these coordinates is ignored.
-
-Specifying an ignore region by an selector may be done like this:
-
-```json
-{
-  "ignore": [{ "@": ["md", "l"], "selector": ".selector" }]
-}
-```
-
-When the element with the given selector is found, everything inside the bounds of the element is ignored.
-
-<br />
-
-## CLI Flags
-
-The following cli flags are currently available and should be used mainly in ci environments.
-
-| Flag          | Description                                                                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--help`      | Show the help page of OSnap, explaining the cli useage.                                                                                           |
-| `--config`    | The relative path to the global config file. (optional)                                                                                           |
-| `--no-create` | With this option enabled, new snapshots will not be created, but fail the whole test run instead. This option is recommended for ci environments. |
-| `--no-only`   | With this option enabled, the test run will fail, if you have any test with "only" set to true. This option is recommended for ci environments.   |
-| `--no-skip`   | With this option enabled, the test run will fail, if you have any test with "skip" set to true. This option is recommended for ci environments.   |
-
-<br />
-
-## Updating Snapshots
-
-If the images aren't equal, the test fails and OSnap puts the new image into a new **"\_\_updated\_\_"** folder inside of your snapshot folder.
-It also generates a new image inside of a **"\_\_diff\_\_"** folder, which shows the base image (how it looked before), an image with the differing pixels highlighted and the new image side by side.
-
-There is no "update" command to update the snapshots. If the changes shown in the diff image are expected, you just have to move and replace the image from the **"\_\_updated\_\_"** folder into the **"\_\_base_images\_\_"** folder.
-
-<br />
-
-## Cleanup Command
-
-The cleanup command removes all base images which are not used anymore.
-This may happen, because you deleted or renamed a test file.
-
-You may add the `--config` option, if your config file is not in the default location.
-
-**Useage:**
-
-```
-osnap cleanup
-```
-
-or
-
-```
-osnap cleanup --config [PATH TO CONFIG]
-```
-
-<br />
-
-## Credits
+# Credits
 
 **[ODiff](https://github.com/dmtrKovalenko/odiff):**
 ODiff inspired the name of this library and is used as the underlying diffing algorithm.
@@ -314,36 +80,38 @@ Thank you for your work [@dmtrKovalenko](https://github.com/dmtrKovalenko)!
 
 <br />
 
-## Some things we may want to add:
-
-In decending order of priority (top ones are more important):
-
-- [ ] **Listen for network requests**:
-      Wait for specific network requests to finish, before taking the screenshot. For example: Wait for a failed login attempt to come back, to screenshot the error state
-- [ ] **Wait for dom events**:
-      Maybe we can find a way, to wait for specific events to be triggered on the page. For example: Wait for all animations on the page to complete before taking the screenshot.
-
-If you find a bug or think some feature is missing, don't hesitate to submit an issue.
-
-## Contributing
+# Contributing
 
 Contributions are always welcome. Here's how to set up the project locally.
 
-**Install [`esy`](https://esy.sh/)**
+**Install opam**
 
-```sh
-npm install -g esy
-```
+https://opam.ocaml.org/doc/Install.html
 
-**Install dependencies and build the project**
+**Install dependencies**
 ```sh
-esy
+make install
 ```
 
-**Running the tests**
+**Build the project**
 ```sh
-esy run test:yaml
+make
 ```
-```sh
-esy run test:json
-```
+
+# Some things we may want to add:
+
+In decending order of priority (top ones are more important):
+
+- [ ] **A built in static webserver**:
+      The speed of the server used to serve the website being tested influences the speed of OSnap a lot. So we want to control that a bit more and provide a built in static web server. <br />
+      This also makes it easier to run tests, as you don't have to explicitly wait for the server to be up and running before running osnap.
+      <br /><br />
+- [ ] **Listen for network requests**:
+      Wait for specific network requests to finish, before taking the screenshot. For example: Wait for a failed login attempt to come back, to screenshot the error state
+      <br /><br />
+- [ ] **Wait for dom events**:
+      Maybe we can find a way, to wait for specific events to be triggered on the page. For example: Wait for all animations on the page to complete before taking the screenshot.
+
+<br />
+
+### If you find a bug or think some feature is missing, feel free to submit an issue :)
