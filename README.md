@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="600" src="./docs/logo.png"/>
+  <img width="600" src="https://github.com/eWert-Online/OSnap/blob/master/docs/logo.png"/>
 </div>
 
 <h3 align="center"> The speedy and easy to use Snapshot Testing tool for your project! </h3>
@@ -12,8 +12,8 @@
 </div>
 <br />
 <div align="center">
-    <img src="./docs/built-with-love.svg" alt="<3">
-    <img src="./docs/made-with-ocaml.svg" alt="made with ocaml">
+    <img src="https://github.com/eWert-Online/OSnap/blob/master/docs/built-with-love.svg" alt="<3">
+    <img src="https://github.com/eWert-Online/OSnap/blob/master/docs/made-with-ocaml.svg" alt="made with ocaml">
 </div>
 
 <br />
