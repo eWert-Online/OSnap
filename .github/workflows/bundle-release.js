@@ -30,6 +30,7 @@ const packageJson = JSON.stringify(
     license: mainPackageJson.license,
     description: mainPackageJson.description,
     repository: mainPackageJson.repository,
+    keywords: mainPackageJson.keywords,
     scripts: {
       postinstall: 'node ./postinstall.js && node ./download-chromium.js',
     },
