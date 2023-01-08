@@ -93,7 +93,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: latest
           registry-url: https://registry.npmjs.org/
 
       - uses: actions/checkout@v3
@@ -171,7 +171,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: latest
 
       - name: Download ${{ matrix.os }} release
         uses: actions/download-artifact@v2
@@ -193,7 +193,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: latest
           registry-url: https://registry.npmjs.org/
 
       - name: Download release package
