@@ -1,11 +1,10 @@
-.PHONY: all build install update fmt clean clear
-.SILENT: all build install update fmt clean clear
+.PHONY: all build install update fmt clean clear chromium-version
+.SILENT: all build install update fmt clean clear chromium-version
 
 all: build
 
 build:
-	dune build -p chromium-version --profile=release
-	dune build -p osnap --profile=release
+	opam exec -- dune build -p osnap --profile=release
 
 install:
 	if ! [ -e _opam ]; then \
@@ -20,10 +19,13 @@ update:
 	opam lock .
 
 fmt:
-	dune build @fmt --auto-promote
+	opam exec -- dune build @fmt --auto-promote
 
 clean:
 	rm -rf _build
 
 clear: clean
 	rm -rf _opam
+
+chromium-version:
+	opam exec -- dune exec chromium-version
