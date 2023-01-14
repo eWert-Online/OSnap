@@ -56,6 +56,6 @@ val cleanup
        | `OSnap_Config_Parse_Error of string * string
        | `OSnap_Config_Unsupported_Format of string
        ] )
-     result
+     Lwt_result.t
 
 val download_chromium : unit -> (unit, unit) Lwt_result.t

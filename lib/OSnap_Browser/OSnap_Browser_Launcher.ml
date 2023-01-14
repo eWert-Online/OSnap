@@ -1,6 +1,6 @@
-open OSnap_Browser_Types
-open Lwt_result.Syntax
 module Websocket = OSnap_Websocket
+open OSnap_Browser_Types
+open OSnap_Utils
 
 let make () =
   let base_path = OSnap_Browser_Path.get_chromium_path () in
@@ -68,9 +68,9 @@ let make () =
         | _ -> get_ws_url proc)
     | Lwt_process.Exited _ -> Lwt_result.fail `OSnap_CDP_Connection_Failed
   in
-  let* url = get_ws_url process in
+  let*? url = get_ws_url process in
   let _ = Websocket.connect url in
-  let* result =
+  let*? result =
     let open Cdp.Commands.Target.CreateBrowserContext in
     Request.make ?sessionId:None ~params:(Params.make ())
     |> Websocket.send

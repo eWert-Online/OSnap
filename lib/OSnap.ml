@@ -19,9 +19,8 @@ type t =
 
 let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
   let open Config.Types in
-  let open Lwt_result.Syntax in
   let start_time = Unix.gettimeofday () in
-  let* config = Config.Global.init ~config_path |> Lwt_result.lift in
+  let*? config = Config.Global.init ~config_path |> Lwt_result.lift in
   let config =
     match parallelism with
     | Some parallelism -> { config with parallelism }
@@ -29,8 +28,8 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
   in
   let () = OSnap_Paths.init_folder_structure config in
   let snapshot_dir = OSnap_Paths.get_base_images_dir config in
-  let* tests = Config.Test.init config |> Lwt_result.lift in
-  let* all_tests =
+  let*? tests = Config.Test.init config |> Lwt_result.lift in
+  let*? all_tests =
     tests
     |> Lwt_list.map_p_until_exception (fun test ->
          test.sizes
@@ -50,7 +49,7 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
     |> Lwt_result.map List.flatten
   in
   let only_tests = all_tests |> List.find_all (fun (test, _, _) -> test.only) in
-  let* tests_to_run =
+  let*? tests_to_run =
     if noOnly && List.length only_tests > 0
     then
       Lwt_result.fail
@@ -70,7 +69,7 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
   let skipped_tests, tests_to_run =
     tests_to_run |> List.partition (fun (test, _, _) -> test.skip)
   in
-  let* tests_to_run =
+  let*? tests_to_run =
     if noSkip && List.length skipped_tests > 0
     then
       Lwt_result.fail
@@ -96,7 +95,7 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
     |> List.fast_sort (fun (_test, _size, exists1) (_test, _size, exists2) ->
          Bool.compare exists1 exists2)
   in
-  let* browser = Browser.Launcher.make () in
+  let*? browser = Browser.Launcher.make () in
   Lwt_result.return { config; all_tests; tests_to_run; start_time; browser }
 ;;
 
@@ -104,7 +103,6 @@ let teardown t = Browser.Launcher.shutdown t.browser
 
 let run t =
   let open Config.Types in
-  let open Lwt_result.Syntax in
   let { tests_to_run; all_tests; config; start_time; browser } = t in
   let parallelism = max 1 config.parallelism in
   let pool =
@@ -113,7 +111,7 @@ let run t =
       (fun () -> Browser.Target.make browser)
       ~validate:(fun target -> Lwt.return (Result.is_ok target))
   in
-  let* test_results =
+  let*? test_results =
     tests_to_run
     |> Lwt_list.map_p_until_exception (fun test ->
          Lwt_pool.use pool (fun target ->
@@ -158,12 +156,11 @@ let run t =
 ;;
 
 let cleanup ~config_path =
-  let ( let* ) = Result.bind in
   print_newline ();
-  let* config = Config.Global.init ~config_path in
+  let*? config = Config.Global.init ~config_path |> Lwt.return in
   let () = OSnap_Paths.init_folder_structure config in
   let snapshot_dir = OSnap_Paths.get_base_images_dir config in
-  let* tests = Config.Test.init config in
+  let*? tests = Config.Test.init config |> Lwt.return in
   let test_file_paths =
     tests
     |> List.map (fun (test : Config.Types.test) ->
@@ -203,7 +200,7 @@ let cleanup ~config_path =
       (styled `Bold (styled `Green string))
       "Everything clean. No files to remove!";
   print_newline ();
-  Result.ok ()
+  Lwt_result.return ()
 ;;
 
 let download_chromium = OSnap_Browser.Download.download
