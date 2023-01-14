@@ -20,7 +20,7 @@ let save_screenshot ~path data =
   let* io =
     try Lwt_io.open_file ~mode:Output path |> Lwt_result.ok with
     | _ ->
-      OSnap_Response.FS_Error (Printf.sprintf "Could not save screenshot to %s" path)
+      `OSnap_FS_Error (Printf.sprintf "Could not save screenshot to %s" path)
       |> Lwt_result.fail
   in
   let* () = Lwt_io.write io data |> Lwt_result.ok in
@@ -32,7 +32,7 @@ let read_file_contents ~path =
   let* io =
     try Lwt_io.open_file ~mode:Input path |> Lwt_result.ok with
     | _ ->
-      OSnap_Response.FS_Error (Printf.sprintf "Could not open file %S for reading" path)
+      `OSnap_FS_Error (Printf.sprintf "Could not open file %S for reading" path)
       |> Lwt_result.fail
   in
   let* data = Lwt_io.read io |> Lwt_result.ok in
@@ -90,14 +90,12 @@ let rec execute_action ~document ~global_config target size_name action =
         |> Lwt_list.map_s
              (execute_action ~document ~global_config target (Some size_name))
         >>= Lwt_list.fold_left_s
-              (fun (acc : (unit, OSnap_Response.t) Result.t) curr ->
+              (fun acc curr ->
                 if Result.is_ok acc && Result.is_ok curr
                 then Lwt.return acc
                 else Lwt.return curr)
               (Result.ok ())
-      | None ->
-        Lwt_result.fail
-          (OSnap_Response.Invalid_Run ("Tried to call non existant function " ^ name)))
+      | None -> Lwt_result.fail (`OSnap_Config_Undefined_Function name))
     else Lwt_result.return ()
   | Function (name, None), _ ->
     (match global_config.functions |> List.assoc_opt name with
@@ -106,14 +104,12 @@ let rec execute_action ~document ~global_config target size_name action =
        actions
        |> Lwt_list.map_s (execute_action ~document ~global_config target size_name)
        >>= Lwt_list.fold_left_s
-             (fun (acc : (unit, OSnap_Response.t) Result.t) curr ->
+             (fun acc curr ->
                if Result.is_ok acc && Result.is_ok curr
                then Lwt.return acc
                else Lwt.return curr)
              (Result.ok ())
-     | None ->
-       Lwt_result.fail
-         (OSnap_Response.Invalid_Run ("Tried to call non existant function " ^ name)))
+     | None -> Lwt_result.fail (`OSnap_Config_Undefined_Function name))
 ;;
 
 let get_ignore_regions ~document target size_name regions =
@@ -189,7 +185,7 @@ let run (global_config : Config.Types.global) target test =
     test.actions
     |> Lwt_list.map_s (execute_action ~document ~global_config target test.size_name)
     >>= Lwt_list.fold_left_s
-          (fun (acc : (unit, OSnap_Response.t) Result.t) curr ->
+          (fun acc curr ->
             if Result.is_ok acc && Result.is_ok curr
             then Lwt.return acc
             else Lwt.return curr)

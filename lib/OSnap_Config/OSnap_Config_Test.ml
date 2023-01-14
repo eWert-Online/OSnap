@@ -11,11 +11,11 @@ module Common = struct
       |> List.map (fun (s : OSnap_Config_Types.size) -> Option.value s.name ~default:"")
     in
     if List.length duplicates <> 0
-    then Result.error (OSnap_Response.Config_Duplicate_Size_Names duplicates)
+    then Result.error (`OSnap_Config_Duplicate_Size_Names duplicates)
     else Result.ok ()
   ;;
 
-  let collect_ignore ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2 =
+  let collect_ignore ~path ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2 =
     match selector_all, selector, x1, y1, x2, y2 with
     | Some selector_all, None, None, None, None, None ->
       SelectorAll (selector_all, size_restriction) |> Result.ok
@@ -25,13 +25,13 @@ module Common = struct
       Coordinates ((x1, y1), (x2, y2), size_restriction) |> Result.ok
     | _ ->
       Result.error
-        (OSnap_Response.Config_Invalid
-           ("Did not find a complete configuration for an ignore region.", None))
+        (`OSnap_Config_Invalid
+          ("Did not find a complete configuration for an ignore region.", path))
   ;;
 end
 
 module JSON = struct
-  let parse_ignore r =
+  let parse_ignore ~path r =
     let* size_restriction =
       try
         r
@@ -41,35 +41,35 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* x1 =
       try
         r |> Yojson.Basic.Util.member "x1" |> Yojson.Basic.Util.to_int_option |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* y1 =
       try
         r |> Yojson.Basic.Util.member "y1" |> Yojson.Basic.Util.to_int_option |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* x2 =
       try
         r |> Yojson.Basic.Util.member "x2" |> Yojson.Basic.Util.to_int_option |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* y2 =
       try
         r |> Yojson.Basic.Util.member "y2" |> Yojson.Basic.Util.to_int_option |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* selector =
       try
@@ -79,7 +79,7 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* selector_all =
       try
@@ -89,12 +89,12 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
-    Common.collect_ignore ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2
+    Common.collect_ignore ~path ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2
   ;;
 
-  let parse_single_test (global_config : OSnap_Config_Types.global) test =
+  let parse_single_test ~path (global_config : OSnap_Config_Types.global) test =
     let* name =
       try
         test
@@ -103,7 +103,7 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* only =
       try
@@ -114,7 +114,7 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* skip =
       try
@@ -125,7 +125,7 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* threshold =
       try
@@ -136,14 +136,14 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* url =
       try
         test |> Yojson.Basic.Util.member "url" |> Yojson.Basic.Util.to_string |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, None))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* sizes =
       test
@@ -151,24 +151,25 @@ module JSON = struct
       |> function
       | `Null -> Result.ok global_config.default_sizes
       | `List list ->
-        list |> OSnap_Utils.List.map_until_exception OSnap_Config_Utils.JSON.parse_size
-      | _ ->
-        Result.error
-          (OSnap_Response.Config_Invalid ("sizes has an invalid format.", None))
+        list
+        |> OSnap_Utils.List.map_until_exception (OSnap_Config_Utils.JSON.parse_size ~path)
+      | _ -> Result.error (`OSnap_Config_Invalid ("sizes has an invalid format.", path))
     in
     let* actions =
       test
       |> Yojson.Basic.Util.member "actions"
       |> function
       | `List list ->
-        OSnap_Utils.List.map_until_exception OSnap_Config_Utils.JSON.parse_action list
+        OSnap_Utils.List.map_until_exception
+          (OSnap_Config_Utils.JSON.parse_action ~path)
+          list
       | _ -> Result.ok []
     in
     let* ignore =
       test
       |> Yojson.Basic.Util.member "ignore"
       |> function
-      | `List list -> OSnap_Utils.List.map_until_exception parse_ignore list
+      | `List list -> OSnap_Utils.List.map_until_exception (parse_ignore ~path) list
       | _ -> Result.ok []
     in
     let* () = Common.collect_duplicates sizes in
@@ -181,60 +182,69 @@ module JSON = struct
     try
       json
       |> Yojson.Basic.Util.to_list
-      |> OSnap_Utils.List.map_until_exception (parse_single_test global_config)
+      |> OSnap_Utils.List.map_until_exception (parse_single_test ~path global_config)
     with
     | Yojson.Basic.Util.Type_error (message, _) ->
-      Result.error (OSnap_Response.Config_Parse_Error (message, None))
+      Result.error (`OSnap_Config_Parse_Error (message, path))
   ;;
 end
 
 module YAML = struct
-  let parse_ignore r =
-    let* size_restriction = r |> OSnap_Config_Utils.YAML.get_string_list_option "@" in
-    let* x1 = r |> OSnap_Config_Utils.YAML.get_int_option "x1" in
-    let* y1 = r |> OSnap_Config_Utils.YAML.get_int_option "y1" in
-    let* x2 = r |> OSnap_Config_Utils.YAML.get_int_option "x2" in
-    let* y2 = r |> OSnap_Config_Utils.YAML.get_int_option "y2" in
-    let* selector = r |> OSnap_Config_Utils.YAML.get_string_option "selector" in
-    let* selector_all = r |> OSnap_Config_Utils.YAML.get_string_option "selectorAll" in
-    Common.collect_ignore ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2
+  let parse_ignore ~path r =
+    let* size_restriction =
+      r |> OSnap_Config_Utils.YAML.get_string_list_option ~path "@"
+    in
+    let* x1 = r |> OSnap_Config_Utils.YAML.get_int_option ~path "x1" in
+    let* y1 = r |> OSnap_Config_Utils.YAML.get_int_option ~path "y1" in
+    let* x2 = r |> OSnap_Config_Utils.YAML.get_int_option ~path "x2" in
+    let* y2 = r |> OSnap_Config_Utils.YAML.get_int_option ~path "y2" in
+    let* selector = r |> OSnap_Config_Utils.YAML.get_string_option ~path "selector" in
+    let* selector_all =
+      r |> OSnap_Config_Utils.YAML.get_string_option ~path "selectorAll"
+    in
+    Common.collect_ignore ~path ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2
   ;;
 
-  let parse_single_test (global_config : OSnap_Config_Types.global) test =
-    let* name = test |> OSnap_Config_Utils.YAML.get_string "name" in
-    let* url = test |> OSnap_Config_Utils.YAML.get_string "url" in
+  let parse_single_test ~path (global_config : OSnap_Config_Types.global) test =
+    let* name = test |> OSnap_Config_Utils.YAML.get_string ~path "name" in
+    let* url = test |> OSnap_Config_Utils.YAML.get_string ~path "url" in
     let* only =
       test
-      |> OSnap_Config_Utils.YAML.get_bool_option "only"
+      |> OSnap_Config_Utils.YAML.get_bool_option ~path "only"
       |> Result.map (Option.value ~default:false)
     in
     let* skip =
       test
-      |> OSnap_Config_Utils.YAML.get_bool_option "skip"
+      |> OSnap_Config_Utils.YAML.get_bool_option ~path "skip"
       |> Result.map (Option.value ~default:false)
     in
     let* threshold =
       test
-      |> OSnap_Config_Utils.YAML.get_int_option "threshold"
+      |> OSnap_Config_Utils.YAML.get_int_option ~path "threshold"
       |> Result.map (Option.value ~default:global_config.threshold)
     in
     let* sizes =
       test
       |> OSnap_Config_Utils.YAML.get_list_option
+           ~path
            "sizes"
-           ~parser:OSnap_Config_Utils.YAML.parse_size
+           ~parser:(OSnap_Config_Utils.YAML.parse_size ~path)
       |> Result.map (Option.value ~default:global_config.default_sizes)
     in
     let* actions =
       test
       |> OSnap_Config_Utils.YAML.get_list_option
+           ~path
            "actions"
-           ~parser:OSnap_Config_Utils.YAML.parse_action
+           ~parser:(OSnap_Config_Utils.YAML.parse_action ~path)
       |> Result.map (Option.value ~default:[])
     in
     let* ignore =
       test
-      |> OSnap_Config_Utils.YAML.get_list_option "ignore" ~parser:parse_ignore
+      |> OSnap_Config_Utils.YAML.get_list_option
+           ~path
+           "ignore"
+           ~parser:(parse_ignore ~path)
       |> Result.map (Option.value ~default:[])
     in
     let* () = Common.collect_duplicates sizes in
@@ -247,44 +257,18 @@ module YAML = struct
       config
       |> Yaml.of_string
       |> Result.map_error (fun _ ->
-           OSnap_Response.Config_Parse_Error
-             (Printf.sprintf "YAML could not be parsed", Some path))
+           `OSnap_Config_Parse_Error ("YAML could not be parsed", path))
     in
     yaml
     |> (function
          | `A lst -> Result.ok lst
          | _ ->
            Result.error
-             (OSnap_Response.Config_Parse_Error
-                ("A test file has to be an array of tests.", Some path)))
-    |> Result.map (OSnap_Utils.List.map_until_exception (parse_single_test global_config))
+             (`OSnap_Config_Parse_Error
+               ("A test file has to be an array of tests.", path)))
+    |> Result.map
+         (OSnap_Utils.List.map_until_exception (parse_single_test ~path global_config))
     |> Result.join
-    |> Result.map_error (fun err ->
-         match err with
-         | OSnap_Response.Config_Parse_Error (err, None) ->
-           OSnap_Response.Config_Parse_Error (err, Some path)
-         | OSnap_Response.Config_Parse_Error (err, Some path) ->
-           OSnap_Response.Config_Parse_Error (err, Some path)
-         | OSnap_Response.Config_Global_Not_Found ->
-           OSnap_Response.Config_Global_Not_Found
-         | OSnap_Response.Config_Global_Invalid s ->
-           OSnap_Response.Config_Global_Invalid s
-         | OSnap_Response.Config_Unsupported_Format f ->
-           OSnap_Response.Config_Unsupported_Format f
-         | OSnap_Response.Config_Invalid (msg, None) ->
-           OSnap_Response.Config_Invalid (msg, Some path)
-         | OSnap_Response.Config_Invalid (msg, Some path) ->
-           OSnap_Response.Config_Invalid (msg, Some path)
-         | OSnap_Response.Config_Duplicate_Tests t ->
-           OSnap_Response.Config_Duplicate_Tests t
-         | OSnap_Response.Config_Duplicate_Size_Names n ->
-           OSnap_Response.Config_Duplicate_Size_Names n
-         | OSnap_Response.CDP_Protocol_Error e -> OSnap_Response.CDP_Protocol_Error e
-         | OSnap_Response.CDP_Connection_Failed -> OSnap_Response.CDP_Connection_Failed
-         | OSnap_Response.Invalid_Run s -> OSnap_Response.Invalid_Run s
-         | OSnap_Response.FS_Error e -> OSnap_Response.FS_Error e
-         | OSnap_Response.Test_Failure -> OSnap_Response.Test_Failure
-         | OSnap_Response.Unknown_Error e -> OSnap_Response.Unknown_Error e)
   ;;
 end
 
@@ -312,8 +296,8 @@ let find ?(root_path = "/") ?(pattern = "**/*.osnap.json") ?(ignore_patterns = [
     with
     | _ ->
       Result.error
-        (OSnap_Response.Config_Global_Invalid
-           "The testPattern path could not be resolved. Please make sure it exists")
+        (`OSnap_Config_Global_Invalid
+          "The testPattern path could not be resolved. Please make sure it exists")
   in
   let pattern = pattern |> Re.Glob.glob |> Re.compile in
   let ignore_patterns =
@@ -353,6 +337,6 @@ let init config =
   | [] -> Result.ok tests
   | duplicates ->
     Result.error
-      (OSnap_Response.Config_Duplicate_Tests
-         (duplicates |> List.map (fun (t : OSnap_Config_Types.test) -> t.name)))
+      (`OSnap_Config_Duplicate_Tests
+        (duplicates |> List.map (fun (t : OSnap_Config_Types.test) -> t.name)))
 ;;

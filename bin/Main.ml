@@ -1,6 +1,5 @@
 open Cmdliner;;
 
-Printexc.record_backtrace true;;
 Fmt.set_style_renderer Fmt.stdout `Ansi_tty
 
 let print_error msg =
@@ -11,61 +10,60 @@ let print_error msg =
 let handle_response response =
   match response with
   | Ok () -> 0
-  | Error OSnap_Response.Test_Failure -> 1
-  | Error (OSnap_Response.Config_Duplicate_Tests tests) ->
+  | Error `OSnap_Test_Failure -> 1
+  | Error (`OSnap_Config_Duplicate_Tests tests) ->
     print_error
       "Found some tests with duplicate names. Every test has to have a unique name.";
     print_error "Please rename the following tests: \n";
     tests |> List.iter (print_error "%s");
     1
-  | Error OSnap_Response.Config_Global_Not_Found ->
+  | Error `OSnap_Config_Global_Not_Found ->
     print_error "Unable to find a global config file.";
     print_error
       "Please create a \"osnap.config.json\" at the root of your project or specifiy the \
        location using the --config option.";
     1
-  | Error (OSnap_Response.Config_Global_Invalid s) ->
+  | Error (`OSnap_Config_Global_Invalid s) ->
     print_error "Your global config file is invalid.";
     print_error "%s" s;
     1
-  | Error (OSnap_Response.Config_Unsupported_Format path) ->
+  | Error (`OSnap_Config_Unsupported_Format path) ->
     print_error "Your config file has an unknown format.";
-    print_error "Tried to parse %S." path;
+    print_error "Tried to parse %s." path;
     print_error "Known formats are json and yaml";
     1
-  | Error OSnap_Response.CDP_Connection_Failed ->
+  | Error `OSnap_CDP_Connection_Failed ->
     print_error "Could not connect to Chrome.";
     1
-  | Error (OSnap_Response.Config_Parse_Error (msg, path)) ->
+  | Error (`OSnap_Config_Parse_Error (msg, path)) ->
     print_error "Your config is in an invalid format";
-    (match path with
-     | Some path -> print_error "Tried to parse %S" path
-     | None -> ());
+    print_error "Tried to parse %s" path;
     print_error "%s" msg;
     1
-  | Error (OSnap_Response.Config_Invalid (s, path)) ->
+  | Error (`OSnap_Config_Invalid (s, path)) ->
     print_error "Found some tests with an invalid format.";
-    (match path with
-     | Some path -> print_error "Tried to parse %S" path
-     | None -> ());
+    print_error "Tried to parse %s" path;
     print_error "%s" s;
     1
-  | Error (OSnap_Response.Config_Duplicate_Size_Names sizes) ->
+  | Error (`OSnap_Config_Undefined_Function s) ->
+    print_error "Tried to call non existant function %s" s;
+    1
+  | Error (`OSnap_Config_Duplicate_Size_Names sizes) ->
     print_error
       "Found some sizes with duplicate names. Every size has to have a unique name \
        inside it's list.";
     print_error "Please rename the following sizes: \n";
     sizes |> List.iter (print_error "%s");
     1
-  | Error (OSnap_Response.CDP_Protocol_Error e) ->
+  | Error (`OSnap_CDP_Protocol_Error e) ->
     print_error "CDP failed to run some commands. Message was: \n";
     print_error "%s" e;
     1
-  | Error (OSnap_Response.Invalid_Run msg) ->
+  | Error (`OSnap_Invalid_Run msg) ->
     print_error "%s" msg;
     1
-  | Error (OSnap_Response.FS_Error _) -> 1
-  | Error (OSnap_Response.Unknown_Error exn) ->
+  | Error (`OSnap_FS_Error _) -> 1
+  | Error (`OSnap_Unknown_Error exn) ->
     print_error "An unexpected error occured: \n";
     print_error "%s" (Printexc.to_string exn);
     1
@@ -143,7 +141,7 @@ let default_cmd =
          | exn ->
            let () = stop_server () in
            let () = OSnap.teardown t in
-           Lwt_result.fail (OSnap_Response.Unknown_Error exn))
+           Lwt_result.fail (`OSnap_Unknown_Error exn))
     in
     Lwt_main.run run |> handle_response
   in

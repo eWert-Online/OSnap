@@ -2,7 +2,7 @@
  (name OSnap)
  (ocamlopt_flags -O3)
  (libraries
-  OSnap_Response
+  OSnap_Paths
   OSnap_Utils
   OSnap_Diff
   OSnap_Printer
@@ -13,5 +13,4 @@
   lwt.unix
   cdp
   base64
-  fileutils
   fmt))
