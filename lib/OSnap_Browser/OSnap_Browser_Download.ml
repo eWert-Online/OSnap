@@ -1,4 +1,5 @@
 open Cohttp_lwt_unix
+open OSnap_Utils
 
 let get_uri revision (platform : OSnap_Utils.platform) =
   Uri.make
@@ -20,7 +21,6 @@ let get_uri revision (platform : OSnap_Utils.platform) =
 ;;
 
 let download ~revision dir =
-  let open Lwt.Syntax in
   let zip_path = Filename.concat dir "chromium.zip" in
   let* io = Lwt_io.open_file ~mode:Output zip_path in
   print_endline
@@ -68,7 +68,6 @@ let extract_zip ?(dest = "") source =
 ;;
 
 let download () =
-  let open Lwt_result.Syntax in
   let revision = OSnap_Browser_Path.get_revision () in
   let extract_path = OSnap_Browser_Path.get_chromium_path () in
   print_newline ();
@@ -77,7 +76,7 @@ let download () =
   then (
     Unix.mkdir extract_path 511;
     Lwt_io.with_temp_dir ~prefix:"osnap_chromium_" (fun dir ->
-      let* path = dir |> download ~revision in
+      let*? path = dir |> download ~revision in
       extract_zip path ~dest:extract_path;
       print_endline "Done!";
       Lwt_result.return ()))

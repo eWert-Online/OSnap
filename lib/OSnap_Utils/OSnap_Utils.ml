@@ -1,3 +1,12 @@
+let ( let*? ) = Lwt_result.Syntax.( let* )
+let ( let+? ) = Lwt_result.Syntax.( let+ )
+let ( and*? ) = Lwt_result.Syntax.( and* )
+let ( and+? ) = Lwt_result.Syntax.( and+ )
+let ( let* ) = Lwt.Syntax.( let* )
+let ( let+ ) = Lwt.Syntax.( let+ )
+let ( and* ) = Lwt.Syntax.( and* )
+let ( and+ ) = Lwt.Syntax.( and+ )
+
 type platform =
   | Win32
   | Win64
@@ -87,7 +96,6 @@ module Lwt_list = struct
   include Lwt_list
 
   let map_p_until_exception fn list =
-    let open! Lwt.Syntax in
     let rec loop acc list =
       match list with
       | [] -> Lwt_result.return acc
