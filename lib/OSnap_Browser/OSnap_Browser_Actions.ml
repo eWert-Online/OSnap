@@ -1,8 +1,6 @@
 open Cdp
 open OSnap_Browser_Target
-open Lwt_result.Syntax
-
-let ( let** ) = Lwt.Syntax.( let* )
+open OSnap_Utils
 
 let wait_for ?timeout ?look_behind ~event target =
   let sessionId = target.sessionId in
@@ -96,7 +94,7 @@ let go_to ~url target =
   let open Commands.Page in
   let sessionId = target.sessionId in
   let params = Navigate.Params.make ~url () in
-  let* result =
+  let*? result =
     let open Navigate in
     Request.make ~sessionId ~params
     |> OSnap_Websocket.send
@@ -120,8 +118,8 @@ let go_to ~url target =
 let type_text ~document ~selector ~text target =
   let open Commands.DOM in
   let sessionId = target.sessionId in
-  let* node = select_element ~document ~selector ~sessionId in
-  let* () =
+  let*? node = select_element ~document ~selector ~sessionId in
+  let*? () =
     let open Focus in
     Request.make ~sessionId ~params:(Params.make ~nodeId:node.nodeId ())
     |> OSnap_Websocket.send
@@ -136,7 +134,7 @@ let type_text ~document ~selector ~text target =
          Option.to_result response.Response.result ~none:error)
     |> Lwt_result.map ignore
   in
-  let* () =
+  let*? () =
     List.init (String.length text) (String.get text)
     |> Lwt_list.iter_s (fun char ->
          let definition =
@@ -145,7 +143,7 @@ let type_text ~document ~selector ~text target =
          match definition with
          | Some def ->
            let open Commands.Input.DispatchKeyEvent in
-           let** () =
+           let* () =
              Request.make
                ~sessionId
                ~params:
@@ -179,7 +177,7 @@ let type_text ~document ~selector ~text target =
          | None -> Lwt.return ())
     |> Lwt_result.ok
   in
-  let* wait_result =
+  let*? wait_result =
     wait_for ~event:"Page.frameNavigated" ~look_behind:false ~timeout:1000. target
     |> Lwt_result.ok
   in
@@ -198,7 +196,7 @@ let get_quads_all ~document ~selector target =
     | `Float f -> f
     | `Int i -> float_of_int i
   in
-  let* { nodeIds } = select_element_all ~document ~selector ~sessionId in
+  let*? { nodeIds } = select_element_all ~document ~selector ~sessionId in
   nodeIds
   |> Lwt_list.fold_left_s
        (fun acc nodeId ->
@@ -220,8 +218,8 @@ let get_quads_all ~document ~selector target =
 let get_quads ~document ~selector target =
   let open Commands.DOM in
   let sessionId = target.sessionId in
-  let* { nodeId } = select_element ~document ~selector ~sessionId in
-  let* result =
+  let*? { nodeId } = select_element ~document ~selector ~sessionId in
+  let*? result =
     let open GetContentQuads in
     Request.make ~sessionId ~params:(Params.make ~nodeId ())
     |> OSnap_Websocket.send
@@ -248,10 +246,10 @@ let get_quads ~document ~selector target =
 let mousemove ~document ~to_ target =
   let open Commands.Input in
   let sessionId = target.sessionId in
-  let* x, y =
+  let*? x, y =
     match to_ with
     | `Selector selector ->
-      let* (x1, y1), (x2, y2) = get_quads ~document ~selector target in
+      let*? (x1, y1), (x2, y2) = get_quads ~document ~selector target in
       let x = `Float (x1 +. ((x2 -. x1) /. 2.0)) in
       let y = `Float (y1 +. ((y2 -. y1) /. 2.0)) in
       Lwt_result.return (x, y)
@@ -267,11 +265,11 @@ let mousemove ~document ~to_ target =
 let click ~document ~selector target =
   let open Commands.Input in
   let sessionId = target.sessionId in
-  let* (x1, y1), (x2, y2) = get_quads ~document ~selector target in
+  let*? (x1, y1), (x2, y2) = get_quads ~document ~selector target in
   let x = `Float (x1 +. ((x2 -. x1) /. 2.0)) in
   let y = `Float (y1 +. ((y2 -. y1) /. 2.0)) in
-  let* () = mousemove ~document ~to_:(`Coordinates (x, y)) target in
-  let* _ =
+  let*? () = mousemove ~document ~to_:(`Coordinates (x, y)) target in
+  let*? _ =
     let open DispatchMouseEvent in
     Request.make
       ~sessionId
@@ -288,7 +286,7 @@ let click ~document ~selector target =
     |> Lwt.map ignore
     |> Lwt_result.ok
   in
-  let* () =
+  let*? () =
     let open DispatchMouseEvent in
     Request.make
       ~sessionId
@@ -305,7 +303,7 @@ let click ~document ~selector target =
     |> Lwt.map ignore
     |> Lwt_result.ok
   in
-  let* wait_result =
+  let*? wait_result =
     wait_for ~event:"Page.frameNavigated" ~look_behind:false ~timeout:1000. target
     |> Lwt_result.ok
   in
@@ -323,7 +321,7 @@ let scroll ~document ~selector ~px target =
   | None, None -> assert false
   | Some _, Some _ -> assert false
   | None, Some selector ->
-    let* { nodeId } = select_element ~document ~selector ~sessionId in
+    let*? { nodeId } = select_element ~document ~selector ~sessionId in
     let open Commands.DOM.ScrollIntoViewIfNeeded in
     Request.make ~sessionId ~params:(Params.make ~nodeId ())
     |> OSnap_Websocket.send
@@ -360,7 +358,7 @@ let scroll ~document ~selector ~px target =
 let get_content_size target =
   let open Commands.Page in
   let sessionId = target.sessionId in
-  let* metrics =
+  let*? metrics =
     let open GetLayoutMetrics in
     Request.make ~sessionId
     |> OSnap_Websocket.send
@@ -380,7 +378,7 @@ let get_content_size target =
 let set_size ~width ~height target =
   let open Commands.Emulation in
   let sessionId = target.sessionId in
-  let* _ =
+  let*? _ =
     let open SetDeviceMetricsOverride in
     Request.make
       ~sessionId
@@ -402,14 +400,14 @@ let set_size ~width ~height target =
 let screenshot ?(full_size = false) target =
   let open Commands.Page in
   let sessionId = target.sessionId in
-  let* () =
+  let*? () =
     if full_size
     then
-      let* width, height = get_content_size target in
+      let*? width, height = get_content_size target in
       set_size ~width ~height target
     else Lwt_result.return ()
   in
-  let* result =
+  let*? result =
     let open CaptureScreenshot in
     Request.make
       ~sessionId
@@ -431,7 +429,7 @@ let screenshot ?(full_size = false) target =
 let clear_cookies target =
   let open Commands.Storage in
   let sessionId = target.sessionId in
-  let* _ =
+  let*? _ =
     let open ClearCookies in
     Request.make ~sessionId ~params:(Params.make ())
     |> OSnap_Websocket.send

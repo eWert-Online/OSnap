@@ -156,7 +156,10 @@ let default_cmd =
 ;;
 
 let cleanup_cmd =
-  let exec config_path = OSnap.cleanup ~config_path |> handle_response in
+  let exec config_path =
+    let run = OSnap.cleanup ~config_path in
+    Lwt_main.run run |> handle_response
+  in
   ( (let open Term in
     const exec $ config)
   , Cmd.info

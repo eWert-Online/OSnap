@@ -1,4 +1,5 @@
 open OSnap_Browser_Types
+open OSnap_Utils
 module Websocket = OSnap_Websocket
 
 type target =
@@ -8,7 +9,6 @@ type target =
 
 let enable_events t =
   let open Cdp.Commands in
-  let open Lwt_result.Syntax in
   let sessionId = t.sessionId in
   let* _ =
     let open Page.Enable in
@@ -56,8 +56,7 @@ let enable_events t =
 ;;
 
 let make browser =
-  let open Lwt_result.Syntax in
-  let* { targetId } =
+  let*? { targetId } =
     let open Cdp.Commands.Target.CreateTarget in
     Request.make
       ?sessionId:None
@@ -78,7 +77,7 @@ let make browser =
          in
          Option.to_result response.Response.result ~none:error)
   in
-  let* { sessionId } =
+  let*? { sessionId } =
     let open Cdp.Commands.Target.AttachToTarget in
     Request.make ?sessionId:None ~params:(Params.make ~targetId ~flatten:true ())
     |> Websocket.send
@@ -93,6 +92,6 @@ let make browser =
          Option.to_result response.Response.result ~none:error)
   in
   let t = { targetId; sessionId } in
-  let* () = enable_events t in
+  let*? () = enable_events t in
   Lwt_result.return t
 ;;

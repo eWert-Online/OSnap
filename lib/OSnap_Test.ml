@@ -2,6 +2,7 @@ module Config = OSnap_Config
 module Browser = OSnap_Browser
 module Diff = OSnap_Diff
 module Printer = OSnap_Printer
+open OSnap_Utils
 
 type t =
   { url : string
@@ -16,104 +17,92 @@ type t =
   }
 
 let save_screenshot ~path data =
-  let open Lwt_result.Syntax in
-  let* io =
+  let*? io =
     try Lwt_io.open_file ~mode:Output path |> Lwt_result.ok with
     | _ ->
       `OSnap_FS_Error (Printf.sprintf "Could not save screenshot to %s" path)
       |> Lwt_result.fail
   in
-  let* () = Lwt_io.write io data |> Lwt_result.ok in
+  let*? () = Lwt_io.write io data |> Lwt_result.ok in
   Lwt_io.close io |> Lwt_result.ok
 ;;
 
 let read_file_contents ~path =
-  let open Lwt_result.Syntax in
-  let* io =
+  let*? io =
     try Lwt_io.open_file ~mode:Input path |> Lwt_result.ok with
     | _ ->
       `OSnap_FS_Error (Printf.sprintf "Could not open file %S for reading" path)
       |> Lwt_result.fail
   in
-  let* data = Lwt_io.read io |> Lwt_result.ok in
-  let* () = Lwt_io.close io |> Lwt_result.ok in
+  let*? data = Lwt_io.read io |> Lwt_result.ok in
+  let*? () = Lwt_io.close io |> Lwt_result.ok in
   Lwt_result.return data
 ;;
 
-let rec execute_action ~document ~global_config target size_name action =
+let rec execute_actions ~document ~global_config ~target ?size_name actions =
   let open Config.Types in
-  match action, size_name with
-  | Scroll (_, Some _), None -> Lwt_result.return ()
-  | Scroll (`Selector selector, None), _ ->
-    target |> Browser.Actions.scroll ~document ~selector:(Some selector) ~px:None
-  | Scroll (`PxAmount px, None), _ ->
-    target |> Browser.Actions.scroll ~document ~selector:None ~px:(Some px)
-  | Scroll (`Selector selector, Some size_restr), Some size_name ->
-    if size_restr |> List.mem size_name
-    then target |> Browser.Actions.scroll ~document ~selector:(Some selector) ~px:None
-    else Lwt_result.return ()
-  | Scroll (`PxAmount px, Some size_restr), Some size_name ->
-    if size_restr |> List.mem size_name
-    then target |> Browser.Actions.scroll ~document ~selector:None ~px:(Some px)
-    else Lwt_result.return ()
-  | Click (_, Some _), None -> Lwt_result.return ()
-  | Click (selector, None), _ -> target |> Browser.Actions.click ~document ~selector
-  | Click (selector, Some size_restr), Some size_name ->
-    if size_restr |> List.mem size_name
-    then target |> Browser.Actions.click ~document ~selector
-    else Lwt_result.return ()
-  | Type (_, _, Some _), None -> Lwt_result.return ()
-  | Type (selector, text, None), _ ->
-    target |> Browser.Actions.type_text ~document ~selector ~text
-  | Type (selector, text, Some size), Some size_name ->
-    if size |> List.mem size_name
-    then target |> Browser.Actions.type_text ~document ~selector ~text
-    else Lwt_result.return ()
-  | Wait (_, Some _), None -> Lwt_result.return ()
-  | Wait (ms, Some size), Some size_name ->
-    if size |> List.mem size_name
-    then (
+  let run action =
+    match action, size_name with
+    | Scroll (_, Some _), None -> Lwt_result.return ()
+    | Scroll (`Selector selector, None), _ ->
+      target |> Browser.Actions.scroll ~document ~selector:(Some selector) ~px:None
+    | Scroll (`PxAmount px, None), _ ->
+      target |> Browser.Actions.scroll ~document ~selector:None ~px:(Some px)
+    | Scroll (`Selector selector, Some size_restr), Some size_name ->
+      if size_restr |> List.mem size_name
+      then target |> Browser.Actions.scroll ~document ~selector:(Some selector) ~px:None
+      else Lwt_result.return ()
+    | Scroll (`PxAmount px, Some size_restr), Some size_name ->
+      if size_restr |> List.mem size_name
+      then target |> Browser.Actions.scroll ~document ~selector:None ~px:(Some px)
+      else Lwt_result.return ()
+    | Click (_, Some _), None -> Lwt_result.return ()
+    | Click (selector, None), _ -> target |> Browser.Actions.click ~document ~selector
+    | Click (selector, Some size_restr), Some size_name ->
+      if size_restr |> List.mem size_name
+      then target |> Browser.Actions.click ~document ~selector
+      else Lwt_result.return ()
+    | Type (_, _, Some _), None -> Lwt_result.return ()
+    | Type (selector, text, None), _ ->
+      target |> Browser.Actions.type_text ~document ~selector ~text
+    | Type (selector, text, Some size), Some size_name ->
+      if size |> List.mem size_name
+      then target |> Browser.Actions.type_text ~document ~selector ~text
+      else Lwt_result.return ()
+    | Wait (_, Some _), None -> Lwt_result.return ()
+    | Wait (ms, Some size), Some size_name ->
+      if size |> List.mem size_name
+      then (
+        let timeout = float_of_int ms /. 1000.0 in
+        Lwt_unix.sleep timeout |> Lwt_result.ok)
+      else Lwt_result.return ()
+    | Wait (ms, None), _ ->
       let timeout = float_of_int ms /. 1000.0 in
-      Lwt_unix.sleep timeout |> Lwt_result.ok)
-    else Lwt_result.return ()
-  | Wait (ms, None), _ ->
-    let timeout = float_of_int ms /. 1000.0 in
-    Lwt_unix.sleep timeout |> Lwt_result.ok
-  | Function (_, Some _), None -> Lwt_result.return ()
-  | Function (name, Some size), Some size_name ->
-    if size |> List.mem size_name
-    then (
-      match global_config.functions |> List.assoc_opt name with
-      | Some actions ->
-        let open Lwt.Infix in
-        actions
-        |> Lwt_list.map_s
-             (execute_action ~document ~global_config target (Some size_name))
-        >>= Lwt_list.fold_left_s
-              (fun acc curr ->
-                if Result.is_ok acc && Result.is_ok curr
-                then Lwt.return acc
-                else Lwt.return curr)
-              (Result.ok ())
-      | None -> Lwt_result.fail (`OSnap_Config_Undefined_Function name))
-    else Lwt_result.return ()
-  | Function (name, None), _ ->
-    (match global_config.functions |> List.assoc_opt name with
-     | Some actions ->
-       let open Lwt.Infix in
-       actions
-       |> Lwt_list.map_s (execute_action ~document ~global_config target size_name)
-       >>= Lwt_list.fold_left_s
-             (fun acc curr ->
-               if Result.is_ok acc && Result.is_ok curr
-               then Lwt.return acc
-               else Lwt.return curr)
-             (Result.ok ())
-     | None -> Lwt_result.fail (`OSnap_Config_Undefined_Function name))
+      Lwt_unix.sleep timeout |> Lwt_result.ok
+    | Function (_, Some _), None -> Lwt_result.return ()
+    | Function (name, Some size), Some size_name ->
+      if size |> List.mem size_name
+      then (
+        match global_config.functions |> List.assoc_opt name with
+        | Some actions ->
+          execute_actions ~document ~global_config ~target ~size_name actions
+        | None -> Lwt_result.fail (`OSnap_Config_Undefined_Function name))
+      else Lwt_result.return ()
+    | Function (name, None), _ ->
+      (match global_config.functions |> List.assoc_opt name with
+       | Some actions ->
+         execute_actions ~document ~global_config ~target ?size_name actions
+       | None -> Lwt_result.fail (`OSnap_Config_Undefined_Function name))
+  in
+  actions
+  |> Lwt_list.fold_left_s
+       (fun acc curr ->
+         let* result = run curr in
+         if Result.is_ok result then Lwt.return acc else Lwt.return result)
+       (Result.ok ())
 ;;
 
 let get_ignore_regions ~document target size_name regions =
-  let open Lwt_result.Syntax in
   let open Config.Types in
   regions
   |> List.filter (fun region ->
@@ -132,7 +121,7 @@ let get_ignore_regions ~document target size_name regions =
        match region with
        | Coordinates (a, b, _) -> Lwt_result.return [ a, b ]
        | SelectorAll (selector, _) ->
-         let* quads = target |> Browser.Actions.get_quads_all ~document ~selector in
+         let*? quads = target |> Browser.Actions.get_quads_all ~document ~selector in
          quads
          |> List.map (fun ((x1, y1), (x2, y2)) ->
               let x1 = Int.of_float x1 in
@@ -142,7 +131,7 @@ let get_ignore_regions ~document target size_name regions =
               (x1, y1), (x2, y2))
          |> Lwt_result.return
        | Selector (selector, _) ->
-         let* (x1, y1), (x2, y2) =
+         let*? (x1, y1), (x2, y2) =
            target |> Browser.Actions.get_quads ~document ~selector
          in
          let x1 = Int.of_float x1 in
@@ -161,8 +150,6 @@ let get_filename ?(diff = false) name width height =
 ;;
 
 let run (global_config : Config.Types.global) target test =
-  let open Lwt_result.Syntax in
-  let open Lwt.Infix in
   let dirs = OSnap_Paths.get global_config in
   let filename = get_filename test.name test.width test.height in
   let diff_filename = get_filename ~diff:true test.name test.width test.height in
@@ -170,28 +157,22 @@ let run (global_config : Config.Types.global) target test =
   let base_snapshot = dirs.base ^ filename in
   let updated_snapshot = dirs.updated ^ filename in
   let diff_image = dirs.diff ^ diff_filename in
-  let* () = target |> Browser.Actions.clear_cookies in
-  let* () =
+  let*? () = target |> Browser.Actions.clear_cookies in
+  let*? () =
     target |> Browser.Actions.set_size ~width:(`Int test.width) ~height:(`Int test.height)
   in
-  let* loaderId = target |> Browser.Actions.go_to ~url in
-  let* () = target |> Browser.Actions.wait_for_network_idle ~loaderId |> Lwt_result.ok in
-  let* document = target |> Browser.Actions.get_document in
-  let* () =
+  let*? loaderId = target |> Browser.Actions.go_to ~url in
+  let*? () = target |> Browser.Actions.wait_for_network_idle ~loaderId |> Lwt_result.ok in
+  let*? document = target |> Browser.Actions.get_document in
+  let*? () =
     target
     |> Browser.Actions.mousemove ~document ~to_:(`Coordinates (`Int (-100), `Int (-100)))
   in
-  let* () =
+  let*? () =
     test.actions
-    |> Lwt_list.map_s (execute_action ~document ~global_config target test.size_name)
-    >>= Lwt_list.fold_left_s
-          (fun acc curr ->
-            if Result.is_ok acc && Result.is_ok curr
-            then Lwt.return acc
-            else Lwt.return curr)
-          (Result.ok ())
+    |> execute_actions ~document ~global_config ~target ?size_name:test.size_name
   in
-  let* screenshot =
+  let*? screenshot =
     target
     |> Browser.Actions.screenshot ~full_size:global_config.fullscreen
     |> Lwt_result.map Base64.decode_exn
@@ -199,16 +180,16 @@ let run (global_config : Config.Types.global) target test =
   if not test.exists
   then (
     Printer.created_message ~name:test.name ~width:test.width ~height:test.height;
-    let* () = save_screenshot ~path:base_snapshot screenshot in
+    let*? () = save_screenshot ~path:base_snapshot screenshot in
     Lwt_result.return `Created)
   else
-    let* original_image_data = read_file_contents ~path:base_snapshot in
+    let*? original_image_data = read_file_contents ~path:base_snapshot in
     if original_image_data = screenshot
     then (
       Printer.success_message ~name:test.name ~width:test.width ~height:test.height;
       Lwt_result.return `Passed)
     else
-      let* ignoreRegions =
+      let*? ignoreRegions =
         test.ignore_regions |> get_ignore_regions ~document target test.size_name
       in
       let diff =
@@ -237,7 +218,7 @@ let run (global_config : Config.Types.global) target test =
           ~name:test.name
           ~width:test.width
           ~height:test.height;
-        let* () = save_screenshot screenshot ~path:updated_snapshot in
+        let*? () = save_screenshot screenshot ~path:updated_snapshot in
         Lwt_result.return (`Failed (`Layout (test.name, test.width, test.height)))
       | Error (Pixel (diffCount, diffPercentage)) ->
         Printer.diff_message
@@ -247,7 +228,7 @@ let run (global_config : Config.Types.global) target test =
           ~height:test.height
           ~diffCount
           ~diffPercentage;
-        let* () = save_screenshot screenshot ~path:updated_snapshot in
+        let*? () = save_screenshot screenshot ~path:updated_snapshot in
         Lwt_result.return
           (`Failed
             (`Pixel (test.name, test.width, test.height, diffCount, diffPercentage)))
