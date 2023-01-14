@@ -29,8 +29,8 @@ let get_document target =
        let error =
          response.Response.error
          |> Option.map (fun (error : Response.error) ->
-              OSnap_Response.CDP_Protocol_Error error.message)
-         |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+              `OSnap_CDP_Protocol_Error error.message)
+         |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
        in
        Option.to_result response.Response.result ~none:error)
 ;;
@@ -50,11 +50,10 @@ let select_element_all ~document ~selector ~sessionId =
        match response.Response.error, response.Response.result with
        | _, Some { nodeIds = [] } ->
          Result.error
-           (OSnap_Response.CDP_Protocol_Error
-              (Printf.sprintf "No node with the selector %S could not be found." selector))
-       | None, None -> Result.error (OSnap_Response.CDP_Protocol_Error "")
-       | Some { message; _ }, None ->
-         Result.error (OSnap_Response.CDP_Protocol_Error message)
+           (`OSnap_CDP_Protocol_Error
+             (Printf.sprintf "No node with the selector %S could not be found." selector))
+       | None, None -> Result.error (`OSnap_CDP_Protocol_Error "")
+       | Some { message; _ }, None -> Result.error (`OSnap_CDP_Protocol_Error message)
        | Some _, Some result | None, Some result -> Result.ok result)
 ;;
 
@@ -73,11 +72,10 @@ let select_element ~document ~selector ~sessionId =
        match response.Response.error, response.Response.result with
        | _, (Some { nodeId = `Int 0 } | Some { nodeId = `Float 0. }) ->
          Result.error
-           (OSnap_Response.CDP_Protocol_Error
-              (Printf.sprintf "A node with the selector %S could not be found." selector))
-       | None, None -> Result.error (OSnap_Response.CDP_Protocol_Error "")
-       | Some { message; _ }, None ->
-         Result.error (OSnap_Response.CDP_Protocol_Error message)
+           (`OSnap_CDP_Protocol_Error
+             (Printf.sprintf "A node with the selector %S could not be found." selector))
+       | None, None -> Result.error (`OSnap_CDP_Protocol_Error "")
+       | Some { message; _ }, None -> Result.error (`OSnap_CDP_Protocol_Error message)
        | Some _, Some result | None, Some result -> Result.ok result)
 ;;
 
@@ -107,15 +105,15 @@ let go_to ~url target =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in
   match result.errorText, result.loaderId with
-  | Some error, _ -> OSnap_Response.CDP_Protocol_Error error |> Lwt_result.fail
+  | Some error, _ -> `OSnap_CDP_Protocol_Error error |> Lwt_result.fail
   | None, None ->
-    Lwt_result.fail (OSnap_Response.CDP_Protocol_Error "CDP responded with no loader id")
+    Lwt_result.fail (`OSnap_CDP_Protocol_Error "CDP responded with no loader id")
   | None, Some loaderId -> loaderId |> Lwt_result.return
 ;;
 
@@ -132,8 +130,8 @@ let type_text ~document ~selector ~text target =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
     |> Lwt_result.map ignore
@@ -232,8 +230,8 @@ let get_quads ~document ~selector target =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in
@@ -244,7 +242,7 @@ let get_quads ~document ~selector target =
   match result.quads with
   | (x1 :: y1 :: x2 :: _y2 :: _x3 :: y2 :: _x4 :: _y4 :: _) :: _ ->
     Lwt_result.return ((to_float x1, to_float y1), (to_float x2, to_float y2))
-  | _ -> Lwt_result.fail (OSnap_Response.CDP_Protocol_Error "no content quads returned")
+  | _ -> Lwt_result.fail (`OSnap_CDP_Protocol_Error "no content quads returned")
 ;;
 
 let mousemove ~document ~to_ target =
@@ -333,7 +331,7 @@ let scroll ~document ~selector ~px target =
     |> Lwt.map (fun response ->
          match response.Response.error with
          | None -> Result.ok ()
-         | Some { message; _ } -> Result.error (OSnap_Response.CDP_Protocol_Error message))
+         | Some { message; _ } -> Result.error (`OSnap_CDP_Protocol_Error message))
   | Some px, None ->
     let expression =
       Printf.sprintf
@@ -356,7 +354,7 @@ let scroll ~document ~selector ~px target =
       | None ->
         let timeout = float_of_int (px / 200) in
         Lwt_unix.sleep timeout |> Lwt_result.ok
-      | Some { message; _ } -> Lwt_result.fail (OSnap_Response.CDP_Protocol_Error message))
+      | Some { message; _ } -> Lwt_result.fail (`OSnap_CDP_Protocol_Error message))
 ;;
 
 let get_content_size target =
@@ -371,8 +369,8 @@ let get_content_size target =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in
@@ -393,8 +391,8 @@ let set_size ~width ~height target =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in
@@ -422,8 +420,8 @@ let screenshot ?(full_size = false) target =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in
@@ -442,8 +440,8 @@ let clear_cookies target =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in

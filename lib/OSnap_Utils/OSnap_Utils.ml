@@ -67,6 +67,8 @@ let path_of_segments paths =
 ;;
 
 module List = struct
+  include List
+
   let map_until_exception fn list =
     let rec loop acc list =
       match list with
@@ -78,5 +80,32 @@ module List = struct
          | Error e -> Result.error e)
     in
     loop [] list
+  ;;
+end
+
+module Lwt_list = struct
+  include Lwt_list
+
+  let map_p_until_exception fn list =
+    let open! Lwt.Syntax in
+    let rec loop acc list =
+      match list with
+      | [] -> Lwt_result.return acc
+      | list ->
+        let* resolved, pending = Lwt.nchoose_split list in
+        let success, error =
+          resolved
+          |> List.partition_map (function
+               | Ok v -> Either.left v
+               | Error e -> Either.right e)
+        in
+        (match error with
+         | [] -> loop (success @ acc) pending
+         | hd :: _tl ->
+           pending |> List.iter Lwt.cancel;
+           Lwt_result.fail hd)
+    in
+    let promises = list |> List.map (Lwt.apply fn) in
+    loop [] promises
   ;;
 end

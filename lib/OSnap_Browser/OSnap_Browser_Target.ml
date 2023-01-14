@@ -19,8 +19,8 @@ let enable_events t =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in
@@ -33,8 +33,8 @@ let enable_events t =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in
@@ -47,8 +47,8 @@ let enable_events t =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in
@@ -73,8 +73,8 @@ let make browser =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in
@@ -87,8 +87,8 @@ let make browser =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:(OSnap_Response.CDP_Protocol_Error "")
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
          in
          Option.to_result response.Response.result ~none:error)
   in

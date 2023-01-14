@@ -58,7 +58,7 @@ let make () =
           when line |> OSnap_Utils.contains_substring ~search:"Cannot start http server"
           ->
           proc#terminate;
-          Lwt_result.fail OSnap_Response.CDP_Connection_Failed
+          Lwt_result.fail `OSnap_CDP_Connection_Failed
         | line when line |> OSnap_Utils.contains_substring ~search:"DevTools listening on"
           ->
           let offset = String.length "DevTools listening on " in
@@ -66,7 +66,7 @@ let make () =
           let socket = String.sub line offset (len - offset) in
           socket |> Lwt_result.return
         | _ -> get_ws_url proc)
-    | Lwt_process.Exited _ -> Lwt_result.fail OSnap_Response.CDP_Connection_Failed
+    | Lwt_process.Exited _ -> Lwt_result.fail `OSnap_CDP_Connection_Failed
   in
   let* url = get_ws_url process in
   let _ = Websocket.connect url in
@@ -79,8 +79,8 @@ let make () =
          let error =
            response.Response.error
            |> Option.map (fun (error : Response.error) ->
-                OSnap_Response.CDP_Protocol_Error error.message)
-           |> Option.value ~default:OSnap_Response.CDP_Connection_Failed
+                `OSnap_CDP_Protocol_Error error.message)
+           |> Option.value ~default:`OSnap_CDP_Connection_Failed
          in
          Option.to_result response.Response.result ~none:error)
   in

@@ -29,3 +29,13 @@ let get config =
   ; diff = get_diff_dir config
   }
 ;;
+
+let init_folder_structure config =
+  let dirs = get config in
+  if not (Sys.file_exists dirs.base)
+  then FileUtil.mkdir ~parent:true ~mode:(`Octal 0o755) dirs.base;
+  FileUtil.rm ~recurse:true [ dirs.updated ];
+  FileUtil.mkdir ~parent:true ~mode:(`Octal 0o755) dirs.updated;
+  FileUtil.rm ~recurse:true [ dirs.diff ];
+  FileUtil.mkdir ~parent:true ~mode:(`Octal 0o755) dirs.diff
+;;

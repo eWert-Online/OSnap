@@ -9,30 +9,30 @@ module YAML = struct
       config
       |> Yaml.of_string
       |> Result.map_error (fun _ ->
-           OSnap_Response.Config_Parse_Error
-             (Printf.sprintf "YAML could not be parsed", Some path))
+           `OSnap_Config_Parse_Error ("YAML could not be parsed", path))
     in
-    let* base_url = yaml |> OSnap_Config_Utils.YAML.get_string "baseUrl" in
+    let* base_url = yaml |> OSnap_Config_Utils.YAML.get_string ~path "baseUrl" in
     let* fullscreen =
       yaml
-      |> OSnap_Config_Utils.YAML.get_bool_option "fullScreen"
+      |> OSnap_Config_Utils.YAML.get_bool_option ~path "fullScreen"
       |> Result.map (Option.value ~default:false)
     in
     let* threshold =
       yaml
-      |> OSnap_Config_Utils.YAML.get_int_option "threshold"
+      |> OSnap_Config_Utils.YAML.get_int_option ~path "threshold"
       |> Result.map (Option.value ~default:0)
     in
     let* ignore_patterns =
       yaml
-      |> OSnap_Config_Utils.YAML.get_string_list_option "ignorePatterns"
+      |> OSnap_Config_Utils.YAML.get_string_list_option ~path "ignorePatterns"
       |> Result.map (Option.value ~default:[ "**/node_modules/**" ])
     in
     let* default_sizes =
       yaml
       |> OSnap_Config_Utils.YAML.get_list_option
+           ~path
            "defaultSizes"
-           ~parser:OSnap_Config_Utils.YAML.parse_size
+           ~parser:(OSnap_Config_Utils.YAML.parse_size ~path)
       |> Result.map (Option.value ~default:[])
     in
     let* functions =
@@ -45,8 +45,9 @@ module YAML = struct
                 let* actions =
                   f
                   |> OSnap_Config_Utils.YAML.get_list_option
+                       ~path
                        key
-                       ~parser:OSnap_Config_Utils.YAML.parse_action
+                       ~parser:(OSnap_Config_Utils.YAML.parse_action ~path)
                   |> Result.map (Option.value ~default:[])
                 in
                 (key, actions) |> Result.ok))
@@ -54,26 +55,26 @@ module YAML = struct
     in
     let* snapshot_directory =
       yaml
-      |> OSnap_Config_Utils.YAML.get_string_option "snapshotDirectory"
+      |> OSnap_Config_Utils.YAML.get_string_option ~path "snapshotDirectory"
       |> Result.map (Option.value ~default:"__snapshots__")
     in
     let* parallelism =
       yaml
-      |> OSnap_Config_Utils.YAML.get_int_option "parallelism"
+      |> OSnap_Config_Utils.YAML.get_int_option ~path "parallelism"
       |> Result.map (Option.value ~default:8)
       |> Result.map (max 1)
     in
     let root_path = Filename.dirname path in
     let* test_pattern =
       yaml
-      |> OSnap_Config_Utils.YAML.get_string_option "testPattern"
+      |> OSnap_Config_Utils.YAML.get_string_option ~path "testPattern"
       |> Result.map (Option.value ~default:"**/*.osnap.yaml")
     in
     let* diff_pixel_color =
       yaml
       |> Yaml.Util.find "diffPixelColor"
       |> Result.map_error (function `Msg message ->
-           OSnap_Response.Config_Parse_Error (message, Some path))
+           `OSnap_Config_Parse_Error (message, path))
       |> Result.map
            (Option.map (fun colors ->
               let get_color = function
@@ -81,14 +82,14 @@ module YAML = struct
                 | `String s -> Result.ok (int_of_string s)
                 | _ ->
                   Result.error
-                    (OSnap_Response.Config_Parse_Error
-                       ("diffPixelColor does not have a correct format", Some path))
+                    (`OSnap_Config_Parse_Error
+                      ("diffPixelColor does not have a correct format", path))
               in
               let* r =
                 colors
                 |> Yaml.Util.find "r"
                 |> Result.map_error (function `Msg message ->
-                     OSnap_Response.Config_Parse_Error (message, Some path))
+                     `OSnap_Config_Parse_Error (message, path))
                 |> Result.map (Option.map get_color)
                 |> Result.map OSnap_Config_Utils.to_result_option
                 |> Result.join
@@ -98,7 +99,7 @@ module YAML = struct
                 colors
                 |> Yaml.Util.find "g"
                 |> Result.map_error (function `Msg message ->
-                     OSnap_Response.Config_Parse_Error (message, Some path))
+                     `OSnap_Config_Parse_Error (message, path))
                 |> Result.map (Option.map get_color)
                 |> Result.map OSnap_Config_Utils.to_result_option
                 |> Result.join
@@ -108,7 +109,7 @@ module YAML = struct
                 colors
                 |> Yaml.Util.find "b"
                 |> Result.map_error (function `Msg message ->
-                     OSnap_Response.Config_Parse_Error (message, Some path))
+                     `OSnap_Config_Parse_Error (message, path))
                 |> Result.map (Option.map get_color)
                 |> Result.map OSnap_Config_Utils.to_result_option
                 |> Result.join
@@ -128,7 +129,7 @@ module YAML = struct
            name)
     in
     if List.length duplicates <> 0
-    then Result.error (OSnap_Response.Config_Duplicate_Size_Names duplicates)
+    then Result.error (`OSnap_Config_Duplicate_Size_Names duplicates)
     else
       Result.ok
         { root_path
@@ -160,7 +161,7 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* fullscreen =
       try
@@ -171,7 +172,7 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* threshold =
       try
@@ -182,17 +183,17 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* default_sizes =
       try
         json
         |> Yojson.Basic.Util.member "defaultSizes"
         |> Yojson.Basic.Util.to_list
-        |> OSnap_Utils.List.map_until_exception OSnap_Config_Utils.JSON.parse_size
+        |> OSnap_Utils.List.map_until_exception (OSnap_Config_Utils.JSON.parse_size ~path)
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* functions =
       json
@@ -207,16 +208,15 @@ module JSON = struct
                  actions
                  |> Yojson.Basic.Util.to_list
                  |> OSnap_Utils.List.map_until_exception
-                      OSnap_Config_Utils.JSON.parse_action
+                      (OSnap_Config_Utils.JSON.parse_action ~path)
                with
                | Yojson.Basic.Util.Type_error (message, _) ->
-                 Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
+                 Result.error (`OSnap_Config_Parse_Error (message, path))
              in
              Result.ok (key, actions))
       | _ ->
         Result.error
-          (OSnap_Response.Config_Parse_Error
-             ("The functions option has to be an object.", Some path))
+          (`OSnap_Config_Parse_Error ("The functions option has to be an object.", path))
     in
     let* snapshot_directory =
       try
@@ -227,7 +227,7 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* parallelism =
       try
@@ -239,7 +239,7 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let root_path = Filename.dirname path in
     let* ignore_patterns =
@@ -252,11 +252,11 @@ module JSON = struct
           |> OSnap_Utils.List.map_until_exception (fun item ->
                try Yojson.Basic.Util.to_string item |> Result.ok with
                | Yojson.Basic.Util.Type_error (message, _) ->
-                 Result.error (OSnap_Response.Config_Parse_Error (message, Some path)))
+                 Result.error (`OSnap_Config_Parse_Error (message, path)))
         | _ -> Result.ok [ "**/node_modules/**" ]
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* test_pattern =
       try
@@ -267,7 +267,7 @@ module JSON = struct
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (OSnap_Response.Config_Parse_Error (message, Some path))
+        Result.error (`OSnap_Config_Parse_Error (message, path))
     in
     let* diff_pixel_color =
       json
@@ -279,8 +279,8 @@ module JSON = struct
           | `Float f -> Result.ok (int_of_float f)
           | _ ->
             Result.error
-              (OSnap_Response.Config_Parse_Error
-                 ("diffPixelColor does not have a correct format", Some path))
+              (`OSnap_Config_Parse_Error
+                ("diffPixelColor does not have a correct format", path))
         in
         let* r = assoc |> Yojson.Basic.Util.member "r" |> get_color in
         let* g = assoc |> Yojson.Basic.Util.member "g" |> get_color in
@@ -289,8 +289,8 @@ module JSON = struct
       | `Null -> Result.ok (255, 0, 0)
       | _ ->
         Result.error
-          (OSnap_Response.Config_Parse_Error
-             ("diffPixelColor does not have a correct format", Some path))
+          (`OSnap_Config_Parse_Error
+            ("diffPixelColor does not have a correct format", path))
     in
     let duplicates =
       default_sizes
@@ -301,7 +301,7 @@ module JSON = struct
            name)
     in
     if List.length duplicates <> 0
-    then Result.error (OSnap_Response.Config_Duplicate_Size_Names duplicates)
+    then Result.error (`OSnap_Config_Duplicate_Size_Names duplicates)
     else
       Result.ok
         { root_path
@@ -359,7 +359,7 @@ let init ~config_path =
     then (
       match find [ "osnap.config.json"; "osnap.config.yaml" ] with
       | Some path -> Result.ok path
-      | None -> Result.error OSnap_Response.Config_Global_Not_Found)
+      | None -> Result.error `OSnap_Config_Global_Not_Found)
     else Result.ok config_path
   in
   let* format = OSnap_Config_Utils.get_format config in
