@@ -1,0 +1,3 @@
+(library
+ (name OSnap_Paths)
+ (libraries OSnap_Config fileutils))

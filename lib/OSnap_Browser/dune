@@ -1,7 +1,6 @@
 (library
  (name OSnap_Browser)
  (libraries
-  OSnap_Response
   OSnap_Utils
   OSnap_Websocket
   bigstringaf
