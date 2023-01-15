@@ -1,11 +1,10 @@
 module Config = OSnap_Config
 module Browser = OSnap_Browser
-module Printer = OSnap_Printer
+module Test = OSnap_Test
 open OSnap_Utils
 
 type t =
   { config : Config.Types.global
-  ; all_tests : (Config.Types.test * Config.Types.size * bool) list
   ; tests_to_run : (Config.Types.test * Config.Types.size * bool) list
   ; start_time : float
   ; browser : Browser.t
@@ -22,14 +21,14 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
   in
   let () = OSnap_Paths.init_folder_structure config in
   let snapshot_dir = OSnap_Paths.get_base_images_dir config in
-  let*? tests = Config.Test.init config |> Lwt_result.lift in
-  let*? all_tests =
-    tests
+  let*? all_tests = Config.Test.init config |> Lwt_result.lift in
+  let*? only_tests, tests =
+    all_tests
     |> Lwt_list.map_p_until_exception (fun test ->
          test.sizes
          |> Lwt_list.map_p_until_exception (fun size ->
               let { name = _size_name; width; height } = size in
-              let filename = OSnap_Test.get_filename test.name width height in
+              let filename = Test.get_filename test.name width height in
               let current_image_path = snapshot_dir ^ filename in
               let exists = Sys.file_exists current_image_path in
               if noCreate && not exists
@@ -39,50 +38,31 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
                     (Printf.sprintf
                        "Flag --no-create is set. Cannot create new images for %s."
                        test.name))
-              else Lwt_result.return (test, size, exists)))
+              else if noSkip && test.skip
+              then
+                Lwt_result.fail
+                  (`OSnap_Invalid_Run
+                    (Printf.sprintf
+                       "Flag --no-skip is set. Cannot skip test %s."
+                       test.name))
+              else if noOnly && test.only
+              then
+                Lwt_result.fail
+                  (`OSnap_Invalid_Run
+                    (Printf.sprintf
+                       "Flag --no-only is set but the following test still has only set \
+                        to true %s."
+                       test.name))
+              else if test.only
+              then Lwt_result.return (Either.left (test, size, exists))
+              else Lwt_result.return (Either.right (test, size, exists))))
     |> Lwt_result.map List.flatten
+    |> Lwt_result.map (List.partition_map Fun.id)
   in
-  let only_tests = all_tests |> List.find_all (fun (test, _, _) -> test.only) in
-  let*? tests_to_run =
-    if noOnly && List.length only_tests > 0
-    then
-      Lwt_result.fail
-        (`OSnap_Invalid_Run
-          (only_tests
-          |> List.map (fun ((test : Config.Types.test), _, _) -> test.name)
-          |> List.sort_uniq String.compare
-          |> String.concat ",\n"
-          |> Printf.sprintf
-               "Flag --no-only is set, but the following tests still have only set to \
-                true:\n\
-                %s"))
-    else if List.length only_tests > 0
-    then Lwt_result.return only_tests
-    else Lwt_result.return all_tests
-  in
-  let skipped_tests, tests_to_run =
-    tests_to_run |> List.partition (fun (test, _, _) -> test.skip)
-  in
-  let*? tests_to_run =
-    if noSkip && List.length skipped_tests > 0
-    then
-      Lwt_result.fail
-        (`OSnap_Invalid_Run
-          (skipped_tests
-          |> List.map (fun ((test : Config.Types.test), _, _) -> test.name)
-          |> List.sort_uniq String.compare
-          |> String.concat ",\n"
-          |> Printf.sprintf
-               "Flag --no-skip is set, but the following tests still have \"skip\" set \
-                to true:\n\
-                %s"))
-    else if List.length skipped_tests > 0
-    then (
-      skipped_tests
-      |> List.iter (fun ((test : Config.Types.test), { width; height; _ }, _) ->
-           Printer.skipped_message ~name:test.name ~width ~height);
-      Lwt_result.return tests_to_run)
-    else Lwt_result.return tests_to_run
+  let tests_to_run =
+    match only_tests, tests with
+    | [], tests -> tests
+    | only_tests, _ -> only_tests
   in
   let tests_to_run =
     tests_to_run
@@ -90,14 +70,14 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
          Bool.compare exists1 exists2)
   in
   let*? browser = Browser.Launcher.make () in
-  Lwt_result.return { config; all_tests; tests_to_run; start_time; browser }
+  Lwt_result.return { config; tests_to_run; start_time; browser }
 ;;
 
 let teardown t = Browser.Launcher.shutdown t.browser
 
 let run t =
   let open Config.Types in
-  let { tests_to_run; all_tests; config; start_time; browser } = t in
+  let { tests_to_run; config; start_time; browser } = t in
   let parallelism = max 1 config.parallelism in
   let pool =
     Lwt_pool.create
@@ -111,42 +91,27 @@ let run t =
          Lwt_pool.use pool (fun target ->
            let test, { name = size_name; width; height }, exists = test in
            let test =
-             ({ exists
-              ; size_name
-              ; width
-              ; height
-              ; url = test.url
-              ; name = test.name
-              ; actions = test.actions
-              ; ignore_regions = test.ignore
-              ; threshold = test.threshold
-              }
-               : OSnap_Test.t)
+             Test.Types.
+               { exists
+               ; size_name
+               ; width
+               ; height
+               ; skip = test.OSnap_Config.Types.skip
+               ; url = test.OSnap_Config.Types.url
+               ; name = test.OSnap_Config.Types.name
+               ; actions = test.OSnap_Config.Types.actions
+               ; ignore_regions = test.OSnap_Config.Types.ignore
+               ; threshold = test.OSnap_Config.Types.threshold
+               ; warnings = []
+               ; result = None
+               }
            in
-           OSnap_Test.run config (Result.get_ok target) test))
+           Test.run config (Result.get_ok target) test))
   in
   let end_time = Unix.gettimeofday () in
   let seconds = end_time -. start_time in
   Browser.Launcher.shutdown browser;
-  let create_count = test_results |> List.filter (fun r -> r = `Created) |> List.length in
-  let passed_count = test_results |> List.filter (fun r -> r = `Passed) |> List.length in
-  let failed_tests =
-    test_results
-    |> List.filter_map (function
-         | `Passed | `Created -> None
-         | `Failed _ as r -> Some r)
-  in
-  let test_count = tests_to_run |> List.length in
-  Printer.stats
-    ~test_count
-    ~create_count
-    ~passed_count
-    ~failed_tests
-    ~skipped_count:(List.length all_tests - test_count)
-    ~seconds;
-  match failed_tests with
-  | [] -> Lwt_result.return ()
-  | _ -> Lwt_result.fail `OSnap_Test_Failure
+  Test.Printer.stats ~seconds test_results
 ;;
 
 let cleanup = OSnap_Cleanup.cleanup

@@ -1,4 +1,5 @@
 open Fmt
+open OSnap_Test_Types
 
 let test_name ~name ~width ~height =
   Fmt.str_like
@@ -89,7 +90,7 @@ let corrupted_message ~print_head ~name ~width ~height =
        deleting the current base image!"
 ;;
 
-let stats ~test_count ~create_count ~passed_count ~failed_tests ~skipped_count ~seconds =
+let get_time_from_seconds seconds =
   let ( % ) = mod_float in
   let hours =
     let t = Int.of_float (seconds /. 3600.) in
@@ -130,13 +131,37 @@ let stats ~test_count ~create_count ~passed_count ~failed_tests ~skipped_count ~
              | false -> 0)))
       t
   in
+  Printf.sprintf "%s%s%s" hours minutes seconds
+;;
+
+let stats ~seconds results =
+  let created, skipped, passed, failed =
+    results
+    |> List.fold_left
+         (fun acc test ->
+           let created, skipped, passed, failed = acc in
+           match test with
+           | OSnap_Test_Types.{ result = Some `Created; _ } ->
+             test :: created, skipped, passed, failed
+           | OSnap_Test_Types.{ result = Some `Skipped; _ } ->
+             created, test :: skipped, passed, failed
+           | OSnap_Test_Types.{ result = Some `Passed; _ } ->
+             created, skipped, test :: passed, failed
+           | OSnap_Test_Types.{ result = Some (`Failed _); _ } ->
+             created, skipped, passed, test :: failed
+           | _ -> acc)
+         ([], [], [], [])
+  in
+  let create_count = List.length created in
+  let passed_count = List.length passed in
+  let failed_count = List.length failed in
+  let test_count = List.length results in
+  let skipped_count = List.length skipped in
   Fmt.pr
-    "\n\nDone! 🚀\nI did run a total of %a snapshots in %s%s%s@."
+    "\n\nDone! 🚀\nI did run a total of %a snapshots in %s@."
     (styled `Bold int)
     test_count
-    hours
-    minutes
-    seconds;
+    (get_time_from_seconds seconds);
   Fmt.pr "Results:@.";
   if create_count > 0
   then
@@ -160,7 +185,6 @@ let stats ~test_count ~create_count ~passed_count ~failed_tests ~skipped_count ~
     passed_count
     (styled `Bold (styled `Green string))
     "Snapshots passed";
-  let failed_count = List.length failed_tests in
   if failed_count > 0
   then (
     Fmt.pr
@@ -170,12 +194,21 @@ let stats ~test_count ~create_count ~passed_count ~failed_tests ~skipped_count ~
       (styled `Bold (styled `Red string))
       "Snapshots failed";
     Fmt.pr "\n%a\n@." (styled `Bold string) "Summary of failed tests:";
-    failed_tests
+    failed
     |> List.iter (function
-         | `Failed (`Io (name, width, height)) ->
+         | { name; width; height; result = Some (`Failed `Io); _ } ->
            corrupted_message ~print_head:false ~name ~width ~height
-         | `Failed (`Layout (name, width, height)) ->
+         | { name; width; height; result = Some (`Failed `Layout); _ } ->
            layout_message ~print_head:false ~name ~width ~height
-         | `Failed (`Pixel (name, width, height, diffCount, diffPercentage)) ->
-           diff_message ~print_head:false ~name ~width ~height ~diffCount ~diffPercentage))
+         | { name
+           ; width
+           ; height
+           ; result = Some (`Failed (`Pixel (diffCount, diffPercentage)))
+           ; _
+           } ->
+           diff_message ~print_head:false ~name ~width ~height ~diffCount ~diffPercentage
+         | _ -> ()));
+  match failed with
+  | [] -> Lwt_result.return ()
+  | _ -> Lwt_result.fail `OSnap_Test_Failure
 ;;

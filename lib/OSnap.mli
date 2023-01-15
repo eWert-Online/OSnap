@@ -1,10 +1,8 @@
 module Config = OSnap_Config
 module Browser = OSnap_Browser
-module Printer = OSnap_Printer
 
 type t =
   { config : Config.Types.global
-  ; all_tests : (Config.Types.test * Config.Types.size * bool) list
   ; tests_to_run : (Config.Types.test * Config.Types.size * bool) list
   ; start_time : float
   ; browser : Browser.t

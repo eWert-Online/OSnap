@@ -1,20 +1,10 @@
 module Config = OSnap_Config
 module Browser = OSnap_Browser
 module Diff = OSnap_Diff
-module Printer = OSnap_Printer
+module Printer = OSnap_Test_Printer
+module Types = OSnap_Test_Types
 open OSnap_Utils
-
-type t =
-  { url : string
-  ; name : string
-  ; size_name : string option
-  ; width : int
-  ; height : int
-  ; actions : Config.Types.action list
-  ; ignore_regions : Config.Types.ignoreType list
-  ; threshold : int
-  ; exists : bool
-  }
+open OSnap_Test_Types
 
 let save_screenshot ~path data =
   let*? io =
@@ -136,85 +126,96 @@ let get_filename ?(diff = false) name width height =
 ;;
 
 let run (global_config : Config.Types.global) target test =
-  let dirs = OSnap_Paths.get global_config in
-  let filename = get_filename test.name test.width test.height in
-  let diff_filename = get_filename ~diff:true test.name test.width test.height in
-  let url = global_config.base_url ^ test.url in
-  let base_snapshot = dirs.base ^ filename in
-  let updated_snapshot = dirs.updated ^ filename in
-  let diff_image = dirs.diff ^ diff_filename in
-  let*? () = target |> Browser.Actions.clear_cookies in
-  let*? () =
-    target |> Browser.Actions.set_size ~width:(`Int test.width) ~height:(`Int test.height)
-  in
-  let*? loaderId = target |> Browser.Actions.go_to ~url in
-  let*? () = target |> Browser.Actions.wait_for_network_idle ~loaderId |> Lwt_result.ok in
-  let*? document = target |> Browser.Actions.get_document in
-  let*? () =
-    target
-    |> Browser.Actions.mousemove ~document ~to_:(`Coordinates (`Int (-100), `Int (-100)))
-  in
-  let*? () =
-    test.actions |> execute_actions ~document ~target ?size_name:test.size_name
-  in
-  let*? screenshot =
-    target
-    |> Browser.Actions.screenshot ~full_size:global_config.fullscreen
-    |> Lwt_result.map Base64.decode_exn
-  in
-  if not test.exists
+  if test.skip
   then (
-    Printer.created_message ~name:test.name ~width:test.width ~height:test.height;
-    let*? () = save_screenshot ~path:base_snapshot screenshot in
-    Lwt_result.return `Created)
-  else
-    let*? original_image_data = read_file_contents ~path:base_snapshot in
-    if original_image_data = screenshot
-    then (
-      Printer.success_message ~name:test.name ~width:test.width ~height:test.height;
-      Lwt_result.return `Passed)
-    else
-      let*? ignoreRegions =
-        test.ignore_regions |> get_ignore_regions ~document target test.size_name
-      in
-      let diff =
-        Diff.diff
-          ~threshold:test.threshold
-          ~diffPixel:global_config.diff_pixel_color
-          ~ignoreRegions
-          ~output:diff_image
-          ~original_image_data
-          ~new_image_data:screenshot
-      in
-      match diff () with
-      | Ok () ->
-        Printer.success_message ~name:test.name ~width:test.width ~height:test.height;
-        Lwt_result.return `Passed
-      | Error Io ->
-        Printer.corrupted_message
-          ~print_head:true
-          ~name:test.name
-          ~width:test.width
-          ~height:test.height;
-        Lwt_result.return (`Failed (`Io (test.name, test.width, test.height)))
-      | Error Layout ->
-        Printer.layout_message
-          ~print_head:true
-          ~name:test.name
-          ~width:test.width
-          ~height:test.height;
-        let*? () = save_screenshot screenshot ~path:updated_snapshot in
-        Lwt_result.return (`Failed (`Layout (test.name, test.width, test.height)))
-      | Error (Pixel (diffCount, diffPercentage)) ->
-        Printer.diff_message
-          ~print_head:true
-          ~name:test.name
-          ~width:test.width
-          ~height:test.height
-          ~diffCount
-          ~diffPercentage;
-        let*? () = save_screenshot screenshot ~path:updated_snapshot in
-        Lwt_result.return
-          (`Failed
-            (`Pixel (test.name, test.width, test.height, diffCount, diffPercentage)))
+    Printer.skipped_message ~name:test.name ~width:test.width ~height:test.height;
+    { test with result = Some `Skipped } |> Lwt_result.return)
+  else (
+    let dirs = OSnap_Paths.get global_config in
+    let filename = get_filename test.name test.width test.height in
+    let diff_filename = get_filename ~diff:true test.name test.width test.height in
+    let url = global_config.base_url ^ test.url in
+    let base_snapshot = dirs.base ^ filename in
+    let updated_snapshot = dirs.updated ^ filename in
+    let diff_image = dirs.diff ^ diff_filename in
+    let*? () = target |> Browser.Actions.clear_cookies in
+    let*? () =
+      target
+      |> Browser.Actions.set_size ~width:(`Int test.width) ~height:(`Int test.height)
+    in
+    let*? loaderId = target |> Browser.Actions.go_to ~url in
+    let*? () =
+      target |> Browser.Actions.wait_for_network_idle ~loaderId |> Lwt_result.ok
+    in
+    let*? document = target |> Browser.Actions.get_document in
+    let*? () =
+      target
+      |> Browser.Actions.mousemove
+           ~document
+           ~to_:(`Coordinates (`Int (-100), `Int (-100)))
+    in
+    let*? () =
+      test.actions |> execute_actions ~document ~target ?size_name:test.size_name
+    in
+    let*? screenshot =
+      target
+      |> Browser.Actions.screenshot ~full_size:global_config.fullscreen
+      |> Lwt_result.map Base64.decode_exn
+    in
+    let*? result =
+      if not test.exists
+      then (
+        let*? () = save_screenshot ~path:base_snapshot screenshot in
+        Printer.created_message ~name:test.name ~width:test.width ~height:test.height;
+        Lwt_result.return `Created)
+      else
+        let*? original_image_data = read_file_contents ~path:base_snapshot in
+        if original_image_data = screenshot
+        then (
+          Printer.success_message ~name:test.name ~width:test.width ~height:test.height;
+          Lwt_result.return `Passed)
+        else
+          let*? ignoreRegions =
+            test.ignore_regions |> get_ignore_regions ~document target test.size_name
+          in
+          let diff =
+            Diff.diff
+              ~threshold:test.threshold
+              ~diffPixel:global_config.diff_pixel_color
+              ~ignoreRegions
+              ~output:diff_image
+              ~original_image_data
+              ~new_image_data:screenshot
+          in
+          match diff () with
+          | Ok () ->
+            Printer.success_message ~name:test.name ~width:test.width ~height:test.height;
+            Lwt_result.return `Passed
+          | Error Io ->
+            Printer.corrupted_message
+              ~print_head:true
+              ~name:test.name
+              ~width:test.width
+              ~height:test.height;
+            Lwt_result.return (`Failed `Io)
+          | Error Layout ->
+            Printer.layout_message
+              ~print_head:true
+              ~name:test.name
+              ~width:test.width
+              ~height:test.height;
+            let*? () = save_screenshot screenshot ~path:updated_snapshot in
+            Lwt_result.return (`Failed `Layout)
+          | Error (Pixel (diffCount, diffPercentage)) ->
+            Printer.diff_message
+              ~print_head:true
+              ~name:test.name
+              ~width:test.width
+              ~height:test.height
+              ~diffCount
+              ~diffPercentage;
+            let*? () = save_screenshot screenshot ~path:updated_snapshot in
+            Lwt_result.return (`Failed (`Pixel (diffCount, diffPercentage)))
+    in
+    { test with result = Some result } |> Lwt_result.return)
 ;;
