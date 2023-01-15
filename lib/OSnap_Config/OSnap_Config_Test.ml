@@ -160,9 +160,12 @@ module JSON = struct
       |> Yojson.Basic.Util.member "actions"
       |> function
       | `List list ->
-        OSnap_Utils.List.map_until_exception
-          (OSnap_Config_Utils.JSON.parse_action ~path)
-          list
+        list
+        |> OSnap_Utils.List.map_until_exception
+             (OSnap_Config_Utils.JSON.parse_action
+                ~global_fns:global_config.functions
+                ~path)
+        |> Result.map List.flatten
       | _ -> Result.ok []
     in
     let* ignore =
@@ -236,8 +239,12 @@ module YAML = struct
       |> OSnap_Config_Utils.YAML.get_list_option
            ~path
            "actions"
-           ~parser:(OSnap_Config_Utils.YAML.parse_action ~path)
+           ~parser:
+             (OSnap_Config_Utils.YAML.parse_action
+                ~global_fns:global_config.functions
+                ~path)
       |> Result.map (Option.value ~default:[])
+      |> Result.map List.flatten
     in
     let* ignore =
       test
@@ -321,13 +328,13 @@ let init config =
       ~pattern:config.test_pattern
       ~ignore_patterns:config.ignore_patterns
       ()
-    |> (fun __x ->
-         Result.bind
-           __x
-           (OSnap_Utils.List.map_until_exception (fun (path, test_format) ->
-              match test_format with
-              | OSnap_Config_Types.JSON -> JSON.parse config path
-              | OSnap_Config_Types.YAML -> YAML.parse config path)))
+  in
+  let* tests =
+    tests
+    |> OSnap_Utils.List.map_until_exception (fun (path, test_format) ->
+         match test_format with
+         | OSnap_Config_Types.JSON -> JSON.parse config path
+         | OSnap_Config_Types.YAML -> YAML.parse config path)
     |> Result.map List.flatten
   in
   let duplicates =

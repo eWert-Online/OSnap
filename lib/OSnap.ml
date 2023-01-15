@@ -3,11 +3,6 @@ module Browser = OSnap_Browser
 module Printer = OSnap_Printer
 open OSnap_Utils
 
-let print_error msg =
-  let printer = Fmt.pr "%a @." (Fmt.styled `Red Fmt.string) in
-  Printf.ksprintf printer msg
-;;
-
 type t =
   { config : Config.Types.global
   ; all_tests : (Config.Types.test * Config.Types.size * bool) list
