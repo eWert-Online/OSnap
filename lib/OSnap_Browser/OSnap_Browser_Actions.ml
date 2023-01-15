@@ -69,9 +69,7 @@ let select_element ~document ~selector ~sessionId =
   |> Lwt.map (fun response ->
        match response.Response.error, response.Response.result with
        | _, (Some { nodeId = `Int 0 } | Some { nodeId = `Float 0. }) ->
-         Result.error
-           (`OSnap_CDP_Protocol_Error
-             (Printf.sprintf "A node with the selector %S could not be found." selector))
+         Result.error (`OSnap_Selector_Not_Found selector)
        | None, None -> Result.error (`OSnap_CDP_Protocol_Error "")
        | Some { message; _ }, None -> Result.error (`OSnap_CDP_Protocol_Error message)
        | Some _, Some result | None, Some result -> Result.ok result)
@@ -240,7 +238,7 @@ let get_quads ~document ~selector target =
   match result.quads with
   | (x1 :: y1 :: x2 :: _y2 :: _x3 :: y2 :: _x4 :: _y4 :: _) :: _ ->
     Lwt_result.return ((to_float x1, to_float y1), (to_float x2, to_float y2))
-  | _ -> Lwt_result.fail (`OSnap_CDP_Protocol_Error "no content quads returned")
+  | _ -> Lwt_result.fail (`OSnap_Selector_Not_Visible selector)
 ;;
 
 let mousemove ~document ~to_ target =
