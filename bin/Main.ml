@@ -45,8 +45,8 @@ let handle_response response =
     print_error "Tried to parse %s" path;
     print_error "%s" s;
     1
-  | Error (`OSnap_Config_Undefined_Function s) ->
-    print_error "Tried to call non existant function %s" s;
+  | Error (`OSnap_Config_Undefined_Function (s, path)) ->
+    print_error "Tried to call non existant function `%s` in file %s" s path;
     1
   | Error (`OSnap_Config_Duplicate_Size_Names sizes) ->
     print_error

@@ -3,8 +3,6 @@ module Browser = OSnap_Browser
 module Printer = OSnap_Printer
 module Server = OSnap_Server
 
-val print_error : ('a, unit, string, unit) format4 -> 'a
-
 type t =
   { config : Config.Types.global
   ; all_tests : (Config.Types.test * Config.Types.size * bool) list
@@ -26,6 +24,7 @@ val setup
        | `OSnap_Config_Duplicate_Tests of string list
        | `OSnap_Config_Global_Invalid of string
        | `OSnap_Config_Global_Not_Found
+       | `OSnap_Config_Undefined_Function of string * string
        | `OSnap_Config_Invalid of string * string
        | `OSnap_Config_Parse_Error of string * string
        | `OSnap_Config_Unsupported_Format of string
@@ -39,7 +38,6 @@ val run
   :  t
   -> ( unit
      , [> `OSnap_CDP_Protocol_Error of string
-       | `OSnap_Config_Undefined_Function of string
        | `OSnap_FS_Error of string
        | `OSnap_Test_Failure
        ] )
@@ -54,6 +52,7 @@ val cleanup
        | `OSnap_Config_Global_Not_Found
        | `OSnap_Config_Invalid of string * string
        | `OSnap_Config_Parse_Error of string * string
+       | `OSnap_Config_Undefined_Function of string * string
        | `OSnap_Config_Unsupported_Format of string
        ] )
      Lwt_result.t

@@ -14,7 +14,17 @@ let to_result_option = function
   | Some (Error e) -> Error e
 ;;
 
-let collect_action ~path ~selector ~size_restriction ~name ~text ~timeout ~px action =
+let collect_action
+  ~global_fns
+  ~path
+  ~selector
+  ~size_restriction
+  ~name
+  ~text
+  ~timeout
+  ~px
+  action
+  =
   match action with
   | "scroll" ->
     (match selector, px with
@@ -31,15 +41,16 @@ let collect_action ~path ~selector ~size_restriction ~name ~text ~timeout ~px ac
               one of them."
            , path ))
      | None, Some px ->
-       OSnap_Config_Types.Scroll (`PxAmount px, size_restriction) |> Result.ok
+       [ OSnap_Config_Types.Scroll (`PxAmount px, size_restriction) ] |> Result.ok
      | Some selector, None ->
-       OSnap_Config_Types.Scroll (`Selector selector, size_restriction) |> Result.ok)
+       [ OSnap_Config_Types.Scroll (`Selector selector, size_restriction) ] |> Result.ok)
   | "click" ->
     (match selector with
      | None ->
        Result.error
          (`OSnap_Config_Invalid ("no selector for click action provided", path))
-     | Some selector -> OSnap_Config_Types.Click (selector, size_restriction) |> Result.ok)
+     | Some selector ->
+       [ OSnap_Config_Types.Click (selector, size_restriction) ] |> Result.ok)
   | "type" ->
     (match selector, text with
      | None, _ ->
@@ -47,17 +58,38 @@ let collect_action ~path ~selector ~size_restriction ~name ~text ~timeout ~px ac
      | _, None ->
        Result.error (`OSnap_Config_Invalid ("no text for type action provided", path))
      | Some selector, Some text ->
-       OSnap_Config_Types.Type (selector, text, size_restriction) |> Result.ok)
+       [ OSnap_Config_Types.Type (selector, text, size_restriction) ] |> Result.ok)
   | "wait" ->
     (match timeout with
      | None ->
        Result.error (`OSnap_Config_Invalid ("no timeout for wait action provided", path))
-     | Some timeout -> OSnap_Config_Types.Wait (timeout, size_restriction) |> Result.ok)
+     | Some timeout ->
+       [ OSnap_Config_Types.Wait (timeout, size_restriction) ] |> Result.ok)
   | "function" ->
     (match name with
      | None ->
        Result.error (`OSnap_Config_Invalid ("no name for function action provided", path))
-     | Some name -> OSnap_Config_Types.Function (name, size_restriction) |> Result.ok)
+     | Some name ->
+       let actions =
+         global_fns
+         |> List.find_map (function
+              | n, actions when n = name -> Some actions
+              | _ -> None)
+       in
+       (match actions with
+        | None -> Result.error (`OSnap_Config_Undefined_Function (name, path))
+        | Some actions ->
+          actions
+          |> List.map (function
+               | OSnap_Config_Types.Scroll (a, _) ->
+                 OSnap_Config_Types.Scroll (a, size_restriction)
+               | OSnap_Config_Types.Click (a, _) ->
+                 OSnap_Config_Types.Click (a, size_restriction)
+               | OSnap_Config_Types.Type (a, b, _) ->
+                 OSnap_Config_Types.Type (a, b, size_restriction)
+               | OSnap_Config_Types.Wait (t, _) ->
+                 OSnap_Config_Types.Wait (t, size_restriction))
+          |> Result.ok))
   | action ->
     Result.error
       (`OSnap_Config_Invalid (Printf.sprintf "found unknown action %S" action, path))
@@ -114,7 +146,7 @@ module JSON = struct
     OSnap_Config_Types.{ name; width; height } |> Result.ok
   ;;
 
-  let parse_action ~path a =
+  let parse_action ~global_fns ~path a =
     let* action =
       try
         a |> Yojson.Basic.Util.member "action" |> Yojson.Basic.Util.to_string |> Result.ok
@@ -180,7 +212,16 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (`OSnap_Config_Parse_Error (message, path))
     in
-    collect_action ~path ~selector ~size_restriction ~text ~timeout ~name ~px action
+    collect_action
+      ~global_fns
+      ~path
+      ~selector
+      ~size_restriction
+      ~text
+      ~timeout
+      ~name
+      ~px
+      action
   ;;
 end
 
@@ -343,7 +384,7 @@ module YAML = struct
     OSnap_Config_Types.{ name; width; height } |> Result.ok
   ;;
 
-  let parse_action ~path a =
+  let parse_action ~global_fns ~path a =
     let* size_restriction = a |> get_string_list_option ~path "@" in
     let* action = a |> get_string ~path "action" in
     let* selector = a |> get_string_option ~path "selector" in
@@ -351,6 +392,15 @@ module YAML = struct
     let* name = a |> get_string_option ~path "name" in
     let* text = a |> get_string_option ~path "text" in
     let* timeout = a |> get_int_option ~path "timeout" in
-    collect_action ~path ~selector ~size_restriction ~text ~name ~timeout ~px action
+    collect_action
+      ~global_fns
+      ~path
+      ~selector
+      ~size_restriction
+      ~text
+      ~name
+      ~timeout
+      ~px
+      action
   ;;
 end

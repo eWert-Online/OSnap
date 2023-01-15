@@ -39,7 +39,7 @@ let read_file_contents ~path =
   Lwt_result.return data
 ;;
 
-let rec execute_actions ~document ~global_config ~target ?size_name actions =
+let execute_actions ~document ~target ?size_name actions =
   let open Config.Types in
   let run action =
     match action, size_name with
@@ -79,20 +79,6 @@ let rec execute_actions ~document ~global_config ~target ?size_name actions =
     | Wait (ms, None), _ ->
       let timeout = float_of_int ms /. 1000.0 in
       Lwt_unix.sleep timeout |> Lwt_result.ok
-    | Function (_, Some _), None -> Lwt_result.return ()
-    | Function (name, Some size), Some size_name ->
-      if size |> List.mem size_name
-      then (
-        match global_config.functions |> List.assoc_opt name with
-        | Some actions ->
-          execute_actions ~document ~global_config ~target ~size_name actions
-        | None -> Lwt_result.fail (`OSnap_Config_Undefined_Function name))
-      else Lwt_result.return ()
-    | Function (name, None), _ ->
-      (match global_config.functions |> List.assoc_opt name with
-       | Some actions ->
-         execute_actions ~document ~global_config ~target ?size_name actions
-       | None -> Lwt_result.fail (`OSnap_Config_Undefined_Function name))
   in
   actions
   |> Lwt_list.fold_left_s
@@ -169,8 +155,7 @@ let run (global_config : Config.Types.global) target test =
     |> Browser.Actions.mousemove ~document ~to_:(`Coordinates (`Int (-100), `Int (-100)))
   in
   let*? () =
-    test.actions
-    |> execute_actions ~document ~global_config ~target ?size_name:test.size_name
+    test.actions |> execute_actions ~document ~target ?size_name:test.size_name
   in
   let*? screenshot =
     target
