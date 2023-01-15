@@ -47,8 +47,9 @@ module YAML = struct
                   |> OSnap_Config_Utils.YAML.get_list_option
                        ~path
                        key
-                       ~parser:(OSnap_Config_Utils.YAML.parse_action ~path)
+                       ~parser:(OSnap_Config_Utils.YAML.parse_action ~global_fns:[] ~path)
                   |> Result.map (Option.value ~default:[])
+                  |> Result.map List.flatten
                 in
                 (key, actions) |> Result.ok))
       |> Option.value ~default:(Result.ok [])
@@ -208,7 +209,8 @@ module JSON = struct
                  actions
                  |> Yojson.Basic.Util.to_list
                  |> OSnap_Utils.List.map_until_exception
-                      (OSnap_Config_Utils.JSON.parse_action ~path)
+                      (OSnap_Config_Utils.JSON.parse_action ~global_fns:[] ~path)
+                 |> Result.map List.flatten
                with
                | Yojson.Basic.Util.Type_error (message, _) ->
                  Result.error (`OSnap_Config_Parse_Error (message, path))

@@ -7,5 +7,6 @@ val init
        | `OSnap_Config_Invalid of string * string
        | `OSnap_Config_Parse_Error of string * string
        | `OSnap_Config_Unsupported_Format of string
+       | `OSnap_Config_Undefined_Function of string * string
        ] )
      result

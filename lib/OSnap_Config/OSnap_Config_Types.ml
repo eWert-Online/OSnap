@@ -11,7 +11,6 @@ type size =
 type size_restriction = string list option
 
 type action =
-  | Function of string * size_restriction
   | Scroll of [ `Selector of string | `PxAmount of int ] * size_restriction
   | Click of string * size_restriction
   | Type of string * string * size_restriction
