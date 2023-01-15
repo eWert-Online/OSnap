@@ -1,15 +1,14 @@
 (library
- (name OSnap)
+ (name OSnap_Test)
  (ocamlopt_flags -O3)
  (libraries
-  OSnap_Test
   OSnap_Paths
   OSnap_Utils
+  OSnap_Diff
   OSnap_Config
   OSnap_Browser
-  OSnap_Server
+  cdp
   lwt
   lwt.unix
-  cdp
   base64
   fmt))
