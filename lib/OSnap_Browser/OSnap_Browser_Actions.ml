@@ -341,16 +341,16 @@ let scroll ~document ~selector ~px target =
         px
     in
     let open Commands.Runtime.Evaluate in
-    Request.make ~sessionId ~params:(Params.make ~expression ())
-    |> OSnap_Websocket.send
-    |> Lwt.map Response.parse
-    |> fun __x ->
-    Lwt.bind __x (fun response ->
-      match response.Response.error with
-      | None ->
-        let timeout = float_of_int (px / 200) in
-        Lwt_unix.sleep timeout |> Lwt_result.ok
-      | Some { message; _ } -> Lwt_result.fail (`OSnap_CDP_Protocol_Error message))
+    let* response =
+      Request.make ~sessionId ~params:(Params.make ~expression ())
+      |> OSnap_Websocket.send
+      |> Lwt.map Response.parse
+    in
+    (match response.Response.error with
+     | None ->
+       let timeout = float_of_int (px / 200) in
+       Lwt_unix.sleep timeout |> Lwt_result.ok
+     | Some { message; _ } -> Lwt_result.fail (`OSnap_CDP_Protocol_Error message))
 ;;
 
 let get_content_size target =
