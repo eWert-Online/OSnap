@@ -1,6 +1,5 @@
 module Config = OSnap_Config
 module Browser = OSnap_Browser
-module Server = OSnap_Server
 module Test = OSnap_Test
 module Server = OSnap_Server
 open OSnap_Utils
