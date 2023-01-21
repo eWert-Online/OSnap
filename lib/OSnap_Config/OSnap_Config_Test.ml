@@ -310,7 +310,9 @@ let find ?(root_path = "/") ?(pattern = "**/*.osnap.json") ?(ignore_patterns = [
   let ignore_patterns =
     ignore_patterns |> List.map (fun pattern -> pattern |> Re.Glob.glob |> Re.compile)
   in
-  let is_ignored path = ignore_patterns |> List.exists (fun __x -> Re.execp __x path) in
+  let is_ignored path =
+    ignore_patterns |> List.exists (fun pattern -> Re.execp pattern path)
+  in
   FileUtil.find
     (Custom (fun path -> (not (is_ignored path)) && Re.execp pattern path))
     root_path
