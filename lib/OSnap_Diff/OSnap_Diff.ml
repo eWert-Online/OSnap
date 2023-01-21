@@ -3,6 +3,8 @@ module Diff = Odiff.Diff.MakeDiff (Io.PNG) (Io.PNG)
 open Bigarray
 
 let ( let* ) = Result.bind
+let ( >> ) = Int32.shift_right
+let ( & ) = Int32.logand
 
 type failState =
   | Io
@@ -56,9 +58,6 @@ let diff
     free_images ();
     Result.error Layout
   | Pixel (diff_mask, diffCount, diffPercentage) ->
-    let original_image = original_image in
-    let diff_mask = diff_mask in
-    let new_image = new_image in
     let border_width = 5 in
     let complete_width =
       original_image.width
@@ -90,8 +89,6 @@ let diff
         then Array1.unsafe_get original_image.image ((!row * original_image.width) + col)
         else if col > diff_mask_start && col < diff_mask_end
         then (
-          let ( >> ) = Int32.shift_right in
-          let ( & ) = Int32.logand in
           let diff_pixel =
             if !row < diff_mask.height
             then
