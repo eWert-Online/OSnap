@@ -29,6 +29,7 @@ module PNG = struct
 
   let makeSameAsLayout (img : t ImageIO.img) =
     let image = Array1.create int32 c_layout (Array1.dim img.image) in
+    let () = Array1.fill image 0x00000000l in
     { img with image }
   ;;
 end
