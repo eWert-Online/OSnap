@@ -27,6 +27,8 @@
   cmdliner
   cohttp
   cohttp-lwt-unix
+  (conf-libev
+   (<> os "win32"))
   decompress
   fileutils
   fmt

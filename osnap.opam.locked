@@ -34,6 +34,7 @@ depends: [
   "conf-cmake" {= "1"}
   "conf-gmp" {= "4"}
   "conf-gmp-powm-sec" {= "3"}
+  "conf-libev" {= "4-12"}
   "conf-pkg-config" {= "2"}
   "conf-zlib" {= "1"}
   "cppo" {= "1.6.9"}

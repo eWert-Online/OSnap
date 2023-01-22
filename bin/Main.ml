@@ -1,5 +1,7 @@
 open Cmdliner;;
 
+(try Lwt_engine.set (new Lwt_engine.libev ~backend:Lwt_engine.Ev_backend.kqueue ()) with
+ | Lwt_sys.Not_available _ -> ());
 Fmt.set_style_renderer Fmt.stdout `Ansi_tty
 
 let print_error msg =
