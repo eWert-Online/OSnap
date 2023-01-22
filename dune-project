@@ -2,6 +2,8 @@
 
 (name osnap)
 
+(version 1.5.2)
+
 (implicit_transitive_deps false)
 
 (generate_opam_files true)
@@ -27,8 +29,6 @@
   cmdliner
   cohttp
   cohttp-lwt-unix
-  (conf-libev
-   (<> os "win32"))
   decompress
   fileutils
   fmt
@@ -40,4 +40,7 @@
   websocket
   websocket-lwt-unix
   yaml
-  yojson))
+  yojson)
+ (depopts
+  (conf-libev
+   (<> os "win32"))))
