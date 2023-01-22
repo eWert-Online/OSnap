@@ -28,7 +28,7 @@ WORKDIR /usr/app
 
 COPY ./osnap.opam .
 
-RUN opam install . --with-test --yes && \
+RUN opam install . --verbose --yes && \
   eval $(opam env)
 
 COPY . .

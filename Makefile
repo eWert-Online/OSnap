@@ -10,7 +10,7 @@ install:
 	if ! [ -e _opam ]; then \
 		opam switch create . --empty ; \
 	fi
-	opam install . --locked --deps-only --with-test --yes
+	opam install . --locked --working-dir --yes --verbose
 	opam install -y ocaml-lsp-server ocamlformat
 	opam lock .
 
