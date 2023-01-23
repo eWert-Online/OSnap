@@ -1,5 +1,6 @@
 module Config = OSnap_Config
 module Browser = OSnap_Browser
+module Server = OSnap_Server
 
 type t =
   { config : Config.Types.global
