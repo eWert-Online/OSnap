@@ -78,32 +78,31 @@ let diff
     let diff_mask_end = diff_mask_start + diff_mask.width in
     let new_image_start = diff_mask_end + border_width in
     let new_image_end = new_image_start + new_image.width in
-    let row = ref (-1) in
     for offset = 0 to Array1.dim complete_image / 4 do
+      let row = offset / complete_width in
       let col = offset mod complete_width in
-      if col = 0 then incr row;
       let fill_with =
         if col >= original_image_start
            && col < original_image_end
-           && !row < original_image.height
-        then Array1.unsafe_get original_image.image ((!row * original_image.width) + col)
+           && row < original_image.height
+        then Array1.unsafe_get original_image.image ((row * original_image.width) + col)
         else if col > diff_mask_start && col < diff_mask_end
         then (
           let diff_pixel =
-            if !row < diff_mask.height
+            if row < diff_mask.height
             then
               Array1.unsafe_get
                 diff_mask.image
-                ((!row * diff_mask.width) + (col - diff_mask_start))
+                ((row * diff_mask.width) + (col - diff_mask_start))
             else diff_pixel_color
           in
-          if (diff_pixel >> 24 & 0xFFl) = 0xFFl
+          if diff_pixel = diff_pixel_color
           then diff_pixel
           else (
             let pixel =
               Array1.unsafe_get
                 original_image.image
-                ((!row * original_image.width) + (col - diff_mask_start))
+                ((row * original_image.width) + (col - diff_mask_start))
               |> Int32.to_int
             in
             let a = (pixel lsr 24) land 0xFF in
@@ -117,11 +116,11 @@ let diff
             let g = (mono land 0xFF) lsl 8 in
             let r = (mono land 0xFF) lsl 0 in
             Int32.of_int (a lor b lor g lor r)))
-        else if col > new_image_start && col <= new_image_end
+        else if col > new_image_start && col <= new_image_end && row < new_image.height
         then
           Array1.unsafe_get
             new_image.image
-            ((!row * new_image.width) + (col - new_image_start))
+            ((row * new_image.width) + (col - new_image_start))
         else 0x00000000l
       in
       Array1.unsafe_set complete_image offset fill_with
