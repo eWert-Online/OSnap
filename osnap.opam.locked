@@ -24,7 +24,6 @@ depends: [
   "bigstringaf" {= "0.9.0"}
   "bos" {= "0.2.1"}
   "ca-certs" {= "0.2.3"}
-  "camlp-streams" {= "5.0.1"}
   "cdp" {= "dev"}
   "checkseum" {= "0.4.0"}
   "cmdliner" {= "1.1.1"}
@@ -80,7 +79,6 @@ depends: [
   "ocaml-base-compiler" {= "5.0.0"}
   "ocaml-compiler-libs" {= "v0.12.4"}
   "ocaml-config" {= "3"}
-  "ocaml-lsp-server" {= "1.15.0~5.0preview1"}
   "ocaml-options-vanilla" {= "1"}
   "ocaml-syntax-shims" {= "1.0.0"}
   "ocamlbuild" {= "0.14.2"}
