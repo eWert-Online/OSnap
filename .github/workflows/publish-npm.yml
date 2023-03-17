@@ -64,10 +64,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+      - if: ${{ matrix.os != 'windows-latest' }}
+        name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v2
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
+
+      - if: ${{ matrix.os == 'windows-latest' }}
+        name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: ocaml.5.0.0,ocaml-option-mingw
+          opam-repositories: |
+            dra27: https://github.com/dra27/opam-repository.git#windows-5.0
+            default: https://github.com/fdopen/opam-repository-mingw.git#opam2
 
       - name: Install dependencies
         run: opam install . --locked --deps-only --with-test --yes
