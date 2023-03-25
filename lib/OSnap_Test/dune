@@ -8,6 +8,9 @@
   OSnap_Config
   OSnap_Browser
   cdp
+  eio
+  eio.core
+  lwt_eio
   lwt
   lwt.unix
   base64

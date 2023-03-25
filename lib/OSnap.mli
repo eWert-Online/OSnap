@@ -21,24 +21,26 @@ val setup
        | `OSnap_Config_Duplicate_Tests of string list
        | `OSnap_Config_Global_Invalid of string
        | `OSnap_Config_Global_Not_Found
-       | `OSnap_Config_Undefined_Function of string * string
        | `OSnap_Config_Invalid of string * string
        | `OSnap_Config_Parse_Error of string * string
+       | `OSnap_Config_Undefined_Function of string * string
        | `OSnap_Config_Unsupported_Format of string
        | `OSnap_Invalid_Run of string
        ] )
-     Lwt_result.t
+     result
 
 val teardown : t -> unit
 
 val run
-  :  t
+  :  fs:#Eio.Fs.dir Eio.Path.t
+  -> clock:#Eio.Time.clock
+  -> t
   -> ( unit
      , [> `OSnap_CDP_Protocol_Error of string
        | `OSnap_FS_Error of string
        | `OSnap_Test_Failure
        ] )
-     Lwt_result.t
+     Result.t
 
 val cleanup
   :  config_path:string

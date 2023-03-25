@@ -3,6 +3,8 @@ open OSnap_Browser_Types
 open OSnap_Utils
 
 let make () =
+  Lwt_eio.run_lwt
+  @@ fun () ->
   let base_path = OSnap_Browser_Path.get_chromium_path () in
   let executable_path =
     match OSnap_Utils.detect_platform () with
@@ -52,6 +54,7 @@ let make () =
   let rec get_ws_url proc =
     match proc#state with
     | Lwt_process.Running ->
+      (* !nomerge The following line fails *)
       Lwt.bind (Lwt_io.read_line proc#stderr) (fun line ->
         match line with
         | line
@@ -71,18 +74,20 @@ let make () =
   let*? url = get_ws_url process in
   let _ = Websocket.connect url in
   let*? result =
-    let open Cdp.Commands.Target.CreateBrowserContext in
-    Request.make ?sessionId:None ~params:(Params.make ())
-    |> Websocket.send
-    |> Lwt.map Response.parse
-    |> Lwt.map (fun response ->
-         let error =
-           response.Response.error
-           |> Option.map (fun (error : Response.error) ->
-                `OSnap_CDP_Protocol_Error error.message)
-           |> Option.value ~default:`OSnap_CDP_Connection_Failed
-         in
-         Option.to_result response.Response.result ~none:error)
+    Lwt_eio.run_eio (fun () ->
+      let open Cdp.Commands.Target.CreateBrowserContext in
+      Request.make ?sessionId:None ~params:(Params.make ())
+      |> Websocket.send
+      |> Eio.Promise.await
+      |> Response.parse
+      |> fun response ->
+      let error =
+        response.Response.error
+        |> Option.map (fun (error : Response.error) ->
+             `OSnap_CDP_Protocol_Error error.message)
+        |> Option.value ~default:`OSnap_CDP_Connection_Failed
+      in
+      Option.to_result response.Response.result ~none:error)
   in
   Lwt_result.return { ws = url; process; browserContextId = result.browserContextId }
 ;;

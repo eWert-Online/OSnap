@@ -117,3 +117,36 @@ module Lwt_list = struct
     loop [] promises
   ;;
 end
+
+let map_p_until_error fn list =
+  Eio.Switch.run (fun sw ->
+    let rec loop acc list =
+      match list with
+      | [] -> Result.ok acc
+      | list ->
+        let resolved, pending =
+          list
+          |> List.partition_map (fun x ->
+               match Eio.Promise.peek x with
+               | Some v -> Either.left v
+               | None -> Either.right x)
+        in
+        let success, error =
+          resolved
+          |> List.partition_map (function
+               | Ok v -> Either.left v
+               | Error e -> Either.right e)
+        in
+        (match error with
+         | [] -> loop (success @ acc) pending
+         | hd :: _tl -> Result.error hd)
+    in
+    let promises =
+      list
+      |> List.map (fun x ->
+           let p, resolver = Eio.Promise.create () in
+           Eio.Fiber.fork ~sw (fun () -> Eio.Promise.resolve resolver (fn x));
+           p)
+    in
+    loop [] promises)
+;;

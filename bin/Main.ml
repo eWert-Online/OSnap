@@ -2,6 +2,8 @@ open Cmdliner;;
 
 Fmt.set_style_renderer Fmt.stdout `Ansi_tty
 
+let ( let*? ) = Result.bind
+
 let print_error msg =
   let printer = Fmt.pr "%a @." (Fmt.styled `Red Fmt.string) in
   Printf.ksprintf printer msg
@@ -110,24 +112,26 @@ let default_cmd =
     value & opt (some int) None & info [ "p"; "parallelism" ] ~doc
   in
   let exec noCreate noOnly noSkip parallelism config_path =
-    let open Lwt_result.Syntax in
-    let run =
-      let* t = OSnap.setup ~config_path ~noCreate ~noOnly ~noSkip ~parallelism in
-      Lwt.catch
-        (fun () ->
-          OSnap.run t
-          |> Lwt_result.map_error (fun e ->
-               let () = OSnap.teardown t in
-               e))
-        (function
-         | exn ->
-           let () = OSnap.teardown t in
-           Lwt_result.fail (`OSnap_Unknown_Error exn))
+    let run ~fs ~clock =
+      let*? t = OSnap.setup ~config_path ~noCreate ~noOnly ~noSkip ~parallelism in
+      let result =
+        try OSnap.run ~fs ~clock t with
+        | exn -> Result.error (`OSnap_Unknown_Error exn)
+      in
+      let () = OSnap.teardown t in
+      result
     in
-    Lwt_main.run run |> handle_response
+    let result =
+      Eio_main.run
+      @@ fun env ->
+      let clock = Eio.Stdenv.clock env in
+      let fs = Eio.Stdenv.fs env in
+      Lwt_eio.with_event_loop ~clock @@ fun _ -> run ~clock ~fs
+    in
+    result |> handle_response
   in
   ( (let open Term in
-    const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config)
+     const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config)
   , Cmd.info
       "osnap"
       ~man:
@@ -148,20 +152,26 @@ let default_cmd =
         ]
       ~exits:
         (let open Cmd.Exit in
-        [ info 0 ~doc:"on success"
-        ; info 1 ~doc:"on failed test runs"
-        ; info 124 ~doc:"on command line parsing errors."
-        ; info 125 ~doc:"on unexpected internal errors."
-        ]) )
+         [ info 0 ~doc:"on success"
+         ; info 1 ~doc:"on failed test runs"
+         ; info 124 ~doc:"on command line parsing errors."
+         ; info 125 ~doc:"on unexpected internal errors."
+         ]) )
 ;;
 
 let cleanup_cmd =
   let exec config_path =
     let run = OSnap.cleanup ~config_path in
-    Lwt_main.run run |> handle_response
+    let result =
+      Eio_main.run
+      @@ fun env ->
+      Lwt_eio.with_event_loop ~clock:env#clock
+      @@ fun _ -> Lwt_eio.run_lwt @@ fun () -> run
+    in
+    result |> handle_response
   in
   ( (let open Term in
-    const exec $ config)
+     const exec $ config)
   , Cmd.info
       "cleanup"
       ~man:
@@ -172,10 +182,10 @@ let cleanup_cmd =
         ]
       ~exits:
         (let open Cmd.Exit in
-        [ info 0 ~doc:"on success"
-        ; info 124 ~doc:"on command line parsing errors."
-        ; info 125 ~doc:"on unexpected internal errors."
-        ]) )
+         [ info 0 ~doc:"on success"
+         ; info 124 ~doc:"on command line parsing errors."
+         ; info 125 ~doc:"on unexpected internal errors."
+         ]) )
 ;;
 
 let download_chromium_cmd =
@@ -187,12 +197,18 @@ let download_chromium_cmd =
           Lwt_result.fail ()
         | exn -> raise exn)
     in
-    match Lwt_main.run run with
+    let result =
+      Eio_main.run
+      @@ fun env ->
+      Lwt_eio.with_event_loop ~clock:env#clock
+      @@ fun _ -> Lwt_eio.run_lwt @@ fun () -> run
+    in
+    match result with
     | Ok () -> 0
     | Error () -> 1
   in
   ( (let open Term in
-    const exec $ const ())
+     const exec $ const ())
   , Cmd.info
       "download-chromium"
       ~man:
@@ -203,10 +219,10 @@ let download_chromium_cmd =
         ]
       ~exits:
         (let open Cmd.Exit in
-        [ info 0 ~doc:"on success"
-        ; info 124 ~doc:"on command line parsing errors."
-        ; info 125 ~doc:"on unexpected internal errors."
-        ]) )
+         [ info 0 ~doc:"on success"
+         ; info 124 ~doc:"on command line parsing errors."
+         ; info 125 ~doc:"on unexpected internal errors."
+         ]) )
 ;;
 
 let cmds =
