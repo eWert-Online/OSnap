@@ -22,18 +22,21 @@ let call_event_handlers key message =
 
 let websocket_handler recv send =
   let close () = Websocket.Frame.close 1002 |> send in
-  let send_payload payload = Websocket.Frame.create ~content:payload () |> send in
+  let send_payload payload =
+    let frame = Websocket.Frame.create ~content:payload () in
+    send frame
+  in
   let rec input_loop () =
-    let* () = Lwt.pause () in
+    let () = Eio.Fiber.yield () in
     if not (Queue.is_empty close_requests)
     then (
-      close_requests |> Queue.iter (fun resolver -> Lwt.wakeup_later resolver ());
+      close_requests |> Queue.iter (fun resolver -> Eio.Promise.resolve resolver ());
       close_requests |> Queue.clear;
       close ())
     else if not (Queue.is_empty pending_requests)
     then (
       let key, message, resolver = Queue.take pending_requests in
-      let* () = send_payload message in
+      let () = send_payload message in
       Hashtbl.add sent_requests key resolver;
       input_loop ())
     else input_loop ()
@@ -42,7 +45,7 @@ let websocket_handler recv send =
     match frame.opcode with
     | Close | Continuation | Ctrl _ | Nonctrl _ -> close ()
     | Ping -> Websocket.Frame.create ~opcode:Pong () |> send
-    | Pong -> Lwt.return ()
+    | Pong -> ()
     | Text | Binary ->
       let response = frame.Websocket.Frame.content in
       let id =
@@ -75,37 +78,44 @@ let websocket_handler recv send =
          Hashtbl.add events key response;
          Hashtbl.find_opt listeners key |> Option.iter (call_event_handlers key response));
       (match id with
-       | None -> Lwt.return ()
+       | None -> ()
        | Some key ->
          Hashtbl.find_opt sent_requests key
-         |> Option.iter (fun resolver -> Lwt.wakeup_later resolver response);
+         |> Option.iter (fun resolver -> Eio.Promise.resolve resolver response);
          Hashtbl.remove sent_requests key;
-         Lwt.return ())
+         ())
   in
   let rec react_forever () =
-    let* frame = recv () in
-    let* () = react frame in
+    let frame = recv () in
+    let () = react frame in
     react_forever ()
   in
-  Lwt.pick [ input_loop (); react_forever () ]
+  Eio.Fiber.first input_loop react_forever
 ;;
 
 let connect url =
   let orig_uri = Uri.of_string url in
   let uri = Uri.with_scheme orig_uri (Some "http") in
-  let* endpoint = Resolver_lwt.resolve_uri ~uri Resolver_lwt_unix.system in
+  let endpoint =
+    Lwt_eio.run_lwt (fun () -> Resolver_lwt.resolve_uri ~uri Resolver_lwt_unix.system)
+  in
   let default_context = Lazy.force Conduit_lwt_unix.default_ctx in
-  let* client = endpoint |> Conduit_lwt_unix.endp_to_client ~ctx:default_context in
-  let* conn = Websocket_lwt_unix.connect ~ctx:default_context client uri in
-  let recv () = Websocket_lwt_unix.read conn in
-  let send = Websocket_lwt_unix.write conn in
+  let client =
+    Lwt_eio.run_lwt (fun () ->
+      endpoint |> Conduit_lwt_unix.endp_to_client ~ctx:default_context)
+  in
+  let conn =
+    Lwt_eio.run_lwt (fun () -> Websocket_lwt_unix.connect ~ctx:default_context client uri)
+  in
+  let recv () = Lwt_eio.run_lwt (fun () -> Websocket_lwt_unix.read conn) in
+  let send frame = Lwt_eio.run_lwt (fun () -> Websocket_lwt_unix.write conn frame) in
   websocket_handler recv send
 ;;
 
 let send message =
   let key = id () in
   let message = message key in
-  let p, resolver = Lwt.wait () in
+  let p, resolver = Eio.Promise.create () in
   pending_requests |> Queue.add (key, message, resolver);
   p
 ;;
@@ -126,7 +136,7 @@ let listen ?(look_behind = true) ~event ~sessionId handler =
 ;;
 
 let close () =
-  let p, resolver = Lwt.wait () in
+  let p, resolver = Eio.Promise.create () in
   close_requests |> Queue.add resolver;
   p
 ;;

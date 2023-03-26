@@ -5,6 +5,9 @@
   conduit-lwt
   conduit-lwt-unix
   uri
+  eio
+  eio.core
+  lwt_eio
   lwt
   lwt.unix
   yojson

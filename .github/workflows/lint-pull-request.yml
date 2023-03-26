@@ -1,0 +1,15 @@
+on:
+  pull_request:
+    types: ['opened', 'edited', 'reopened', 'synchronize']
+
+jobs:
+  check-nomerge-comments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Check for "!nomerge" comments
+        run: |
+          if grep -rq "\!nomerge" . --include=*; then
+            exit 1
+          fi

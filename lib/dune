@@ -7,8 +7,12 @@
   OSnap_Utils
   OSnap_Config
   OSnap_Browser
+  base64
+  cdp
+  eio
+  eio.core
+  fileutils
+  fmt
   lwt
   lwt.unix
-  cdp
-  base64
-  fmt))
+  unix))

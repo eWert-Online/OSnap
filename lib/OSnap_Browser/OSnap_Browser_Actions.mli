@@ -3,37 +3,31 @@ val get_document
   -> ( Cdp.Commands.DOM.GetDocument.Response.result
      , [> `OSnap_CDP_Protocol_Error of string ] )
      result
-     Lwt.t
 
-val wait_for_network_idle : OSnap_Browser_Target.target -> loaderId:string -> unit Lwt.t
+val wait_for_network_idle : OSnap_Browser_Target.target -> loaderId:string -> unit
 
 val go_to
   :  url:string
   -> OSnap_Browser_Target.target
-  -> (string, [> `OSnap_CDP_Protocol_Error of string ]) Lwt_result.t
+  -> (string, [> `OSnap_CDP_Protocol_Error of string ]) result
 
 val type_text
-  :  document:Cdp.Commands.DOM.GetDocument.Response.result
+  :  clock:#Eio.Time.clock
+  -> document:Cdp.Commands.DOM.GetDocument.Response.result
   -> selector:string
   -> text:string
   -> OSnap_Browser_Target.target
   -> ( unit
-     , [> `OSnap_CDP_Protocol_Error of string
-       | `OSnap_Selector_Not_Found of string
-       | `OSnap_Selector_Not_Visible of string
-       ] )
-     Lwt_result.t
+     , [> `OSnap_CDP_Protocol_Error of string | `OSnap_Selector_Not_Found of string ] )
+     result
 
 val get_quads_all
   :  document:Cdp.Commands.DOM.GetDocument.Response.result
   -> selector:string
   -> OSnap_Browser_Target.target
   -> ( ((float * float) * (float * float)) list
-     , [> `OSnap_CDP_Protocol_Error of string
-       | `OSnap_Selector_Not_Found of string
-       | `OSnap_Selector_Not_Visible of string
-       ] )
-     Lwt_result.t
+     , [> `OSnap_CDP_Protocol_Error of string ] )
+     result
 
 val get_quads
   :  document:Cdp.Commands.DOM.GetDocument.Response.result
@@ -44,7 +38,7 @@ val get_quads
        | `OSnap_Selector_Not_Found of string
        | `OSnap_Selector_Not_Visible of string
        ] )
-     Lwt_result.t
+     result
 
 val mousemove
   :  document:Cdp.Commands.DOM.GetDocument.Response.result
@@ -55,10 +49,11 @@ val mousemove
        | `OSnap_Selector_Not_Found of string
        | `OSnap_Selector_Not_Visible of string
        ] )
-     Lwt_result.t
+     result
 
 val click
-  :  document:Cdp.Commands.DOM.GetDocument.Response.result
+  :  clock:#Eio.Time.clock
+  -> document:Cdp.Commands.DOM.GetDocument.Response.result
   -> selector:string
   -> OSnap_Browser_Target.target
   -> ( unit
@@ -66,31 +61,29 @@ val click
        | `OSnap_Selector_Not_Found of string
        | `OSnap_Selector_Not_Visible of string
        ] )
-     Lwt_result.t
+     result
 
 val scroll
-  :  document:Cdp.Commands.DOM.GetDocument.Response.result
+  :  clock:#Eio.Time.clock
+  -> document:Cdp.Commands.DOM.GetDocument.Response.result
   -> selector:string option
   -> px:int option
   -> OSnap_Browser_Target.target
   -> ( unit
-     , [> `OSnap_CDP_Protocol_Error of string
-       | `OSnap_Selector_Not_Found of string
-       | `OSnap_Selector_Not_Visible of string
-       ] )
-     Lwt_result.t
+     , [> `OSnap_CDP_Protocol_Error of string | `OSnap_Selector_Not_Found of string ] )
+     result
 
 val set_size
   :  width:Cdp.Types.number
   -> height:Cdp.Types.number
   -> OSnap_Browser_Target.target
-  -> (unit, [> `OSnap_CDP_Protocol_Error of string ]) Lwt_result.t
+  -> (unit, [> `OSnap_CDP_Protocol_Error of string ]) result
 
 val screenshot
   :  ?full_size:bool
   -> OSnap_Browser_Target.target
-  -> (string, [> `OSnap_CDP_Protocol_Error of string ]) Lwt_result.t
+  -> (string, [> `OSnap_CDP_Protocol_Error of string ]) result
 
 val clear_cookies
   :  OSnap_Browser_Target.target
-  -> (unit, [> `OSnap_CDP_Protocol_Error of string ]) Lwt_result.t
+  -> (unit, [> `OSnap_CDP_Protocol_Error of string ]) result

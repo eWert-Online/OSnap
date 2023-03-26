@@ -9,7 +9,11 @@
   cohttp-lwt
   cohttp-lwt-unix
   decompress.de
+  eio
+  eio.core
+  lwt_eio
   fileutils
   lwt
   lwt.unix
+  unix
   uri))

@@ -28,10 +28,12 @@
   cohttp
   cohttp-lwt-unix
   decompress
+  eio_main
   fileutils
   fmt
   libspng
   lwt
+  lwt_eio
   odiff-core
   re
   uri
