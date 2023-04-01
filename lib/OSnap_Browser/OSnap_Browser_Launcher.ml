@@ -3,7 +3,13 @@ open OSnap_Browser_Types
 open OSnap_Utils
 
 let make () =
-  let base_path = OSnap_Browser_Path.get_chromium_path () in
+  let latest_chromium_revision = OSnap_Browser_Path.get_latest_revision () in
+  let*? () =
+    if not (OSnap_Browser_Download.is_revision_downloaded latest_chromium_revision)
+    then OSnap_Browser_Download.download latest_chromium_revision
+    else Lwt_result.return ()
+  in
+  let base_path = OSnap_Browser_Path.get_chromium_path latest_chromium_revision in
   let executable_path =
     match OSnap_Utils.detect_platform () with
     | MacOS | MacOS_ARM ->

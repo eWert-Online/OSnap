@@ -115,4 +115,3 @@ let run t =
 ;;
 
 let cleanup = OSnap_Cleanup.cleanup
-let download_chromium = OSnap_Browser.Download.download
