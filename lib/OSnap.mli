@@ -15,7 +15,8 @@ val setup
   -> parallelism:int option
   -> config_path:string
   -> ( t
-     , [> `OSnap_CDP_Connection_Failed
+     , [> `OSnap_Chromium_Download_Failed
+       | `OSnap_CDP_Connection_Failed
        | `OSnap_CDP_Protocol_Error of string
        | `OSnap_Config_Duplicate_Size_Names of string list
        | `OSnap_Config_Duplicate_Tests of string list
@@ -53,5 +54,3 @@ val cleanup
        | `OSnap_Config_Unsupported_Format of string
        ] )
      Lwt_result.t
-
-val download_chromium : unit -> (unit, unit) Lwt_result.t

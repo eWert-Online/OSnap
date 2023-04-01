@@ -32,13 +32,12 @@ const packageJson = JSON.stringify(
     repository: mainPackageJson.repository,
     keywords: mainPackageJson.keywords,
     scripts: {
-      postinstall: 'node ./postinstall.js && node ./download-chromium.js',
+      postinstall: 'node ./postinstall.js',
     },
     bin: bins,
     files: [
       'bin/',
       'postinstall.js',
-      'download-chromium.js',
       'platform-linux/',
       'platform-darwin/',
       'platform-windows-x64/',
@@ -69,12 +68,6 @@ console.log('Copying postinstall.js');
 fs.copyFileSync(
   path.join(__dirname, 'release-postinstall.js'),
   path.join(__dirname, '..', '..', '_release', 'postinstall.js')
-);
-
-console.log('Copying download-chromium.js');
-fs.copyFileSync(
-  path.join(__dirname, 'download-chromium.js'),
-  path.join(__dirname, '..', '..', '_release', 'download-chromium.js')
 );
 
 console.log('Creating placeholder files');

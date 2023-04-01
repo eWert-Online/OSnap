@@ -11,6 +11,7 @@ let handle_response response =
   match response with
   | Ok () -> 0
   | Error `OSnap_Test_Failure -> 1
+  | Error `OSnap_Chromium_Download_Failed -> 1
   | Error (`OSnap_Config_Duplicate_Tests tests) ->
     print_error
       "Found some tests with duplicate names. Every test has to have a unique name.";
@@ -127,7 +128,7 @@ let default_cmd =
     Lwt_main.run run |> handle_response
   in
   ( (let open Term in
-    const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config)
+     const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config)
   , Cmd.info
       "osnap"
       ~man:
@@ -148,11 +149,11 @@ let default_cmd =
         ]
       ~exits:
         (let open Cmd.Exit in
-        [ info 0 ~doc:"on success"
-        ; info 1 ~doc:"on failed test runs"
-        ; info 124 ~doc:"on command line parsing errors."
-        ; info 125 ~doc:"on unexpected internal errors."
-        ]) )
+         [ info 0 ~doc:"on success"
+         ; info 1 ~doc:"on failed test runs"
+         ; info 124 ~doc:"on command line parsing errors."
+         ; info 125 ~doc:"on unexpected internal errors."
+         ]) )
 ;;
 
 let cleanup_cmd =
@@ -161,7 +162,7 @@ let cleanup_cmd =
     Lwt_main.run run |> handle_response
   in
   ( (let open Term in
-    const exec $ config)
+     const exec $ config)
   , Cmd.info
       "cleanup"
       ~man:
@@ -172,48 +173,12 @@ let cleanup_cmd =
         ]
       ~exits:
         (let open Cmd.Exit in
-        [ info 0 ~doc:"on success"
-        ; info 124 ~doc:"on command line parsing errors."
-        ; info 125 ~doc:"on unexpected internal errors."
-        ]) )
+         [ info 0 ~doc:"on success"
+         ; info 124 ~doc:"on command line parsing errors."
+         ; info 125 ~doc:"on unexpected internal errors."
+         ]) )
 ;;
 
-let download_chromium_cmd =
-  let exec () =
-    let run =
-      Lwt.catch OSnap.download_chromium (function
-        | Failure message ->
-          print_error "%s" message;
-          Lwt_result.fail ()
-        | exn -> raise exn)
-    in
-    match Lwt_main.run run with
-    | Ok () -> 0
-    | Error () -> 1
-  in
-  ( (let open Term in
-    const exec $ const ())
-  , Cmd.info
-      "download-chromium"
-      ~man:
-        [ `S Manpage.s_description
-        ; `P
-            "The download-chromium command downloads the latest compatible version of \
-             chromium."
-        ]
-      ~exits:
-        (let open Cmd.Exit in
-        [ info 0 ~doc:"on success"
-        ; info 124 ~doc:"on command line parsing errors."
-        ; info 125 ~doc:"on unexpected internal errors."
-        ]) )
-;;
-
-let cmds =
-  [ Cmd.v (snd cleanup_cmd) (fst cleanup_cmd)
-  ; Cmd.v (snd download_chromium_cmd) (fst download_chromium_cmd)
-  ]
-;;
-
+let cmds = [ Cmd.v (snd cleanup_cmd) (fst cleanup_cmd) ]
 let default, info = default_cmd
 let () = cmds |> Cmd.group ~default info |> Cmd.eval' |> exit
