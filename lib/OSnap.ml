@@ -25,37 +25,35 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
   let*? only_tests, tests =
     all_tests
     |> Lwt_list.map_p_until_exception (fun test ->
-         test.sizes
-         |> Lwt_list.map_p_until_exception (fun size ->
-              let { name = _size_name; width; height } = size in
-              let filename = Test.get_filename test.name width height in
-              let current_image_path = snapshot_dir ^ filename in
-              let exists = Sys.file_exists current_image_path in
-              if noCreate && not exists
-              then
-                Lwt_result.fail
-                  (`OSnap_Invalid_Run
-                    (Printf.sprintf
-                       "Flag --no-create is set. Cannot create new images for %s."
-                       test.name))
-              else if noSkip && test.skip
-              then
-                Lwt_result.fail
-                  (`OSnap_Invalid_Run
-                    (Printf.sprintf
-                       "Flag --no-skip is set. Cannot skip test %s."
-                       test.name))
-              else if noOnly && test.only
-              then
-                Lwt_result.fail
-                  (`OSnap_Invalid_Run
-                    (Printf.sprintf
-                       "Flag --no-only is set but the following test still has only set \
-                        to true %s."
-                       test.name))
-              else if test.only
-              then Lwt_result.return (Either.left (test, size, exists))
-              else Lwt_result.return (Either.right (test, size, exists))))
+      test.sizes
+      |> Lwt_list.map_p_until_exception (fun size ->
+        let { name = _size_name; width; height } = size in
+        let filename = Test.get_filename test.name width height in
+        let current_image_path = snapshot_dir ^ filename in
+        let exists = Sys.file_exists current_image_path in
+        if noCreate && not exists
+        then
+          Lwt_result.fail
+            (`OSnap_Invalid_Run
+              (Printf.sprintf
+                 "Flag --no-create is set. Cannot create new images for %s."
+                 test.name))
+        else if noSkip && test.skip
+        then
+          Lwt_result.fail
+            (`OSnap_Invalid_Run
+              (Printf.sprintf "Flag --no-skip is set. Cannot skip test %s." test.name))
+        else if noOnly && test.only
+        then
+          Lwt_result.fail
+            (`OSnap_Invalid_Run
+              (Printf.sprintf
+                 "Flag --no-only is set but the following test still has only set to \
+                  true %s."
+                 test.name))
+        else if test.only
+        then Lwt_result.return (Either.left (test, size, exists))
+        else Lwt_result.return (Either.right (test, size, exists))))
     |> Lwt_result.map List.flatten
     |> Lwt_result.map (List.partition_map Fun.id)
   in
@@ -67,7 +65,7 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
   let tests_to_run =
     tests_to_run
     |> List.fast_sort (fun (_test, _size, exists1) (_test, _size, exists2) ->
-         Bool.compare exists1 exists2)
+      Bool.compare exists1 exists2)
   in
   let*? browser = Browser.Launcher.make () in
   Lwt_result.return { config; tests_to_run; start_time; browser }
@@ -88,25 +86,25 @@ let run t =
   let*? test_results =
     tests_to_run
     |> Lwt_list.map_p_until_exception (fun test ->
-         Lwt_pool.use pool (fun target ->
-           let test, { name = size_name; width; height }, exists = test in
-           let test =
-             Test.Types.
-               { exists
-               ; size_name
-               ; width
-               ; height
-               ; skip = test.OSnap_Config.Types.skip
-               ; url = test.OSnap_Config.Types.url
-               ; name = test.OSnap_Config.Types.name
-               ; actions = test.OSnap_Config.Types.actions
-               ; ignore_regions = test.OSnap_Config.Types.ignore
-               ; threshold = test.OSnap_Config.Types.threshold
-               ; warnings = []
-               ; result = None
-               }
-           in
-           Test.run config (Result.get_ok target) test))
+      Lwt_pool.use pool (fun target ->
+        let test, { name = size_name; width; height }, exists = test in
+        let test =
+          Test.Types.
+            { exists
+            ; size_name
+            ; width
+            ; height
+            ; skip = test.OSnap_Config.Types.skip
+            ; url = test.OSnap_Config.Types.url
+            ; name = test.OSnap_Config.Types.name
+            ; actions = test.OSnap_Config.Types.actions
+            ; ignore_regions = test.OSnap_Config.Types.ignore
+            ; threshold = test.OSnap_Config.Types.threshold
+            ; warnings = []
+            ; result = None
+            }
+        in
+        Test.run config (Result.get_ok target) test))
   in
   let end_time = Unix.gettimeofday () in
   let seconds = end_time -. start_time in
