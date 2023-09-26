@@ -1,9 +1,9 @@
 val get_document
   :  OSnap_Browser_Target.target
   -> ( Cdp.Commands.DOM.GetDocument.Response.result
-     , [> `OSnap_CDP_Protocol_Error of string ] )
-     result
-     Lwt.t
+       , [> `OSnap_CDP_Protocol_Error of string ] )
+       result
+       Lwt.t
 
 val wait_for_network_idle : OSnap_Browser_Target.target -> loaderId:string -> unit Lwt.t
 
@@ -18,55 +18,55 @@ val type_text
   -> text:string
   -> OSnap_Browser_Target.target
   -> ( unit
-     , [> `OSnap_CDP_Protocol_Error of string
-       | `OSnap_Selector_Not_Found of string
-       | `OSnap_Selector_Not_Visible of string
-       ] )
-     Lwt_result.t
+       , [> `OSnap_CDP_Protocol_Error of string
+         | `OSnap_Selector_Not_Found of string
+         | `OSnap_Selector_Not_Visible of string
+         ] )
+       Lwt_result.t
 
 val get_quads_all
   :  document:Cdp.Commands.DOM.GetDocument.Response.result
   -> selector:string
   -> OSnap_Browser_Target.target
   -> ( ((float * float) * (float * float)) list
-     , [> `OSnap_CDP_Protocol_Error of string
-       | `OSnap_Selector_Not_Found of string
-       | `OSnap_Selector_Not_Visible of string
-       ] )
-     Lwt_result.t
+       , [> `OSnap_CDP_Protocol_Error of string
+         | `OSnap_Selector_Not_Found of string
+         | `OSnap_Selector_Not_Visible of string
+         ] )
+       Lwt_result.t
 
 val get_quads
   :  document:Cdp.Commands.DOM.GetDocument.Response.result
   -> selector:string
   -> OSnap_Browser_Target.target
   -> ( (float * float) * (float * float)
-     , [> `OSnap_CDP_Protocol_Error of string
-       | `OSnap_Selector_Not_Found of string
-       | `OSnap_Selector_Not_Visible of string
-       ] )
-     Lwt_result.t
+       , [> `OSnap_CDP_Protocol_Error of string
+         | `OSnap_Selector_Not_Found of string
+         | `OSnap_Selector_Not_Visible of string
+         ] )
+       Lwt_result.t
 
 val mousemove
   :  document:Cdp.Commands.DOM.GetDocument.Response.result
   -> to_:[< `Coordinates of Cdp.Types.number * Cdp.Types.number | `Selector of string ]
   -> OSnap_Browser_Target.target
   -> ( unit
-     , [> `OSnap_CDP_Protocol_Error of string
-       | `OSnap_Selector_Not_Found of string
-       | `OSnap_Selector_Not_Visible of string
-       ] )
-     Lwt_result.t
+       , [> `OSnap_CDP_Protocol_Error of string
+         | `OSnap_Selector_Not_Found of string
+         | `OSnap_Selector_Not_Visible of string
+         ] )
+       Lwt_result.t
 
 val click
   :  document:Cdp.Commands.DOM.GetDocument.Response.result
   -> selector:string
   -> OSnap_Browser_Target.target
   -> ( unit
-     , [> `OSnap_CDP_Protocol_Error of string
-       | `OSnap_Selector_Not_Found of string
-       | `OSnap_Selector_Not_Visible of string
-       ] )
-     Lwt_result.t
+       , [> `OSnap_CDP_Protocol_Error of string
+         | `OSnap_Selector_Not_Found of string
+         | `OSnap_Selector_Not_Visible of string
+         ] )
+       Lwt_result.t
 
 val scroll
   :  document:Cdp.Commands.DOM.GetDocument.Response.result
@@ -74,11 +74,11 @@ val scroll
   -> px:int option
   -> OSnap_Browser_Target.target
   -> ( unit
-     , [> `OSnap_CDP_Protocol_Error of string
-       | `OSnap_Selector_Not_Found of string
-       | `OSnap_Selector_Not_Visible of string
-       ] )
-     Lwt_result.t
+       , [> `OSnap_CDP_Protocol_Error of string
+         | `OSnap_Selector_Not_Found of string
+         | `OSnap_Selector_Not_Visible of string
+         ] )
+       Lwt_result.t
 
 val set_size
   :  width:Cdp.Types.number

@@ -82,13 +82,13 @@ let make () =
     |> Websocket.send
     |> Lwt.map Response.parse
     |> Lwt.map (fun response ->
-         let error =
-           response.Response.error
-           |> Option.map (fun (error : Response.error) ->
-                `OSnap_CDP_Protocol_Error error.message)
-           |> Option.value ~default:`OSnap_CDP_Connection_Failed
-         in
-         Option.to_result response.Response.result ~none:error)
+      let error =
+        response.Response.error
+        |> Option.map (fun (error : Response.error) ->
+          `OSnap_CDP_Protocol_Error error.message)
+        |> Option.value ~default:`OSnap_CDP_Connection_Failed
+      in
+      Option.to_result response.Response.result ~none:error)
   in
   Lwt_result.return { ws = url; process; browserContextId = result.browserContextId }
 ;;

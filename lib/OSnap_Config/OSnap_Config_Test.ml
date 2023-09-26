@@ -264,15 +264,15 @@ module YAML = struct
       config
       |> Yaml.of_string
       |> Result.map_error (fun _ ->
-           `OSnap_Config_Parse_Error ("YAML could not be parsed", path))
+        `OSnap_Config_Parse_Error ("YAML could not be parsed", path))
     in
     yaml
     |> (function
-         | `A lst -> Result.ok lst
-         | _ ->
-           Result.error
-             (`OSnap_Config_Parse_Error
-               ("A test file has to be an array of tests.", path)))
+          | `A lst -> Result.ok lst
+          | _ ->
+            Result.error
+              (`OSnap_Config_Parse_Error
+                ("A test file has to be an array of tests.", path)))
     |> Result.map
          (OSnap_Utils.List.map_until_exception (parse_single_test ~path global_config))
     |> Result.join
@@ -319,8 +319,8 @@ let find ?(root_path = "/") ?(pattern = "**/*.osnap.json") ?(ignore_patterns = [
     (fun acc curr -> curr :: acc)
     []
   |> OSnap_Utils.List.map_until_exception (fun path ->
-       let* format = OSnap_Config_Utils.get_format path in
-       Result.ok (path, format))
+    let* format = OSnap_Config_Utils.get_format path in
+    Result.ok (path, format))
 ;;
 
 let init config =
@@ -334,9 +334,9 @@ let init config =
   let* tests =
     tests
     |> OSnap_Utils.List.map_until_exception (fun (path, test_format) ->
-         match test_format with
-         | OSnap_Config_Types.JSON -> JSON.parse config path
-         | OSnap_Config_Types.YAML -> YAML.parse config path)
+      match test_format with
+      | OSnap_Config_Types.JSON -> JSON.parse config path
+      | OSnap_Config_Types.YAML -> YAML.parse config path)
     |> Result.map List.flatten
   in
   let duplicates =

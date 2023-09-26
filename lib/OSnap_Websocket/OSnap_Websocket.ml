@@ -120,9 +120,9 @@ let listen ?(look_behind = true) ~event ~sessionId handler =
   then
     Hashtbl.find_all events key
     |> List.iter (fun event ->
-         handler event (fun () ->
-           Hashtbl.remove listeners key;
-           Hashtbl.remove events key))
+      handler event (fun () ->
+        Hashtbl.remove listeners key;
+        Hashtbl.remove events key))
 ;;
 
 let close () =

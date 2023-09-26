@@ -56,12 +56,12 @@ let find_duplicates get_key list =
   let hash = Hashtbl.create (List.length list) in
   list
   |> List.filter (fun item ->
-       let key = get_key item in
-       if Hashtbl.mem hash key
-       then true
-       else (
-         Hashtbl.add hash key true;
-         false))
+    let key = get_key item in
+    if Hashtbl.mem hash key
+    then true
+    else (
+      Hashtbl.add hash key true;
+      false))
 ;;
 
 let path_of_segments paths =
@@ -104,8 +104,8 @@ module Lwt_list = struct
         let success, error =
           resolved
           |> List.partition_map (function
-               | Ok v -> Either.left v
-               | Error e -> Either.right e)
+            | Ok v -> Either.left v
+            | Error e -> Either.right e)
         in
         (match error with
          | [] -> loop (success @ acc) pending

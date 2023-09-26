@@ -147,19 +147,19 @@ let read_cd ic cd_entries cd_offset cd_bound =
       then raise (Failure "wrong file header in central directory");
       if flags land 1 <> 0 then raise (Failure "encrypted entries not supported");
       entries
-        := { name
-           ; lastmod_time
-           ; lastmod_date
-           ; extra
-           ; comment
-           ; compression_method
-           ; crc
-           ; uncompressed_size
-           ; compressed_size
-           ; is_directory = String.length name > 0 && name.[String.length name - 1] = '/'
-           ; file_offset = header_offset
-           }
-           :: !entries
+      := { name
+         ; lastmod_time
+         ; lastmod_date
+         ; extra
+         ; comment
+         ; compression_method
+         ; crc
+         ; uncompressed_size
+         ; compressed_size
+         ; is_directory = String.length name > 0 && name.[String.length name - 1] = '/'
+         ; file_offset = header_offset
+         }
+         :: !entries
     done;
     assert (
       cd_bound = LargeFile.pos_in ic
@@ -208,7 +208,7 @@ let goto_entry ifile e =
     let extra_len = read_2_bytes ic in
     if magic <> Int32.of_int 0x04034b50 then failwith "wrong local file header";
     (* Could validate information read against directory entry, but
-           what the heck *)
+       what the heck *)
     LargeFile.seek_in
       ic
       (Int64.add e.file_offset (Int64.of_int (30 + filename_len + extra_len)));

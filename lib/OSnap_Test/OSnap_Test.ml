@@ -90,11 +90,11 @@ let get_ignore_regions ~document target size_name regions =
       let*? quads = target |> Browser.Actions.get_quads_all ~document ~selector in
       quads
       |> List.map (fun ((x1, y1), (x2, y2)) ->
-           let x1 = Int.of_float x1 in
-           let y1 = Int.of_float y1 in
-           let x2 = Int.of_float x2 in
-           let y2 = Int.of_float y2 in
-           (x1, y1), (x2, y2))
+        let x1 = Int.of_float x1 in
+        let y1 = Int.of_float y1 in
+        let x2 = Int.of_float x2 in
+        let y2 = Int.of_float y2 in
+        (x1, y1), (x2, y2))
       |> Lwt_result.return
     | Selector (selector, _) ->
       let*? (x1, y1), (x2, y2) =
@@ -109,26 +109,25 @@ let get_ignore_regions ~document target size_name regions =
   let* regions =
     regions
     |> List.filter (fun region ->
-         match region, size_name with
-         | Coordinates (_a, _b, None), _ -> true
-         | Coordinates (_, _, Some _), None -> false
-         | Coordinates (_a, _b, Some size_restr), Some size_name ->
-           List.mem size_name size_restr
-         | Selector (_, Some _), None -> false
-         | Selector (_, Some size_restr), Some size_name -> List.mem size_name size_restr
-         | Selector (_selector, None), _ -> true
-         | SelectorAll (_, Some _), None -> false
-         | SelectorAll (_, Some size_restr), Some size_name ->
-           List.mem size_name size_restr
-         | SelectorAll (_selector, None), _ -> true)
+      match region, size_name with
+      | Coordinates (_a, _b, None), _ -> true
+      | Coordinates (_, _, Some _), None -> false
+      | Coordinates (_a, _b, Some size_restr), Some size_name ->
+        List.mem size_name size_restr
+      | Selector (_, Some _), None -> false
+      | Selector (_, Some size_restr), Some size_name -> List.mem size_name size_restr
+      | Selector (_selector, None), _ -> true
+      | SelectorAll (_, Some _), None -> false
+      | SelectorAll (_, Some size_restr), Some size_name -> List.mem size_name size_restr
+      | SelectorAll (_selector, None), _ -> true)
     |> Lwt_list.map_p get_ignore_region
   in
   regions
   |> List.filter_map (function
-       | Ok regions -> Some (Lwt_result.return regions)
-       | Error (`OSnap_Selector_Not_Found _s) -> None
-       | Error (`OSnap_Selector_Not_Visible _s) -> None
-       | Error (`OSnap_CDP_Protocol_Error _ as e) -> Some (Lwt_result.fail e))
+    | Ok regions -> Some (Lwt_result.return regions)
+    | Error (`OSnap_Selector_Not_Found _s) -> None
+    | Error (`OSnap_Selector_Not_Visible _s) -> None
+    | Error (`OSnap_CDP_Protocol_Error _ as e) -> Some (Lwt_result.fail e))
   |> Lwt_list.map_p_until_exception Fun.id
   |> Lwt_result.map List.flatten
 ;;
