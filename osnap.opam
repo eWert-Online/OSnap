@@ -46,6 +46,6 @@ build: [
 dev-repo: "git+https://github.com/eWert-Online/OSnap.git"
 pin-depends: [
   [ "libspng.dev" "git+https://github.com/eWert-Online/esy-libspng.git#opam"]
-  [ "cdp.dev" "git+https://github.com/eWert-Online/reason-cdp.git#bb98b733b7373042b9443fbb34327c0581b9232b"]
+  [ "cdp.dev" "git+https://github.com/eWert-Online/reason-cdp.git#502346a7ba9a512ce9aaec456561b64464b3782f"]
   [ "odiff-core.dev" "git+https://github.com/dmtrKovalenko/odiff.git#7421b908ec1d904ae7fe267d35709f66b48378e2"]
 ]
