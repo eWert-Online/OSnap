@@ -86,12 +86,11 @@ let cleanup_old_revisions () =
   let old_revisions = OSnap_Browser_Path.get_previous_revisions () in
   old_revisions
   |> List.iter (fun revision ->
-       match get_downloaded_revision revision with
-       | None -> ()
-       | Some path ->
-         Printf.sprintf "Removing old chrome revision at path %s ..." path
-         |> print_endline;
-         FileUtil.rm ~recurse:true ~force:Force [ path ])
+    match get_downloaded_revision revision with
+    | None -> ()
+    | Some path ->
+      Printf.sprintf "Removing old chrome revision at path %s ..." path |> print_endline;
+      FileUtil.rm ~recurse:true ~force:Force [ path ])
 ;;
 
 let download revision =

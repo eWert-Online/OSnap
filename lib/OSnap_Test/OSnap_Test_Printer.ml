@@ -196,18 +196,18 @@ let stats ~seconds results =
     Fmt.pr "\n%a\n@." (styled `Bold string) "Summary of failed tests:";
     failed
     |> List.iter (function
-         | { name; width; height; result = Some (`Failed `Io); _ } ->
-           corrupted_message ~print_head:false ~name ~width ~height
-         | { name; width; height; result = Some (`Failed `Layout); _ } ->
-           layout_message ~print_head:false ~name ~width ~height
-         | { name
-           ; width
-           ; height
-           ; result = Some (`Failed (`Pixel (diffCount, diffPercentage)))
-           ; _
-           } ->
-           diff_message ~print_head:false ~name ~width ~height ~diffCount ~diffPercentage
-         | _ -> ()));
+      | { name; width; height; result = Some (`Failed `Io); _ } ->
+        corrupted_message ~print_head:false ~name ~width ~height
+      | { name; width; height; result = Some (`Failed `Layout); _ } ->
+        layout_message ~print_head:false ~name ~width ~height
+      | { name
+        ; width
+        ; height
+        ; result = Some (`Failed (`Pixel (diffCount, diffPercentage)))
+        ; _
+        } ->
+        diff_message ~print_head:false ~name ~width ~height ~diffCount ~diffPercentage
+      | _ -> ()));
   match failed with
   | [] -> Lwt_result.return ()
   | _ -> Lwt_result.fail `OSnap_Test_Failure

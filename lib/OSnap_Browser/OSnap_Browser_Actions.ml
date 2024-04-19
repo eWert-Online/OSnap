@@ -24,13 +24,13 @@ let get_document target =
   |> OSnap_Websocket.send
   |> Lwt.map Response.parse
   |> Lwt.map (fun response ->
-       let error =
-         response.Response.error
-         |> Option.map (fun (error : Response.error) ->
-              `OSnap_CDP_Protocol_Error error.message)
-         |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
-       in
-       Option.to_result response.Response.result ~none:error)
+    let error =
+      response.Response.error
+      |> Option.map (fun (error : Response.error) ->
+        `OSnap_CDP_Protocol_Error error.message)
+      |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+    in
+    Option.to_result response.Response.result ~none:error)
 ;;
 
 let select_element_all ~document ~selector ~sessionId =
@@ -45,14 +45,14 @@ let select_element_all ~document ~selector ~sessionId =
   |> OSnap_Websocket.send
   |> Lwt.map Response.parse
   |> Lwt.map (fun response ->
-       match response.Response.error, response.Response.result with
-       | _, Some { nodeIds = [] } ->
-         Result.error
-           (`OSnap_CDP_Protocol_Error
-             (Printf.sprintf "No node with the selector %S could not be found." selector))
-       | None, None -> Result.error (`OSnap_CDP_Protocol_Error "")
-       | Some { message; _ }, None -> Result.error (`OSnap_CDP_Protocol_Error message)
-       | Some _, Some result | None, Some result -> Result.ok result)
+    match response.Response.error, response.Response.result with
+    | _, Some { nodeIds = [] } ->
+      Result.error
+        (`OSnap_CDP_Protocol_Error
+          (Printf.sprintf "No node with the selector %S could not be found." selector))
+    | None, None -> Result.error (`OSnap_CDP_Protocol_Error "")
+    | Some { message; _ }, None -> Result.error (`OSnap_CDP_Protocol_Error message)
+    | Some _, Some result | None, Some result -> Result.ok result)
 ;;
 
 let select_element ~document ~selector ~sessionId =
@@ -67,12 +67,12 @@ let select_element ~document ~selector ~sessionId =
   |> OSnap_Websocket.send
   |> Lwt.map Response.parse
   |> Lwt.map (fun response ->
-       match response.Response.error, response.Response.result with
-       | _, (Some { nodeId = `Int 0 } | Some { nodeId = `Float 0. }) ->
-         Result.error (`OSnap_Selector_Not_Found selector)
-       | None, None -> Result.error (`OSnap_CDP_Protocol_Error "")
-       | Some { message; _ }, None -> Result.error (`OSnap_CDP_Protocol_Error message)
-       | Some _, Some result | None, Some result -> Result.ok result)
+    match response.Response.error, response.Response.result with
+    | _, (Some { nodeId = `Int 0 } | Some { nodeId = `Float 0. }) ->
+      Result.error (`OSnap_Selector_Not_Found selector)
+    | None, None -> Result.error (`OSnap_CDP_Protocol_Error "")
+    | Some { message; _ }, None -> Result.error (`OSnap_CDP_Protocol_Error message)
+    | Some _, Some result | None, Some result -> Result.ok result)
 ;;
 
 let wait_for_network_idle target ~loaderId =
@@ -98,13 +98,13 @@ let go_to ~url target =
     |> OSnap_Websocket.send
     |> Lwt.map Navigate.Response.parse
     |> Lwt.map (fun response ->
-         let error =
-           response.Response.error
-           |> Option.map (fun (error : Response.error) ->
-                `OSnap_CDP_Protocol_Error error.message)
-           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
-         in
-         Option.to_result response.Response.result ~none:error)
+      let error =
+        response.Response.error
+        |> Option.map (fun (error : Response.error) ->
+          `OSnap_CDP_Protocol_Error error.message)
+        |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+      in
+      Option.to_result response.Response.result ~none:error)
   in
   match result.errorText, result.loaderId with
   | Some error, _ -> `OSnap_CDP_Protocol_Error error |> Lwt_result.fail
@@ -123,56 +123,56 @@ let type_text ~document ~selector ~text target =
     |> OSnap_Websocket.send
     |> Lwt.map Response.parse
     |> Lwt.map (fun response ->
-         let error =
-           response.Response.error
-           |> Option.map (fun (error : Response.error) ->
-                `OSnap_CDP_Protocol_Error error.message)
-           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
-         in
-         Option.to_result response.Response.result ~none:error)
+      let error =
+        response.Response.error
+        |> Option.map (fun (error : Response.error) ->
+          `OSnap_CDP_Protocol_Error error.message)
+        |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+      in
+      Option.to_result response.Response.result ~none:error)
     |> Lwt_result.map ignore
   in
   let*? () =
     List.init (String.length text) (String.get text)
     |> Lwt_list.iter_s (fun char ->
-         let definition =
-           (OSnap_Browser_KeyDefinition.make char : OSnap_Browser_KeyDefinition.t option)
-         in
-         match definition with
-         | Some def ->
-           let open Commands.Input.DispatchKeyEvent in
-           let* () =
-             Request.make
-               ~sessionId
-               ~params:
-                 (Params.make
-                    ~type_:`keyDown
-                    ~windowsVirtualKeyCode:
-                      (def.keyCode
-                      |> Option.map (fun i -> `Int i)
-                      |> Option.value ~default:(`Int 0))
-                    ~key:def.key
-                    ~code:def.code
-                    ~text:def.text
-                    ~unmodifiedText:def.text
-                    ~location:(`Int def.location)
-                    ~isKeypad:(def.location = 3)
-                    ())
-             |> OSnap_Websocket.send
-             |> Lwt.map ignore
-           in
-           Request.make
-             ~sessionId
-             ~params:
-               (Params.make
-                  ~type_:`keyUp
-                  ~key:def.key
-                  ~code:def.code
-                  ~location:(`Int def.location)
-                  ())
-           |> OSnap_Websocket.send
-           |> Lwt.map ignore
-         | None -> Lwt.return ())
+      let definition =
+        (OSnap_Browser_KeyDefinition.make char : OSnap_Browser_KeyDefinition.t option)
+      in
+      match definition with
+      | Some def ->
+        let open Commands.Input.DispatchKeyEvent in
+        let* () =
+          Request.make
+            ~sessionId
+            ~params:
+              (Params.make
+                 ~type_:`keyDown
+                 ~windowsVirtualKeyCode:
+                   (def.keyCode
+                    |> Option.map (fun i -> `Int i)
+                    |> Option.value ~default:(`Int 0))
+                 ~key:def.key
+                 ~code:def.code
+                 ~text:def.text
+                 ~unmodifiedText:def.text
+                 ~location:(`Int def.location)
+                 ~isKeypad:(def.location = 3)
+                 ())
+          |> OSnap_Websocket.send
+          |> Lwt.map ignore
+        in
+        Request.make
+          ~sessionId
+          ~params:
+            (Params.make
+               ~type_:`keyUp
+               ~key:def.key
+               ~code:def.code
+               ~location:(`Int def.location)
+               ())
+        |> OSnap_Websocket.send
+        |> Lwt.map ignore
+      | None -> Lwt.return ())
     |> Lwt_result.ok
   in
   let*? wait_result =
@@ -203,12 +203,12 @@ let get_quads_all ~document ~selector target =
          |> OSnap_Websocket.send
          |> Lwt.map Response.parse
          |> Lwt.map (fun response ->
-              match response.Response.error, response.Response.result with
-              | ( (None | Some _)
-                , Some
-                    { quads = (x1 :: y1 :: x2 :: _y2 :: _x3 :: y2 :: _x4 :: _y4 :: _) :: _
-                    } ) -> ((to_float x1, to_float y1), (to_float x2, to_float y2)) :: acc
-              | _ -> acc))
+           match response.Response.error, response.Response.result with
+           | ( (None | Some _)
+             , Some
+                 { quads = (x1 :: y1 :: x2 :: _y2 :: _x3 :: y2 :: _x4 :: _y4 :: _) :: _ }
+             ) -> ((to_float x1, to_float y1), (to_float x2, to_float y2)) :: acc
+           | _ -> acc))
        []
   |> Lwt_result.ok
 ;;
@@ -223,13 +223,13 @@ let get_quads ~document ~selector target =
     |> OSnap_Websocket.send
     |> Lwt.map Response.parse
     |> Lwt.map (fun response ->
-         let error =
-           response.Response.error
-           |> Option.map (fun (error : Response.error) ->
-                `OSnap_CDP_Protocol_Error error.message)
-           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
-         in
-         Option.to_result response.Response.result ~none:error)
+      let error =
+        response.Response.error
+        |> Option.map (fun (error : Response.error) ->
+          `OSnap_CDP_Protocol_Error error.message)
+        |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+      in
+      Option.to_result response.Response.result ~none:error)
   in
   let to_float = function
     | `Float f -> f
@@ -325,9 +325,9 @@ let scroll ~document ~selector ~px target =
     |> OSnap_Websocket.send
     |> Lwt.map Response.parse
     |> Lwt.map (fun response ->
-         match response.Response.error with
-         | None -> Result.ok ()
-         | Some { message; _ } -> Result.error (`OSnap_CDP_Protocol_Error message))
+      match response.Response.error with
+      | None -> Result.ok ()
+      | Some { message; _ } -> Result.error (`OSnap_CDP_Protocol_Error message))
   | Some px, None ->
     let expression =
       Printf.sprintf
@@ -362,13 +362,13 @@ let get_content_size target =
     |> OSnap_Websocket.send
     |> Lwt.map Response.parse
     |> Lwt.map (fun response ->
-         let error =
-           response.Response.error
-           |> Option.map (fun (error : Response.error) ->
-                `OSnap_CDP_Protocol_Error error.message)
-           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
-         in
-         Option.to_result response.Response.result ~none:error)
+      let error =
+        response.Response.error
+        |> Option.map (fun (error : Response.error) ->
+          `OSnap_CDP_Protocol_Error error.message)
+        |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+      in
+      Option.to_result response.Response.result ~none:error)
   in
   Lwt_result.return (metrics.cssContentSize.width, metrics.cssContentSize.height)
 ;;
@@ -384,13 +384,13 @@ let set_size ~width ~height target =
     |> OSnap_Websocket.send
     |> Lwt.map Response.parse
     |> Lwt.map (fun response ->
-         let error =
-           response.Response.error
-           |> Option.map (fun (error : Response.error) ->
-                `OSnap_CDP_Protocol_Error error.message)
-           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
-         in
-         Option.to_result response.Response.result ~none:error)
+      let error =
+        response.Response.error
+        |> Option.map (fun (error : Response.error) ->
+          `OSnap_CDP_Protocol_Error error.message)
+        |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+      in
+      Option.to_result response.Response.result ~none:error)
   in
   Lwt_result.return ()
 ;;
@@ -413,13 +413,13 @@ let screenshot ?(full_size = false) target =
     |> OSnap_Websocket.send
     |> Lwt.map Response.parse
     |> Lwt.map (fun response ->
-         let error =
-           response.Response.error
-           |> Option.map (fun (error : Response.error) ->
-                `OSnap_CDP_Protocol_Error error.message)
-           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
-         in
-         Option.to_result response.Response.result ~none:error)
+      let error =
+        response.Response.error
+        |> Option.map (fun (error : Response.error) ->
+          `OSnap_CDP_Protocol_Error error.message)
+        |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+      in
+      Option.to_result response.Response.result ~none:error)
   in
   Lwt_result.return result.data
 ;;
@@ -433,13 +433,13 @@ let clear_cookies target =
     |> OSnap_Websocket.send
     |> Lwt.map Response.parse
     |> Lwt.map (fun response ->
-         let error =
-           response.Response.error
-           |> Option.map (fun (error : Response.error) ->
-                `OSnap_CDP_Protocol_Error error.message)
-           |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
-         in
-         Option.to_result response.Response.result ~none:error)
+      let error =
+        response.Response.error
+        |> Option.map (fun (error : Response.error) ->
+          `OSnap_CDP_Protocol_Error error.message)
+        |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+      in
+      Option.to_result response.Response.result ~none:error)
   in
   Lwt_result.return ()
 ;;

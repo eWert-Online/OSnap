@@ -8,5 +8,5 @@ val run
   -> OSnap_Browser.Target.target
   -> Types.t
   -> ( Types.t
-     , [> `OSnap_CDP_Protocol_Error of string | `OSnap_FS_Error of string ] )
-     Lwt_result.t
+       , [> `OSnap_CDP_Protocol_Error of string | `OSnap_FS_Error of string ] )
+       Lwt_result.t
