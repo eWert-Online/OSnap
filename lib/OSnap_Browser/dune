@@ -3,6 +3,7 @@
  (libraries
   OSnap_Utils
   OSnap_Websocket
+  unix
   bigstringaf
   cdp
   cohttp
