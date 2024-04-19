@@ -118,12 +118,12 @@ let default_cmd =
         (fun () ->
           OSnap.run t
           |> Lwt_result.map_error (fun e ->
-               let () = OSnap.teardown t in
-               e))
+            let () = OSnap.teardown t in
+            e))
         (function
-         | exn ->
-           let () = OSnap.teardown t in
-           Lwt_result.fail (`OSnap_Unknown_Error exn))
+          | exn ->
+            let () = OSnap.teardown t in
+            Lwt_result.fail (`OSnap_Unknown_Error exn))
     in
     Lwt_main.run run |> handle_response
   in

@@ -19,13 +19,12 @@ let main c =
           in
           new_pkg_config_path
           |> Option.map (fun new_pkg_config_path ->
-               let pkg_config_path =
-                 match Sys.getenv_opt "PKG_CONFIG_PATH" with
-                 | Some s -> s ^ ":"
-                 | None -> ""
-               in
-               [ Printf.sprintf "PKG_CONFIG_PATH=%s%s" pkg_config_path new_pkg_config_path
-               ])
+            let pkg_config_path =
+              match Sys.getenv_opt "PKG_CONFIG_PATH" with
+              | Some s -> s ^ ":"
+              | None -> ""
+            in
+            [ Printf.sprintf "PKG_CONFIG_PATH=%s%s" pkg_config_path new_pkg_config_path ])
         | _ -> None
       in
       C.Process.run_capture_exn c ?env pkgcfg [ lib; "--variable=" ^ dir ]

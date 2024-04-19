@@ -7,4 +7,4 @@ external write_png_bigarray
   -> int
   -> unit
   = "write_png_bigarray"
-  [@@noalloc]
+[@@noalloc]

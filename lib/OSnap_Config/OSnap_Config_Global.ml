@@ -9,7 +9,7 @@ module YAML = struct
       config
       |> Yaml.of_string
       |> Result.map_error (fun _ ->
-           `OSnap_Config_Parse_Error ("YAML could not be parsed", path))
+        `OSnap_Config_Parse_Error ("YAML could not be parsed", path))
     in
     let* base_url = yaml |> OSnap_Config_Utils.YAML.get_string ~path "baseUrl" in
     let* fullscreen =
@@ -39,19 +39,19 @@ module YAML = struct
       let f = yaml |> Yaml.Util.find_exn "functions" in
       f
       |> Option.map (fun f ->
-           f
-           |> Yaml.Util.keys_exn
-           |> OSnap_Utils.List.map_until_exception (fun key ->
-                let* actions =
-                  f
-                  |> OSnap_Config_Utils.YAML.get_list_option
-                       ~path
-                       key
-                       ~parser:(OSnap_Config_Utils.YAML.parse_action ~global_fns:[] ~path)
-                  |> Result.map (Option.value ~default:[])
-                  |> Result.map List.flatten
-                in
-                (key, actions) |> Result.ok))
+        f
+        |> Yaml.Util.keys_exn
+        |> OSnap_Utils.List.map_until_exception (fun key ->
+          let* actions =
+            f
+            |> OSnap_Config_Utils.YAML.get_list_option
+                 ~path
+                 key
+                 ~parser:(OSnap_Config_Utils.YAML.parse_action ~global_fns:[] ~path)
+            |> Result.map (Option.value ~default:[])
+            |> Result.map List.flatten
+          in
+          (key, actions) |> Result.ok))
       |> Option.value ~default:(Result.ok [])
     in
     let* snapshot_directory =
@@ -75,7 +75,7 @@ module YAML = struct
       yaml
       |> Yaml.Util.find "diffPixelColor"
       |> Result.map_error (function `Msg message ->
-           `OSnap_Config_Parse_Error (message, path))
+        `OSnap_Config_Parse_Error (message, path))
       |> Result.map
            (Option.map (fun colors ->
               let get_color = function
@@ -90,7 +90,7 @@ module YAML = struct
                 colors
                 |> Yaml.Util.find "r"
                 |> Result.map_error (function `Msg message ->
-                     `OSnap_Config_Parse_Error (message, path))
+                  `OSnap_Config_Parse_Error (message, path))
                 |> Result.map (Option.map get_color)
                 |> Result.map OSnap_Config_Utils.to_result_option
                 |> Result.join
@@ -100,7 +100,7 @@ module YAML = struct
                 colors
                 |> Yaml.Util.find "g"
                 |> Result.map_error (function `Msg message ->
-                     `OSnap_Config_Parse_Error (message, path))
+                  `OSnap_Config_Parse_Error (message, path))
                 |> Result.map (Option.map get_color)
                 |> Result.map OSnap_Config_Utils.to_result_option
                 |> Result.join
@@ -110,7 +110,7 @@ module YAML = struct
                 colors
                 |> Yaml.Util.find "b"
                 |> Result.map_error (function `Msg message ->
-                     `OSnap_Config_Parse_Error (message, path))
+                  `OSnap_Config_Parse_Error (message, path))
                 |> Result.map (Option.map get_color)
                 |> Result.map OSnap_Config_Utils.to_result_option
                 |> Result.join
@@ -126,8 +126,8 @@ module YAML = struct
       |> List.filter (fun (s : OSnap_Config_Types.size) -> Option.is_some s.name)
       |> OSnap_Utils.find_duplicates (fun (s : OSnap_Config_Types.size) -> s.name)
       |> List.map (fun (s : OSnap_Config_Types.size) ->
-           let name = Option.value s.name ~default:"" in
-           name)
+        let name = Option.value s.name ~default:"" in
+        name)
     in
     if List.length duplicates <> 0
     then Result.error (`OSnap_Config_Duplicate_Size_Names duplicates)
@@ -204,18 +204,18 @@ module JSON = struct
       | `Assoc assoc ->
         assoc
         |> OSnap_Utils.List.map_until_exception (fun (key, actions) ->
-             let* actions =
-               try
-                 actions
-                 |> Yojson.Basic.Util.to_list
-                 |> OSnap_Utils.List.map_until_exception
-                      (OSnap_Config_Utils.JSON.parse_action ~global_fns:[] ~path)
-                 |> Result.map List.flatten
-               with
-               | Yojson.Basic.Util.Type_error (message, _) ->
-                 Result.error (`OSnap_Config_Parse_Error (message, path))
-             in
-             Result.ok (key, actions))
+          let* actions =
+            try
+              actions
+              |> Yojson.Basic.Util.to_list
+              |> OSnap_Utils.List.map_until_exception
+                   (OSnap_Config_Utils.JSON.parse_action ~global_fns:[] ~path)
+              |> Result.map List.flatten
+            with
+            | Yojson.Basic.Util.Type_error (message, _) ->
+              Result.error (`OSnap_Config_Parse_Error (message, path))
+          in
+          Result.ok (key, actions))
       | _ ->
         Result.error
           (`OSnap_Config_Parse_Error ("The functions option has to be an object.", path))
@@ -252,9 +252,9 @@ module JSON = struct
         | `List list ->
           list
           |> OSnap_Utils.List.map_until_exception (fun item ->
-               try Yojson.Basic.Util.to_string item |> Result.ok with
-               | Yojson.Basic.Util.Type_error (message, _) ->
-                 Result.error (`OSnap_Config_Parse_Error (message, path)))
+            try Yojson.Basic.Util.to_string item |> Result.ok with
+            | Yojson.Basic.Util.Type_error (message, _) ->
+              Result.error (`OSnap_Config_Parse_Error (message, path)))
         | _ -> Result.ok [ "**/node_modules/**" ]
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
@@ -299,8 +299,8 @@ module JSON = struct
       |> List.filter (fun (s : OSnap_Config_Types.size) -> Option.is_some s.name)
       |> OSnap_Utils.find_duplicates (fun (s : OSnap_Config_Types.size) -> s.name)
       |> List.map (fun (s : OSnap_Config_Types.size) ->
-           let name = Option.value s.name ~default:"" in
-           name)
+        let name = Option.value s.name ~default:"" in
+        name)
     in
     if List.length duplicates <> 0
     then Result.error (`OSnap_Config_Duplicate_Size_Names duplicates)
@@ -328,9 +328,9 @@ let find config_names =
     let files =
       elements
       |> List.find_all (fun el ->
-           let path = OSnap_Utils.path_of_segments (el :: segments) in
-           let is_direcoty = path |> Sys.is_directory in
-           not is_direcoty)
+        let path = OSnap_Utils.path_of_segments (el :: segments) in
+        let is_direcoty = path |> Sys.is_directory in
+        not is_direcoty)
     in
     let found_file = files |> List.find_opt (fun file -> List.mem file config_names) in
     match found_file with

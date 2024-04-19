@@ -16,5 +16,5 @@ type t =
       | `Passed
       | `Skipped
       ]
-      option
+        option
   }
