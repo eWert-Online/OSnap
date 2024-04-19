@@ -135,8 +135,8 @@ let get_ignore_regions ~document target size_name regions =
 
 let get_filename ?(diff = false) name width height =
   if diff
-  then Printf.sprintf "/diff_%s_%ix%i.png" name width height
-  else Printf.sprintf "/%s_%ix%i.png" name width height
+  then Printf.sprintf "diff_%s_%ix%i.png" name width height
+  else Printf.sprintf "%s_%ix%i.png" name width height
 ;;
 
 let run (global_config : Config.Types.global) target test =
