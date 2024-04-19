@@ -3,7 +3,7 @@ name: Publish to npm / Docker
 on:
   push:
     branches:
-      - '**'
+      - "**"
   release:
     types: [prereleased, released]
 
@@ -55,10 +55,10 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - windows-latest
+          # - windows-latest
           - macOS-latest
         ocaml-compiler:
-          - 4.14.x
+          - 5.1.x
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -109,11 +109,11 @@ jobs:
           name: ubuntu-latest
           path: ubuntu-latest
 
-      - name: Download Windows release
-        uses: actions/download-artifact@v2
-        with:
-          name: windows-latest
-          path: windows-latest
+      # - name: Download Windows release
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: windows-latest
+      #     path: windows-latest
 
       - name: Download macOS release
         uses: actions/download-artifact@v2
@@ -128,10 +128,8 @@ jobs:
       - name: Move artifacts into release
         run: |
           mkdir -p _release/platform-linux
-          mkdir -p _release/platform-windows-x64
           mkdir -p _release/platform-darwin
           cp -a ubuntu-latest/. _release/platform-linux
-          cp -a windows-latest/. _release/platform-windows-x64
           cp -a macOS-latest/. _release/platform-darwin
 
       - name: Increment nightly version
