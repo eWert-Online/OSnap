@@ -14,7 +14,7 @@ let cleanup ~config_path =
          |> List.filter_map (fun (size : Config.Types.size) ->
               let Config.Types.{ width; height; _ } = size in
               let filename = OSnap_Test.get_filename test.name width height in
-              let current_image_path = snapshot_dir ^ filename in
+              let current_image_path = Filename.concat snapshot_dir filename in
               let exists = Sys.file_exists current_image_path in
               if exists then Some filename else None))
     |> List.flatten
@@ -23,7 +23,7 @@ let cleanup ~config_path =
     Sys.readdir snapshot_dir
     |> Array.to_list
     |> List.filter_map (fun file ->
-         if List.mem file test_file_paths
+         if not (List.mem file test_file_paths)
          then Some (Filename.concat snapshot_dir file)
          else None)
   in
