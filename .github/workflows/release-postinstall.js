@@ -111,12 +111,8 @@ var copyPlatformBinaries = (platformPath) => {
 
 switch (platform) {
   case 'win32':
-    if (arch() !== 'x64') {
-      console.warn('error: x86 is currently not supported on Windows');
-      process.exit(1);
-    }
-
-    copyPlatformBinaries('windows-x64');
+    console.warn('error: Windows is currently not supported. If you need windows support, please reach out at https://github.com/eWert-Online/OSnap/issues');
+    process.exit(1);
     break;
   case 'linux':
   case 'darwin':
