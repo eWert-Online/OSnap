@@ -12,7 +12,7 @@ RUN ./configure --prefix=/usr --libdir=/lib --static && \
   make install pkgconfigdir="/usr/lib/pkgconfig"
 
 
-FROM ocaml/opam:alpine-ocaml-4.14-flambda
+FROM ocaml/opam:alpine-ocaml-5.1-flambda
 
 RUN sudo apk add --no-cache --update \
   bash make cmake curl perl-utils git patch gcc g++ \
