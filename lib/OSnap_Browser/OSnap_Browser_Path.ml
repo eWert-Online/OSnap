@@ -4,7 +4,7 @@ let revision_to_string revision = revision
 let revisions = [ "1289146"; "1056772"; "961656"; "960312"; "884014"; "856583" ]
 let get_latest_revision () = List.hd revisions
 let get_previous_revisions () = List.tl revisions
-let get_folder_name revision = "osnap_chromium_" ^ revision
+let get_folder_name revision = Printf.sprintf "osnap_chromium_%s" revision
 
 let get_chromium_path revision =
   match Sys.getenv_opt "HOME" with
