@@ -71,7 +71,7 @@ let path_of_segments paths =
        (fun acc curr ->
          match acc with
          | "" -> curr
-         | path -> path ^ "/" ^ curr)
+         | path -> Filename.concat path curr)
        ""
 ;;
 

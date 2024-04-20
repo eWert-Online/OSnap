@@ -29,7 +29,7 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
       |> Lwt_list.map_p_until_exception (fun size ->
         let { name = _size_name; width; height } = size in
         let filename = Test.get_filename test.name width height in
-        let current_image_path = snapshot_dir ^ filename in
+        let current_image_path = Filename.concat snapshot_dir filename in
         let exists = Sys.file_exists current_image_path in
         if noCreate && not exists
         then
