@@ -4,13 +4,13 @@
   OSnap_Utils
   OSnap_Websocket
   unix
+  fmt
+  piaf
   bigstringaf
   cdp
-  cohttp
-  cohttp-lwt
-  cohttp-lwt-unix
   decompress.de
   fileutils
-  lwt
-  lwt.unix
+  eio
+  eio.core
+  eio.unix
   uri))

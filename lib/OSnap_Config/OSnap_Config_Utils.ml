@@ -1,5 +1,8 @@
 let get_format path =
   path
+  |> Eio.Path.split
+  |> Option.map snd
+  |> Option.value ~default:""
   |> Filename.extension
   |> String.lowercase_ascii
   |> function

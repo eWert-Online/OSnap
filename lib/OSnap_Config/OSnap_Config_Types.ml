@@ -33,7 +33,7 @@ type test =
   }
 
 type global =
-  { root_path : string
+  { root_path : Eio.Fs.dir_ty Eio.Path.t
   ; threshold : int
   ; ignore_patterns : string list
   ; test_pattern : string

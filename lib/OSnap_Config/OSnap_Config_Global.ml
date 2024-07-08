@@ -4,7 +4,7 @@ module YAML = struct
   let ( let* ) = Result.bind
 
   let parse path =
-    let config = OSnap_Utils.get_file_contents path in
+    let config = Eio.Path.load path in
     let* yaml =
       config
       |> Yaml.of_string
@@ -65,7 +65,7 @@ module YAML = struct
       |> Result.map (Option.value ~default:8)
       |> Result.map (max 1)
     in
-    let root_path = Filename.dirname path in
+    let root_path = Eio.Path.split path |> Option.map fst |> Option.get in
     let* test_pattern =
       yaml
       |> OSnap_Config_Utils.YAML.get_string_option ~path "testPattern"
@@ -152,8 +152,8 @@ module JSON = struct
   let ( let* ) = Result.bind
 
   let parse path =
-    let config = OSnap_Utils.get_file_contents path in
-    let json = config |> Yojson.Basic.from_string ~fname:path in
+    let config = Eio.Path.load path in
+    let json = config |> Yojson.Basic.from_string in
     let* base_url =
       try
         json
@@ -243,7 +243,7 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (`OSnap_Config_Parse_Error (message, path))
     in
-    let root_path = Filename.dirname path in
+    let root_path = Eio.Path.split path |> Option.map fst |> Option.get in
     let* ignore_patterns =
       try
         json
@@ -321,48 +321,40 @@ module JSON = struct
   ;;
 end
 
-let find config_names =
-  let rec scan_dir ~config_names segments =
-    let current_path = segments |> OSnap_Utils.path_of_segments in
-    let elements = current_path |> Sys.readdir |> Array.to_list in
+let find ~env config_names =
+  let rec scan_dir ~config_names current_path =
+    let elements = current_path |> Eio.Path.read_dir in
     let files =
       elements
       |> List.find_all (fun el ->
-        let path = OSnap_Utils.path_of_segments (el :: segments) in
-        let is_direcoty = path |> Sys.is_directory in
-        not is_direcoty)
+        let path = Eio.Path.(current_path / el) in
+        Eio.Path.is_file path)
     in
     let found_file = files |> List.find_opt (fun file -> List.mem file config_names) in
     match found_file with
-    | Some file -> Some (file, segments)
+    | Some file -> Some Eio.Path.(current_path / file)
     | None ->
-      let parent_dir_segments = ".." :: segments in
-      let parent_dir = parent_dir_segments |> OSnap_Utils.path_of_segments in
+      let parent_dir = Eio.Path.(current_path / "..") in
       (try
-         if parent_dir |> Sys.is_directory
-         then scan_dir ~config_names parent_dir_segments
+         if Eio.Path.is_directory parent_dir
+         then scan_dir ~config_names parent_dir
          else None
        with
-       | Sys_error _ -> None)
+       | _ -> None)
   in
-  let base_path = Sys.getcwd () in
-  let config_path = scan_dir ~config_names [ base_path ] in
-  match config_path with
-  | None -> None
-  | Some (file, segments) ->
-    let path = file :: segments |> OSnap_Utils.path_of_segments in
-    Some path
+  scan_dir ~config_names (Eio.Stdenv.fs env)
 ;;
 
-let init ~config_path =
+let init ~env ~config_path =
   let ( let* ) = Result.bind in
+  let fs = Eio.Stdenv.fs env in
   let* config =
     if config_path = ""
     then (
-      match find [ "osnap.config.json"; "osnap.config.yaml" ] with
+      match find ~env [ "osnap.config.json"; "osnap.config.yaml" ] with
       | Some path -> Result.ok path
       | None -> Result.error `OSnap_Config_Global_Not_Found)
-    else Result.ok config_path
+    else Result.ok Eio.Path.(fs / config_path)
   in
   let* format = OSnap_Config_Utils.get_format config in
   match format with

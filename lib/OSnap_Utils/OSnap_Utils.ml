@@ -1,11 +1,5 @@
-let ( let*? ) = Lwt_result.Syntax.( let* )
-let ( let+? ) = Lwt_result.Syntax.( let+ )
-let ( and*? ) = Lwt_result.Syntax.( and* )
-let ( and+? ) = Lwt_result.Syntax.( and+ )
-let ( let* ) = Lwt.Syntax.( let* )
-let ( let+ ) = Lwt.Syntax.( let+ )
-let ( and* ) = Lwt.Syntax.( and* )
-let ( and+ ) = Lwt.Syntax.( and+ )
+let ( let*? ) = Result.bind
+let ( let+? ) a b = Result.map b a
 
 type platform =
   | Win32
@@ -92,28 +86,17 @@ module List = struct
   ;;
 end
 
-module Lwt_list = struct
-  include Lwt_list
-
-  let map_p_until_exception fn list =
-    let rec loop acc list =
-      match list with
-      | [] -> Lwt_result.return acc
-      | list ->
-        let* resolved, pending = Lwt.nchoose_split list in
-        let success, error =
-          resolved
-          |> List.partition_map (function
-            | Ok v -> Either.left v
-            | Error e -> Either.right e)
-        in
-        (match error with
-         | [] -> loop (success @ acc) pending
-         | hd :: _tl ->
-           pending |> List.iter Lwt.cancel;
-           Lwt_result.fail hd)
-    in
-    let promises = list |> List.map (Lwt.apply fn) in
-    loop [] promises
+module ResultList = struct
+  let map_p_until_first_error (type err) (fn : 'a -> ('b, err) result) list =
+    let exception FoundError of err in
+    try
+      list
+      |> Eio.Fiber.List.map (fun n ->
+        match fn n with
+        | Ok n -> n
+        | Error e -> raise_notrace (FoundError e))
+      |> Result.ok
+    with
+    | FoundError e -> Result.error e
   ;;
 end
