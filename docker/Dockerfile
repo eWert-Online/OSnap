@@ -1,4 +1,4 @@
-FROM alpine:latest as zlib-build
+FROM alpine:latest AS zlib-build
 
 ENV CFLAGS="-fPIC -O3"
 WORKDIR /usr/zlib
@@ -17,7 +17,7 @@ FROM ocaml/opam:alpine-ocaml-5.1-flambda
 RUN sudo apk add --no-cache --update \
   bash make cmake curl perl-utils git patch gcc g++ \
   linux-headers pkgconfig m4 musl-dev perl \
-  autoconf automake bzip2-dev gmp-dev
+  autoconf automake bzip2-dev gmp-dev openssl-dev
 
 COPY --from=zlib-build /lib/libz.a /lib/libz.a
 COPY --from=zlib-build /usr/lib/pkgconfig/zlib.pc /usr/lib/pkgconfig/zlib.pc
