@@ -189,6 +189,6 @@ let cmds = [ Cmd.v (snd cleanup_cmd) (fst cleanup_cmd) ]
 let default, info = default_cmd
 
 let () =
-  Printexc.record_backtrace true;
+  (* Printexc.record_backtrace true; *)
   cmds |> Cmd.group ~default info |> Cmd.eval' |> exit
 ;;

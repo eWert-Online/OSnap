@@ -132,13 +132,15 @@ let download ~env revision =
     else (
       let extract_path = Eio.Path.(fs / OSnap_Browser_Path.get_chromium_path revision) in
       Eio.Path.mkdirs ~exists_ok:true ~perm:0o755 extract_path;
-      let _temp_dir = Filename.get_temp_dir_name () in
+      let temp_dir = Filename.get_temp_dir_name () in
       Eio.Path.with_open_dir
-        Eio.Path.(fs / "/tmp")
+        Eio.Path.(fs / temp_dir)
         (fun dir ->
-          let*? path = dir |> download ~env ~revision in
+          let*? path = download dir ~env ~revision in
           extract_zip path ~dest:extract_path;
+          Eio.Path.rmtree ~missing_ok:true path;
           Result.ok ()))
   in
-  Result.ok (cleanup_old_revisions ())
+  cleanup_old_revisions ();
+  Result.ok ()
 ;;
