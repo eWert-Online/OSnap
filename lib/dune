@@ -8,8 +8,8 @@
   OSnap_Config
   OSnap_Browser
   unix
-  lwt
-  lwt.unix
-  cdp
-  base64
-  fmt))
+  fmt
+  eio
+  eio.core
+  eio.unix
+  cdp))

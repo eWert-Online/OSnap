@@ -20,94 +20,124 @@ let call_event_handlers key message =
       Hashtbl.remove events key))
 ;;
 
-let websocket_handler recv send =
-  let close () = Websocket.Frame.close 1002 |> send in
-  let send_payload payload = Websocket.Frame.create ~content:payload () |> send in
+let _websocket_handler ~sw wsd =
+  let close () = Httpun_ws.Wsd.close wsd in
+  let send_payload payload =
+    let payload = Bytes.of_string payload in
+    let len = Bytes.length payload in
+    Httpun_ws.Wsd.send_bytes wsd ~kind:`Text payload ~off:0 ~len
+  in
   let rec input_loop () =
-    let* () = Lwt.pause () in
+    let () = Eio.Fiber.yield () in
     if not (Queue.is_empty close_requests)
     then (
-      close_requests |> Queue.iter (fun resolver -> Lwt.wakeup_later resolver ());
+      close_requests |> Queue.iter (fun resolver -> Eio.Promise.resolve resolver ());
       close_requests |> Queue.clear;
       close ())
     else if not (Queue.is_empty pending_requests)
     then (
       let key, message, resolver = Queue.take pending_requests in
-      let* () = send_payload message in
+      let () = send_payload message in
       Hashtbl.add sent_requests key resolver;
       input_loop ())
     else input_loop ()
   in
-  let react (frame : Websocket.Frame.t) =
-    match frame.opcode with
-    | Close | Continuation | Ctrl _ | Nonctrl _ -> close ()
-    | Ping -> Websocket.Frame.create ~opcode:Pong () |> send
-    | Pong -> Lwt.return ()
-    | Text | Binary ->
-      let response = frame.Websocket.Frame.content in
-      let id =
-        response
-        |> Yojson.Safe.from_string
-        |> Yojson.Safe.Util.member "id"
-        |> Yojson.Safe.Util.to_int_option
-      in
-      let method_ =
-        response
-        |> Yojson.Safe.from_string
-        |> Yojson.Safe.Util.member "method"
-        |> Yojson.Safe.Util.to_string_option
-      in
-      let sessionId =
-        response
-        |> Yojson.Safe.from_string
-        |> Yojson.Safe.Util.member "sessionId"
-        |> Yojson.Safe.Util.to_string_option
-      in
-      (match method_, sessionId with
-       | None, None -> ()
-       | None, _ -> ()
-       | Some method_, None ->
-         let key = method_ in
-         Hashtbl.add events key response;
-         Hashtbl.find_opt listeners key |> Option.iter (call_event_handlers key response)
-       | Some method_, Some sessionId ->
-         let key = method_ ^ sessionId in
-         Hashtbl.add events key response;
-         Hashtbl.find_opt listeners key |> Option.iter (call_event_handlers key response));
-      (match id with
-       | None -> Lwt.return ()
-       | Some key ->
-         Hashtbl.find_opt sent_requests key
-         |> Option.iter (fun resolver -> Lwt.wakeup_later resolver response);
-         Hashtbl.remove sent_requests key;
-         Lwt.return ())
-  in
-  let rec react_forever () =
-    let* frame = recv () in
-    let* () = react frame in
-    react_forever ()
-  in
-  Lwt.pick [ input_loop (); react_forever () ]
+  let frame ~opcode:_ ~is_fin:_ ~len:_ _payload = () in
+  Eio.Fiber.fork ~sw input_loop;
+  let eof () = () in
+  Httpun_ws.Websocket_connection.{ frame; eof }
 ;;
 
-let connect url =
-  let orig_uri = Uri.of_string url in
-  let uri = Uri.with_scheme orig_uri (Some "http") in
-  let* endpoint = Resolver_lwt.resolve_uri ~uri Resolver_lwt_unix.system in
-  let default_context = Lazy.force Conduit_lwt_unix.default_ctx in
-  let* client = endpoint |> Conduit_lwt_unix.endp_to_client ~ctx:default_context in
-  let* conn = Websocket_lwt_unix.connect ~ctx:default_context client uri in
-  let recv () = Websocket_lwt_unix.read conn in
-  let send = Websocket_lwt_unix.write conn in
-  websocket_handler recv send
+let _error_handler = function
+  | `Handshake_failure (rsp, _body) ->
+    Format.eprintf "Handshake failure: %a\n%!" Httpun.Response.pp_hum rsp
+  | _ -> assert false
+;;
+
+let connect ~sw ~env url =
+  let uri = Uri.of_string url in
+  let resource = Uri.path uri in
+  let*? client =
+    Piaf.Client.create env ~sw (Uri.with_scheme uri (Some "http"))
+    |> Result.map_error (fun _ -> `OSnap_CDP_Connection_Failed)
+  in
+  let*? wsd =
+    Piaf.Client.ws_upgrade client resource
+    |> Result.map_error (fun _ -> `OSnap_CDP_Connection_Failed)
+  in
+  let close () = Piaf.Ws.Descriptor.close wsd in
+  let rec input_loop () =
+    let () = Eio.Fiber.yield () in
+    if not (Queue.is_empty close_requests)
+    then (
+      close_requests |> Queue.iter (fun resolver -> Eio.Promise.resolve resolver ());
+      close_requests |> Queue.clear;
+      close ())
+    else if not (Queue.is_empty pending_requests)
+    then (
+      let key, message, resolver = Queue.take pending_requests in
+      Piaf.Ws.Descriptor.send_string wsd message;
+      Hashtbl.add sent_requests key resolver;
+      input_loop ())
+    else input_loop ()
+  in
+  Result.ok
+  @@ Eio.Fiber.fork ~sw
+  @@ fun () ->
+  Eio.Fiber.both
+    (fun () ->
+      input_loop ();
+      Piaf.Client.shutdown client)
+    (fun () ->
+      wsd
+      |> Piaf.Ws.Descriptor.messages
+      |> Piaf.Stream.iter ~f:(fun (opcode, { Piaf.IOVec.buffer; off; len }) ->
+        match opcode with
+        | `Connection_close | `Continuation | `Other _ -> close ()
+        | `Ping -> Piaf.Ws.Descriptor.send_pong wsd
+        | `Pong -> ()
+        | `Text | `Binary ->
+          let response = Bigstringaf.substring ~off ~len buffer in
+          let json = response |> Yojson.Safe.from_string in
+          let id =
+            json |> Yojson.Safe.Util.member "id" |> Yojson.Safe.Util.to_int_option
+          in
+          let method_ =
+            json |> Yojson.Safe.Util.member "method" |> Yojson.Safe.Util.to_string_option
+          in
+          let sessionId =
+            json
+            |> Yojson.Safe.Util.member "sessionId"
+            |> Yojson.Safe.Util.to_string_option
+          in
+          (match method_, sessionId with
+           | None, None -> ()
+           | None, _ -> ()
+           | Some method_, None ->
+             let key = method_ in
+             Hashtbl.add events key response;
+             Hashtbl.find_opt listeners key
+             |> Option.iter (call_event_handlers key response)
+           | Some method_, Some sessionId ->
+             let key = method_ ^ sessionId in
+             Hashtbl.add events key response;
+             Hashtbl.find_opt listeners key
+             |> Option.iter (call_event_handlers key response));
+          (match id with
+           | None -> ()
+           | Some key ->
+             Hashtbl.find_opt sent_requests key
+             |> Option.iter (fun resolver -> Eio.Promise.resolve resolver response);
+             Hashtbl.remove sent_requests key;
+             ())))
 ;;
 
 let send message =
   let key = id () in
   let message = message key in
-  let p, resolver = Lwt.wait () in
+  let p, resolver = Eio.Promise.create () in
   pending_requests |> Queue.add (key, message, resolver);
-  p
+  Eio.Promise.await p
 ;;
 
 let listen ?(look_behind = true) ~event ~sessionId handler =
@@ -126,7 +156,7 @@ let listen ?(look_behind = true) ~event ~sessionId handler =
 ;;
 
 let close () =
-  let p, resolver = Lwt.wait () in
+  let p, resolver = Eio.Promise.create () in
   close_requests |> Queue.add resolver;
-  p
+  Eio.Promise.await p
 ;;

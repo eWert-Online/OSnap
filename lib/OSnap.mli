@@ -9,48 +9,52 @@ type t =
   }
 
 val setup
-  :  noCreate:bool
+  :  sw:Eio.Switch.t
+  -> env:Eio_unix.Stdenv.base
+  -> noCreate:bool
   -> noOnly:bool
   -> noSkip:bool
   -> parallelism:int option
   -> config_path:string
   -> ( t
-       , [> `OSnap_Chromium_Download_Failed
-         | `OSnap_CDP_Connection_Failed
+       , [> `OSnap_CDP_Connection_Failed
          | `OSnap_CDP_Protocol_Error of string
+         | `OSnap_Chromium_Download_Failed
          | `OSnap_Config_Duplicate_Size_Names of string list
          | `OSnap_Config_Duplicate_Tests of string list
          | `OSnap_Config_Global_Invalid of string
          | `OSnap_Config_Global_Not_Found
-         | `OSnap_Config_Undefined_Function of string * string
-         | `OSnap_Config_Invalid of string * string
-         | `OSnap_Config_Parse_Error of string * string
-         | `OSnap_Config_Unsupported_Format of string
+         | `OSnap_Config_Invalid of string * Eio.Fs.dir_ty Eio.Path.t
+         | `OSnap_Config_Parse_Error of string * Eio.Fs.dir_ty Eio.Path.t
+         | `OSnap_Config_Undefined_Function of string * Eio.Fs.dir_ty Eio.Path.t
+         | `OSnap_Config_Unsupported_Format of Eio.Fs.dir_ty Eio.Path.t
          | `OSnap_Invalid_Run of string
          ] )
-       Lwt_result.t
+       result
 
 val teardown : t -> unit
 
 val run
-  :  t
+  :  env:Eio_unix.Stdenv.base
+  -> t
   -> ( unit
        , [> `OSnap_CDP_Protocol_Error of string
          | `OSnap_FS_Error of string
          | `OSnap_Test_Failure
          ] )
-       Lwt_result.t
+       result
 
 val cleanup
-  :  config_path:string
+  :  env:Eio_unix.Stdenv.base
+  -> config_path:string
   -> ( unit
        , [> `OSnap_Config_Duplicate_Size_Names of string list
          | `OSnap_Config_Duplicate_Tests of string list
          | `OSnap_Config_Global_Invalid of string
          | `OSnap_Config_Global_Not_Found
-         | `OSnap_Config_Invalid of string * string
-         | `OSnap_Config_Parse_Error of string * string
-         | `OSnap_Config_Undefined_Function of string * string
-         | `OSnap_Config_Unsupported_Format of string
+         | `OSnap_Config_Invalid of string * Eio.Fs.dir_ty Eio.Path.t
+         | `OSnap_Config_Parse_Error of string * Eio.Fs.dir_ty Eio.Path.t
+         | `OSnap_Config_Undefined_Function of string * Eio.Fs.dir_ty Eio.Path.t
+         | `OSnap_Config_Unsupported_Format of Eio.Fs.dir_ty Eio.Path.t
          ] )
-       Lwt_result.t
+       result

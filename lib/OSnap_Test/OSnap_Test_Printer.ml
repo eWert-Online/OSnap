@@ -209,6 +209,6 @@ let stats ~seconds results =
         diff_message ~print_head:false ~name ~width ~height ~diffCount ~diffPercentage
       | _ -> ()));
   match failed with
-  | [] -> Lwt_result.return ()
-  | _ -> Lwt_result.fail `OSnap_Test_Failure
+  | [] -> Result.ok ()
+  | _ -> Result.error `OSnap_Test_Failure
 ;;

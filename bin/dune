@@ -4,4 +4,4 @@
  (public_name osnap)
  (package osnap)
  (ocamlopt_flags -O3)
- (libraries OSnap unix cmdliner lwt lwt.unix fmt))
+ (libraries OSnap cmdliner eio eio.core eio_main fmt))

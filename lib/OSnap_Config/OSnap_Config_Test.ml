@@ -180,8 +180,8 @@ module JSON = struct
   ;;
 
   let parse global_config path =
-    let config = OSnap_Utils.get_file_contents path in
-    let json = config |> Yojson.Basic.from_string ~fname:path in
+    let config = Eio.Path.load path in
+    let json = config |> Yojson.Basic.from_string in
     try
       json
       |> Yojson.Basic.Util.to_list
@@ -259,7 +259,7 @@ module YAML = struct
   ;;
 
   let parse global_config path =
-    let config = OSnap_Utils.get_file_contents path in
+    let config = Eio.Path.load path in
     let* yaml =
       config
       |> Yaml.of_string
@@ -279,7 +279,7 @@ module YAML = struct
   ;;
 end
 
-let find ?(root_path = "/") ?(pattern = "**/*.osnap.json") ?(ignore_patterns = []) () =
+let find ~root_path ~pattern ~ignore_patterns =
   let _, path_segments, pattern_segments =
     pattern
     |> String.split_on_char Filename.dir_sep.[0]
@@ -295,11 +295,7 @@ let find ?(root_path = "/") ?(pattern = "**/*.osnap.json") ?(ignore_patterns = [
   let pattern = pattern_segments |> OSnap_Utils.path_of_segments in
   let* root_path =
     try
-      FilePath.make_absolute
-        (FileUtil.pwd ())
-        (Filename.concat root_path (OSnap_Utils.path_of_segments path_segments))
-      |> Unix.realpath
-      |> Result.ok
+      Eio.Path.(root_path / OSnap_Utils.path_of_segments path_segments) |> Result.ok
     with
     | _ ->
       Result.error
@@ -313,11 +309,21 @@ let find ?(root_path = "/") ?(pattern = "**/*.osnap.json") ?(ignore_patterns = [
   let is_ignored path =
     ignore_patterns |> List.exists (fun pattern -> Re.execp pattern path)
   in
-  FileUtil.find
-    (Custom (fun path -> (not (is_ignored path)) && Re.execp pattern path))
-    root_path
-    (fun acc curr -> curr :: acc)
-    []
+  let rec find_matching_files files = function
+    | dir :: rest when Eio.Path.is_directory dir ->
+      dir
+      |> Eio.Path.read_dir
+      |> List.map (fun file -> Eio.Path.(dir / file))
+      |> List.append rest
+      |> find_matching_files files
+    | file :: rest
+      when (not (is_ignored (Eio.Path.native_exn file)))
+           && Re.execp pattern (Eio.Path.native_exn file) ->
+      rest |> find_matching_files (file :: files)
+    | _ :: rest -> rest |> find_matching_files files
+    | [] -> files
+  in
+  find_matching_files [] [ root_path ]
   |> OSnap_Utils.List.map_until_exception (fun path ->
     let* format = OSnap_Config_Utils.get_format path in
     Result.ok (path, format))
@@ -329,7 +335,6 @@ let init config =
       ~root_path:config.root_path
       ~pattern:config.test_pattern
       ~ignore_patterns:config.ignore_patterns
-      ()
   in
   let* tests =
     tests

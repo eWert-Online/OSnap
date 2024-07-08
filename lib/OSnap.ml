@@ -10,10 +10,11 @@ type t =
   ; browser : Browser.t
   }
 
-let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
+let setup ~sw ~env ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
+  let ( let*? ) = Result.bind in
   let open Config.Types in
   let start_time = Unix.gettimeofday () in
-  let*? config = Config.Global.init ~config_path |> Lwt_result.lift in
+  let*? config = Config.Global.init ~env ~config_path in
   let config =
     match parallelism with
     | Some parallelism -> { config with parallelism }
@@ -21,41 +22,41 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
   in
   let () = OSnap_Paths.init_folder_structure config in
   let snapshot_dir = OSnap_Paths.get_base_images_dir config in
-  let*? all_tests = Config.Test.init config |> Lwt_result.lift in
+  let*? all_tests = Config.Test.init config in
   let*? only_tests, tests =
     all_tests
-    |> Lwt_list.map_p_until_exception (fun test ->
+    |> ResultList.map_p_until_first_error (fun test ->
       test.sizes
-      |> Lwt_list.map_p_until_exception (fun size ->
+      |> ResultList.map_p_until_first_error (fun size ->
         let { name = _size_name; width; height } = size in
         let filename = Test.get_filename test.name width height in
-        let current_image_path = Filename.concat snapshot_dir filename in
-        let exists = Sys.file_exists current_image_path in
+        let current_image_path = Eio.Path.(snapshot_dir / filename) in
+        let exists = Eio.Path.is_file current_image_path in
         if noCreate && not exists
         then
-          Lwt_result.fail
+          Result.error
             (`OSnap_Invalid_Run
               (Printf.sprintf
                  "Flag --no-create is set. Cannot create new images for %s."
                  test.name))
         else if noSkip && test.skip
         then
-          Lwt_result.fail
+          Result.error
             (`OSnap_Invalid_Run
               (Printf.sprintf "Flag --no-skip is set. Cannot skip test %s." test.name))
         else if noOnly && test.only
         then
-          Lwt_result.fail
+          Result.error
             (`OSnap_Invalid_Run
               (Printf.sprintf
                  "Flag --no-only is set but the following test still has only set to \
                   true %s."
                  test.name))
         else if test.only
-        then Lwt_result.return (Either.left (test, size, exists))
-        else Lwt_result.return (Either.right (test, size, exists))))
-    |> Lwt_result.map List.flatten
-    |> Lwt_result.map (List.partition_map Fun.id)
+        then Result.ok (Either.left (test, size, exists))
+        else Result.ok (Either.right (test, size, exists))))
+    |> Result.map List.flatten
+    |> Result.map (List.partition_map Fun.id)
   in
   let tests_to_run =
     match only_tests, tests with
@@ -67,26 +68,27 @@ let setup ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
     |> List.fast_sort (fun (_test, _size, exists1) (_test, _size, exists2) ->
       Bool.compare exists1 exists2)
   in
-  let*? browser = Browser.Launcher.make () in
-  Lwt_result.return { config; tests_to_run; start_time; browser }
+  let*? browser = Browser.Launcher.make ~sw ~env () in
+  Result.ok { config; tests_to_run; start_time; browser }
 ;;
 
 let teardown t = Browser.Launcher.shutdown t.browser
 
-let run t =
+let run ~env t =
+  let ( let*? ) = Result.bind in
   let open Config.Types in
   let { tests_to_run; config; start_time; browser } = t in
   let parallelism = max 1 config.parallelism in
   let pool =
-    Lwt_pool.create
+    Eio.Pool.create
+      ~validate:(fun target -> Result.is_ok target)
       parallelism
       (fun () -> Browser.Target.make browser)
-      ~validate:(fun target -> Lwt.return (Result.is_ok target))
   in
   let*? test_results =
     tests_to_run
-    |> Lwt_list.map_p_until_exception (fun test ->
-      Lwt_pool.use pool (fun target ->
+    |> ResultList.map_p_until_first_error (fun test ->
+      Eio.Pool.use pool (fun target ->
         let test, { name = size_name; width; height }, exists = test in
         let test =
           Test.Types.
@@ -104,7 +106,7 @@ let run t =
             ; result = None
             }
         in
-        Test.run config (Result.get_ok target) test))
+        Test.run ~env config (Result.get_ok target) test))
   in
   let end_time = Unix.gettimeofday () in
   let seconds = end_time -. start_time in

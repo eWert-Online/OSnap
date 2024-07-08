@@ -1,4 +1,4 @@
-(lang dune 3.1)
+(lang dune 3.15)
 
 (name osnap)
 
@@ -22,20 +22,19 @@
  (depends
   ocaml
   dune
+  eio_main
   base64
   cdp
   cmdliner
-  cohttp
-  cohttp-lwt-unix
+  httpun-eio
+  httpun-ws-eio
   decompress
   fileutils
   fmt
   libspng
-  lwt
   odiff-core
+  piaf
   re
   uri
-  websocket
-  websocket-lwt-unix
   yaml
   yojson))

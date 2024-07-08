@@ -1,4 +1,3 @@
-open Cohttp_lwt_unix
 open OSnap_Utils
 
 let get_uri revision (platform : OSnap_Utils.platform) =
@@ -20,53 +19,82 @@ let get_uri revision (platform : OSnap_Utils.platform) =
     ()
 ;;
 
-let download ~revision dir =
-  let zip_path = Filename.concat dir "chromium.zip" in
+let download ~env ~revision dir =
+  let ( let*? ) = Result.bind in
+  let zip_path = Eio.Path.(dir / "chromium.zip") in
   let revision_string = OSnap_Browser_Path.revision_to_string revision in
-  let* io = Lwt_io.open_file ~mode:Output zip_path in
+  let uri = get_uri revision_string (OSnap_Utils.detect_platform ()) in
   print_endline
     (Printf.sprintf
        "Downloading chromium revision %s.\n\
         This is a one time setup and will only happen, if there are updates from OSnap..."
        revision_string);
-  let uri = get_uri revision_string (OSnap_Utils.detect_platform ()) in
-  let* response, body = Client.get uri in
+  Eio.Switch.run
+  @@ fun sw ->
+  let*? client =
+    Piaf.Client.create
+      ~sw
+      ~config:
+        { Piaf.Config.default with
+          follow_redirects = true
+        ; allow_insecure = true
+        ; flush_headers_immediately = true
+        }
+      env
+      uri
+    |> Result.map_error (fun _ -> `OSnap_Chromium_Download_Failed)
+  in
+  Eio.Path.with_open_out ~create:(`Or_truncate 0o755) zip_path
+  @@ fun io ->
+  let*? response =
+    Piaf.Client.get client (Uri.path_and_query uri)
+    |> Result.map_error (fun _ -> `OSnap_Chromium_Download_Failed)
+  in
   match response with
   | { status = `OK; _ } ->
-    let* () = Cohttp_lwt.Body.to_stream body |> Lwt_stream.iter_s (Lwt_io.write io) in
-    let* () = Lwt_io.close io in
-    zip_path |> Lwt_result.return
+    let*? () =
+      Piaf.Body.iter_string ~f:(fun chunk -> Eio.Flow.copy_string chunk io) response.body
+      |> Result.map_error (fun _ -> `OSnap_Chromium_Download_Failed)
+    in
+    Piaf.Client.shutdown client;
+    Result.ok zip_path
   | response ->
-    let* () = Lwt_io.close io in
     Format.fprintf
       Format.err_formatter
       "Chrome could not be downloaded:\n%a\n%!"
-      Response.pp_hum
+      Piaf.Response.pp_hum
       response;
-    Lwt_result.fail `OSnap_Chromium_Download_Failed
+    Result.error `OSnap_Chromium_Download_Failed
 ;;
 
-let extract_zip ?(dest = "") source =
+let extract_zip ~dest source =
   let extract_entry in_file (entry : Zip.entry) =
-    let out_file = Filename.concat dest entry.name in
-    if entry.is_directory && not (Sys.file_exists out_file)
-    then FileUtil.mkdir ~parent:true ~mode:(`Octal 511) out_file
+    let out_file = Eio.Path.(dest / entry.name) in
+    if entry.is_directory && not (Eio.Path.is_directory out_file)
+    then Eio.Path.mkdirs ~perm:0o755 out_file
     else (
-      let parent_dir = FilePath.dirname out_file in
-      if not (Sys.file_exists parent_dir)
-      then FileUtil.mkdir ~parent:true ~mode:(`Octal 511) parent_dir;
-      let oc = open_out_gen [ Open_creat; Open_binary; Open_append ] 511 out_file in
+      let parent_dir =
+        Eio.Path.split out_file |> Option.map fst |> Option.value ~default:dest
+      in
+      if not (Eio.Path.is_directory parent_dir)
+      then Eio.Path.mkdirs ~perm:0o755 parent_dir;
+      let oc =
+        open_out_gen
+          [ Open_creat; Open_binary; Open_append ]
+          511
+          (Eio.Path.native_exn out_file)
+      in
       try
         Zip.copy_entry_to_channel in_file entry oc;
         close_out oc
       with
       | err ->
         close_out oc;
-        Sys.remove out_file;
+        Eio.Path.rmtree ~missing_ok:true out_file;
         raise err)
   in
   print_endline "Extracting Chromium...";
-  let ic = Zip.open_in source in
+  let ic = Zip.open_in (Eio.Path.native_exn source) in
   ic |> Zip.entries |> List.iter (extract_entry ic);
   Zip.close_in ic;
   print_endline "Done!"
@@ -93,19 +121,24 @@ let cleanup_old_revisions () =
       FileUtil.rm ~recurse:true ~force:Force [ path ])
 ;;
 
-let download revision =
+let download ~env revision =
+  let ( let*? ) = Result.bind in
   print_newline ();
   print_newline ();
+  let fs = Eio.Stdenv.fs env in
   let*? () =
-    if not (is_revision_downloaded revision)
-    then (
-      let extract_path = OSnap_Browser_Path.get_chromium_path revision in
-      Unix.mkdir extract_path 511;
-      Lwt_io.with_temp_dir ~prefix:"osnap_chromium_" (fun dir ->
-        let*? path = dir |> download ~revision in
-        extract_zip path ~dest:extract_path;
-        Lwt_result.return ()))
-    else Lwt_result.return ()
+    if is_revision_downloaded revision
+    then Result.ok ()
+    else (
+      let extract_path = Eio.Path.(fs / OSnap_Browser_Path.get_chromium_path revision) in
+      Eio.Path.mkdirs ~exists_ok:true ~perm:0o755 extract_path;
+      let _temp_dir = Filename.get_temp_dir_name () in
+      Eio.Path.with_open_dir
+        Eio.Path.(fs / "/tmp")
+        (fun dir ->
+          let*? path = dir |> download ~env ~revision in
+          extract_zip path ~dest:extract_path;
+          Result.ok ()))
   in
-  cleanup_old_revisions () |> Lwt_result.return
+  Result.ok (cleanup_old_revisions ())
 ;;

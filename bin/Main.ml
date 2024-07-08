@@ -7,7 +7,7 @@ let print_error msg =
   Printf.ksprintf printer msg
 ;;
 
-let handle_response response =
+let handle_response_eio response =
   match response with
   | Ok () -> 0
   | Error `OSnap_Test_Failure -> 1
@@ -29,6 +29,7 @@ let handle_response response =
     print_error "%s" s;
     1
   | Error (`OSnap_Config_Unsupported_Format path) ->
+    let path = Eio.Path.native_exn path in
     print_error "Your config file has an unknown format.";
     print_error "Tried to parse %s." path;
     print_error "Known formats are json and yaml";
@@ -37,16 +38,19 @@ let handle_response response =
     print_error "Could not connect to Chrome.";
     1
   | Error (`OSnap_Config_Parse_Error (msg, path)) ->
+    let path = Eio.Path.native_exn path in
     print_error "Your config is in an invalid format";
     print_error "Tried to parse %s" path;
     print_error "%s" msg;
     1
   | Error (`OSnap_Config_Invalid (s, path)) ->
+    let path = Eio.Path.native_exn path in
     print_error "Found some tests with an invalid format.";
     print_error "Tried to parse %s" path;
     print_error "%s" s;
     1
   | Error (`OSnap_Config_Undefined_Function (s, path)) ->
+    let path = Eio.Path.native_exn path in
     print_error "Tried to call non existant function `%s` in file %s" s path;
     1
   | Error (`OSnap_Config_Duplicate_Size_Names sizes) ->
@@ -111,21 +115,24 @@ let default_cmd =
     value & opt (some int) None & info [ "p"; "parallelism" ] ~doc
   in
   let exec noCreate noOnly noSkip parallelism config_path =
-    let open Lwt_result.Syntax in
-    let run =
-      let* t = OSnap.setup ~config_path ~noCreate ~noOnly ~noSkip ~parallelism in
-      Lwt.catch
-        (fun () ->
-          OSnap.run t
-          |> Lwt_result.map_error (fun e ->
-            let () = OSnap.teardown t in
-            e))
-        (function
-          | exn ->
-            let () = OSnap.teardown t in
-            Lwt_result.fail (`OSnap_Unknown_Error exn))
+    let ( let*? ) = Result.bind in
+    let run ~sw ~env =
+      let*? t =
+        OSnap.setup ~sw ~env ~config_path ~noCreate ~noOnly ~noSkip ~parallelism
+      in
+      try
+        OSnap.run ~env t
+        |> Result.map_error (fun e ->
+          let () = OSnap.teardown t in
+          e)
+      with
+      | exn ->
+        let () = OSnap.teardown t in
+        Result.error (`OSnap_Unknown_Error exn)
     in
-    Lwt_main.run run |> handle_response
+    handle_response_eio
+    @@ Eio_main.run
+    @@ fun env -> Eio.Switch.run @@ fun sw -> run ~sw ~env
   in
   ( (let open Term in
      const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config)
@@ -158,8 +165,7 @@ let default_cmd =
 
 let cleanup_cmd =
   let exec config_path =
-    let run = OSnap.cleanup ~config_path in
-    Lwt_main.run run |> handle_response
+    handle_response_eio @@ Eio_main.run @@ fun env -> OSnap.cleanup ~env ~config_path
   in
   ( (let open Term in
      const exec $ config)
@@ -181,4 +187,8 @@ let cleanup_cmd =
 
 let cmds = [ Cmd.v (snd cleanup_cmd) (fst cleanup_cmd) ]
 let default, info = default_cmd
-let () = cmds |> Cmd.group ~default info |> Cmd.eval' |> exit
+
+let () =
+  Printexc.record_backtrace true;
+  cmds |> Cmd.group ~default info |> Cmd.eval' |> exit
+;;
