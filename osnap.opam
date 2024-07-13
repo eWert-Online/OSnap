@@ -21,7 +21,6 @@ depends: [
   "fmt"
   "libspng"
   "odiff-core"
-  "piaf"
   "re"
   "uri"
   "yaml"
@@ -47,7 +46,4 @@ pin-depends: [
   [ "libspng.dev" "git+https://github.com/eWert-Online/esy-libspng.git#opam"]
   [ "cdp.dev" "git+https://github.com/eWert-Online/reason-cdp.git#502346a7ba9a512ce9aaec456561b64464b3782f"]
   [ "odiff-core.dev" "git+https://github.com/dmtrKovalenko/odiff.git#5a9a1976c553b6c57c32c4e9dcf185bbcdaf1fca"]
-  [ "piaf.dev" "git+https://github.com/anmonteiro/piaf.git"]
-  [ "eio-ssl.dev" "git+https://github.com/anmonteiro/eio-ssl.git#0.3.0" ]
-  [ "multipart_form.dev" "git+https://github.com/anmonteiro/multipart_form.git" ]
 ]

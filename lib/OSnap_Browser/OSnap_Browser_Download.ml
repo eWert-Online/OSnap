@@ -1,29 +1,26 @@
 open OSnap_Utils
 
 let get_uri revision (platform : OSnap_Utils.platform) =
-  Uri.make
-    ~scheme:"http"
-    ~host:"storage.googleapis.com"
-    ~port:80
-    ~path:
-      (match platform with
-       | MacOS -> "/chromium-browser-snapshots/Mac/" ^ revision ^ "/chrome-mac.zip"
-       | MacOS_ARM ->
-         "/chromium-browser-snapshots/Mac_Arm/" ^ revision ^ "/chrome-mac.zip"
-       | Linux ->
-         "/chromium-browser-snapshots/Linux_x64/" ^ revision ^ "/chrome-linux.zip"
-       | Win64 -> "/chromium-browser-snapshots/Win_x64/" ^ revision ^ "/chrome-win.zip"
-       | Win32 ->
-         print_endline "Error: x86 is currently not supported on Windows";
-         exit 1)
-    ()
+  let host = "storage.googleapis.com" in
+  let port = 80 in
+  let path =
+    match platform with
+    | MacOS -> "/chromium-browser-snapshots/Mac/" ^ revision ^ "/chrome-mac.zip"
+    | MacOS_ARM -> "/chromium-browser-snapshots/Mac_Arm/" ^ revision ^ "/chrome-mac.zip"
+    | Linux -> "/chromium-browser-snapshots/Linux_x64/" ^ revision ^ "/chrome-linux.zip"
+    | Win64 -> "/chromium-browser-snapshots/Win_x64/" ^ revision ^ "/chrome-win.zip"
+    | Win32 ->
+      print_endline "Error: x86 is currently not supported on Windows";
+      exit 1
+  in
+  host, port, path
 ;;
 
-let download ~env ~revision dir =
-  let ( let*? ) = Result.bind in
+let download ~revision dir =
   let zip_path = Eio.Path.(dir / "chromium.zip") in
+  Eio.Path.rmtree ~missing_ok:true zip_path;
   let revision_string = OSnap_Browser_Path.revision_to_string revision in
-  let uri = get_uri revision_string (OSnap_Utils.detect_platform ()) in
+  let host, port, path = get_uri revision_string (OSnap_Utils.detect_platform ()) in
   print_endline
     (Printf.sprintf
        "Downloading chromium revision %s.\n\
@@ -31,40 +28,49 @@ let download ~env ~revision dir =
        revision_string);
   Eio.Switch.run
   @@ fun sw ->
-  let*? client =
-    Piaf.Client.create
-      ~sw
-      ~config:
-        { Piaf.Config.default with
-          follow_redirects = true
-        ; allow_insecure = true
-        ; flush_headers_immediately = true
-        }
-      env
-      uri
-    |> Result.map_error (fun _ -> `OSnap_Chromium_Download_Failed)
+  let fd = Unix.socket ~cloexec:true Unix.PF_INET Unix.SOCK_STREAM 0 in
+  let addrs =
+    Eio_unix.run_in_systhread (fun () ->
+      Unix.getaddrinfo host (Int.to_string port) [ Unix.(AI_FAMILY PF_INET) ])
   in
-  Eio.Path.with_open_out ~create:(`Or_truncate 0o755) zip_path
-  @@ fun io ->
-  let*? response =
-    Piaf.Client.get client (Uri.path_and_query uri)
-    |> Result.map_error (fun _ -> `OSnap_Chromium_Download_Failed)
-  in
-  match response with
-  | { status = `OK; _ } ->
-    let*? () =
-      Piaf.Body.iter_string ~f:(fun chunk -> Eio.Flow.copy_string chunk io) response.body
-      |> Result.map_error (fun _ -> `OSnap_Chromium_Download_Failed)
+  Eio_unix.run_in_systhread (fun () -> Unix.connect fd (List.hd addrs).ai_addr);
+  let socket = Eio_unix.Net.import_socket_stream ~sw ~close_unix:true fd in
+  let headers = Httpun.Headers.of_list [ "host", host ] in
+  let connection = Httpun_eio.Client.create_connection ~sw socket in
+  let p, resolver = Eio.Promise.create () in
+  Eio.Fiber.fork ~sw (fun () ->
+    let request_body =
+      Httpun_eio.Client.request
+        connection
+        (Httpun.Request.create ~headers `GET path)
+        ~error_handler:(fun _ -> ())
+        ~response_handler:(fun response body ->
+          let buf = Buffer.create (1024 * 1024 * 1024 * 140) in
+          match response with
+          | { Httpun.Response.status = `OK; _ } ->
+            let on_eof () = Eio.Promise.resolve_ok resolver (Buffer.contents buf) in
+            let rec on_read bs ~off ~len =
+              let chunk = Bigstringaf.substring ~off ~len bs in
+              Eio.Path.with_open_out
+                ~append:true
+                ~create:(`If_missing 0o755)
+                zip_path
+                (Eio.Flow.copy_string chunk);
+              Httpun.Body.Reader.schedule_read body ~on_read ~on_eof
+            in
+            Httpun.Body.Reader.schedule_read body ~on_read ~on_eof
+          | response ->
+            Format.fprintf
+              Format.err_formatter
+              "Chrome could not be downloaded:\n%a\n%!"
+              Httpun.Response.pp_hum
+              response;
+            Eio.Promise.resolve_error resolver `OSnap_Chromium_Download_Failed)
     in
-    Piaf.Client.shutdown client;
-    Result.ok zip_path
-  | response ->
-    Format.fprintf
-      Format.err_formatter
-      "Chrome could not be downloaded:\n%a\n%!"
-      Piaf.Response.pp_hum
-      response;
-    Result.error `OSnap_Chromium_Download_Failed
+    Httpun.Body.Writer.close request_body);
+  let*? _response_body = Eio.Promise.await p in
+  Httpun_eio.Client.shutdown connection |> Eio.Promise.await;
+  Result.ok zip_path
 ;;
 
 let extract_zip ~dest source =
@@ -136,7 +142,7 @@ let download ~env revision =
       Eio.Path.with_open_dir
         Eio.Path.(fs / temp_dir)
         (fun dir ->
-          let*? path = download dir ~env ~revision in
+          let*? path = download dir ~revision in
           extract_zip path ~dest:extract_path;
           Eio.Path.rmtree ~missing_ok:true path;
           Result.ok ()))

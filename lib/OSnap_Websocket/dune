@@ -2,8 +2,6 @@
  (name OSnap_Websocket)
  (libraries
   OSnap_Utils
-  piaf
-  piaf.stream
   bigstringaf
   httpun
   httpun-ws
