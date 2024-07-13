@@ -5,7 +5,8 @@
   OSnap_Websocket
   unix
   fmt
-  piaf
+  httpun
+  httpun-eio
   bigstringaf
   cdp
   decompress.de

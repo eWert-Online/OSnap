@@ -33,7 +33,6 @@
   fmt
   libspng
   odiff-core
-  piaf
   re
   uri
   yaml
