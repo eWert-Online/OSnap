@@ -26,6 +26,7 @@
   base64
   cdp
   cmdliner
+  piaf
   httpun-eio
   httpun-ws-eio
   decompress
