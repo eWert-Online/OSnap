@@ -321,7 +321,7 @@ module JSON = struct
   ;;
 end
 
-let find ~env config_names =
+let find ~fs config_names =
   let rec scan_dir ~config_names current_path =
     let elements = current_path |> Eio.Path.read_dir in
     let files =
@@ -334,15 +334,15 @@ let find ~env config_names =
     match found_file with
     | Some file -> Some Eio.Path.(current_path / file)
     | None ->
-      let parent_dir = Eio.Path.(current_path / "..") in
+      let parent_dir = Eio.Path.split current_path |> Option.map fst in
       (try
-         if Eio.Path.is_directory parent_dir
-         then scan_dir ~config_names parent_dir
-         else None
+         match parent_dir with
+         | Some dir when Eio.Path.is_directory dir -> scan_dir ~config_names dir
+         | _ -> None
        with
        | _ -> None)
   in
-  scan_dir ~config_names (Eio.Stdenv.fs env)
+  scan_dir ~config_names Eio.Path.(fs / Sys.getcwd ())
 ;;
 
 let init ~env ~config_path =
@@ -351,7 +351,7 @@ let init ~env ~config_path =
   let* config =
     if config_path = ""
     then (
-      match find ~env [ "osnap.config.json"; "osnap.config.yaml" ] with
+      match find ~fs [ "osnap.config.json"; "osnap.config.yaml" ] with
       | Some path -> Result.ok path
       | None -> Result.error `OSnap_Config_Global_Not_Found)
     else Result.ok Eio.Path.(fs / config_path)
