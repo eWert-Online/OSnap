@@ -85,6 +85,7 @@ let run ~env t =
       parallelism
       (fun () -> Browser.Target.make browser)
   in
+  Test.Printer.Progress.set_total (List.length tests_to_run);
   let*? test_results =
     tests_to_run
     |> ResultList.map_p_until_first_error (fun test ->
