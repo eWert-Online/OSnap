@@ -65,6 +65,9 @@ jobs:
         if: matrix.os == 'macOS-latest'
         run: |
           brew install openssl
+          echo "LDFLAGS=\"-L/opt/homebrew/opt/openssl@3/lib\"" >> $GITHUB_ENV
+          echo "CPPFLAGS=\"-I/opt/homebrew/opt/openssl@3/include\"" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=\"/opt/homebrew/opt/openssl@3/lib/pkgconfig\"" >> $GITHUB_ENV
 
       - name: Checkout code
         uses: actions/checkout@v4
