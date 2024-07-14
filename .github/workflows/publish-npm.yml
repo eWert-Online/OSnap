@@ -58,7 +58,7 @@ jobs:
           # - windows-latest
           - macOS-latest
         ocaml-compiler:
-          - 5.1.x
+          - 5.2.x
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup OpenSSL (macOS)
