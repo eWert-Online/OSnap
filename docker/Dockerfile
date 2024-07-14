@@ -17,7 +17,7 @@ FROM ocaml/opam:alpine-ocaml-5.1-flambda
 RUN sudo apk add --no-cache --update \
   bash make cmake curl perl-utils git patch gcc g++ \
   linux-headers pkgconfig m4 musl-dev perl \
-  autoconf automake bzip2-dev gmp-dev openssl-dev
+  autoconf automake bzip2-dev gmp-dev libressl-dev
 
 COPY --from=zlib-build /lib/libz.a /lib/libz.a
 COPY --from=zlib-build /usr/lib/pkgconfig/zlib.pc /usr/lib/pkgconfig/zlib.pc
@@ -28,8 +28,7 @@ WORKDIR /usr/app
 
 COPY ./osnap.opam .
 
-RUN opam install . --with-test --yes && \
-  eval $(opam env)
+RUN opam install . --yes && eval $(opam env)
 
 COPY . .
 
