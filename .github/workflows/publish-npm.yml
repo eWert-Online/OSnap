@@ -61,12 +61,6 @@ jobs:
           - 5.1.x
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Setup OpenSSL (macOS)
-        if: matrix.os == 'macOS-latest'
-        run: |
-          ln -s /usr/local/opt/openssl@1.1/lib/libssl.1.1.dylib /usr/local/lib/libssl.1.1.dylib
-          ln -s /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib /usr/local/lib/libcrypto.1.1.dylib
-
       - name: Checkout code
         uses: actions/checkout@v4
 
