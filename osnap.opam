@@ -44,9 +44,11 @@ build: [
 ]
 dev-repo: "git+https://github.com/eWert-Online/OSnap.git"
 pin-depends: [
-  [ "libspng.dev" "git+https://github.com/eWert-Online/esy-libspng.git#opam"]
   [ "cdp.dev" "git+https://github.com/eWert-Online/reason-cdp.git#a0579cb4789b8ccf1cc4342b9885a46cf1549012"]
-  [ "odiff-core.dev" "git+https://github.com/dmtrKovalenko/odiff.git#5a9a1976c553b6c57c32c4e9dcf185bbcdaf1fca"]
+  [ "eio-ssl.dev" "git+https://github.com/anmonteiro/eio-ssl.git#0.3.0"]
   [ "httpun-ws.dev" "git+https://github.com/eWert-Online/httpun-ws.git#fec8721c4eb67ef0c9436677916473ab81a1ebbe"]
+  [ "libspng.dev" "git+https://github.com/eWert-Online/esy-libspng.git#opam"]
+  [ "multipart_form.dev" "git+https://github.com/anmonteiro/multipart_form.git"]
+  [ "odiff-core.dev" "git+https://github.com/dmtrKovalenko/odiff.git#5a9a1976c553b6c57c32c4e9dcf185bbcdaf1fca"]
   [ "piaf.dev" "git+https://github.com/anmonteiro/piaf.git"]
 ]
