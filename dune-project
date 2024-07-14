@@ -24,6 +24,7 @@
   base64
   cdp
   cmdliner
+  conf-openssl
   piaf
   httpun-eio
   httpun-ws-eio
