@@ -65,6 +65,7 @@ jobs:
         if: matrix.os == 'macOS-latest'
         run: |
           brew install openssl
+          ls -l /opt/homebrew/opt/openssl@3/include
           echo "LDFLAGS=\"-L/opt/homebrew/opt/openssl@3/lib\"" >> $GITHUB_ENV
           echo "CPPFLAGS=\"-I/opt/homebrew/opt/openssl@3/include\"" >> $GITHUB_ENV
           echo "PKG_CONFIG_PATH=\"/opt/homebrew/opt/openssl@3/lib/pkgconfig\"" >> $GITHUB_ENV
@@ -78,7 +79,9 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
       - name: Install dependencies
-        run: opam install . --locked --deps-only --with-test --yes
+        run: |
+          env
+          opam install . --locked --deps-only --with-test --yes
 
       - name: Build OSnap
         run: opam exec -- dune build -p osnap --profile=release
