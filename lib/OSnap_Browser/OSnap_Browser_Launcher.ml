@@ -76,7 +76,7 @@ let make ~sw ~env () =
   in
   let stderr_buffer = Eio.Buf_read.of_flow read_stderr ~max_size:max_int in
   let*? url = get_ws_url ~from:stderr_buffer process in
-  let () = Websocket.connect ~sw ~env url in
+  let*? () = Websocket.connect ~sw ~env url in
   let*? result =
     let open Cdp.Commands.Target.CreateBrowserContext in
     Request.make ?sessionId:None ~params:(Params.make ())

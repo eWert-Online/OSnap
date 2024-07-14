@@ -6,6 +6,8 @@
   httpun
   httpun-ws
   httpun-ws-eio
+  piaf
+  piaf.stream
   uri
   eio
   eio.core

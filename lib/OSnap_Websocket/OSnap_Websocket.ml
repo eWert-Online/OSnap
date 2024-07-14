@@ -19,117 +19,65 @@ let call_event_handlers key message =
       Hashtbl.remove events key))
 ;;
 
-let websocket_handler ~sw u wsd =
-  let send_payload payload =
-    let payload = Bytes.of_string payload in
-    let len = Bytes.length payload in
-    Httpun_ws.Wsd.send_bytes wsd ~kind:`Text payload ~off:0 ~len
+let connect ~sw ~env url =
+  let uri = Uri.of_string url in
+  let resource = Uri.path uri in
+  let*? client =
+    Piaf.Client.create env ~sw (Uri.with_scheme uri (Some "http"))
+    |> Result.map_error (fun _ -> `OSnap_CDP_Connection_Failed)
+  in
+  let*? wsd =
+    Piaf.Client.ws_upgrade client resource
+    |> Result.map_error (fun _ -> `OSnap_CDP_Connection_Failed)
   in
   let rec input_loop () =
     let () = Eio.Fiber.yield () in
     if not (Queue.is_empty pending_requests)
     then (
       let key, message, resolver = Queue.take pending_requests in
-      let () = send_payload message in
+      Piaf.Ws.Descriptor.send_string wsd message;
       Hashtbl.add sent_requests key resolver;
       input_loop ())
     else input_loop ()
   in
-  let frame ~(opcode : Httpun_ws.Websocket.Opcode.t) ~is_fin:_ ~len payload =
-    match opcode with
-    | `Connection_close | `Continuation | `Other _ -> ()
-    | `Ping -> Httpun_ws.Wsd.send_pong wsd
-    | `Pong -> ()
-    | `Text | `Binary ->
-      let buf = Eio.Buf_write.create len in
-      let on_eof () =
-        let response = Eio.Buf_write.serialize_to_string buf in
-        let json = response |> Yojson.Basic.from_string in
-        let id =
-          json |> Yojson.Basic.Util.member "id" |> Yojson.Basic.Util.to_int_option
-        in
-        let method_ =
-          json |> Yojson.Basic.Util.member "method" |> Yojson.Basic.Util.to_string_option
-        in
-        let sessionId =
-          json
-          |> Yojson.Basic.Util.member "sessionId"
-          |> Yojson.Basic.Util.to_string_option
-        in
-        (match method_, sessionId with
-         | None, None -> ()
-         | None, _ -> ()
-         | Some method_, None ->
-           let key = method_ in
-           Hashtbl.add events key response;
-           Hashtbl.find_opt listeners key
-           |> Option.iter (call_event_handlers key response)
-         | Some method_, Some sessionId ->
-           let key = method_ ^ sessionId in
-           Hashtbl.add events key response;
-           Hashtbl.find_opt listeners key
-           |> Option.iter (call_event_handlers key response));
-        match id with
-        | None -> ()
-        | Some key ->
-          Hashtbl.find_opt sent_requests key
-          |> Option.iter (fun resolver -> Eio.Promise.resolve resolver response);
-          Hashtbl.remove sent_requests key;
-          ()
-      in
-      let rec on_read bs ~off ~len:read_len =
-        let response = Bigstringaf.substring ~off ~len:read_len bs in
-        Eio.Buf_write.string buf response;
-        Eio.Fiber.yield ();
-        if len > read_len
-        then Httpun_ws.Payload.schedule_read payload ~on_read ~on_eof
-        else on_eof ()
-      in
-      Httpun_ws.Payload.schedule_read payload ~on_read ~on_eof
-  in
-  Eio.Fiber.fork_daemon ~sw input_loop;
-  let eof () = Eio.Promise.resolve u () in
-  Httpun_ws.Websocket_connection.{ frame; eof }
-;;
-
-let error_handler = function
-  | `Handshake_failure (rsp, _body) ->
-    Format.eprintf "Handshake failure: %a\n%!" Httpun.Response.pp_hum rsp
-  | _ -> assert false
-;;
-
-let connect ~sw ~env url =
-  let net = Eio.Stdenv.net env in
-  Eio.Fiber.fork_daemon ~sw (fun () ->
-    let uri = Uri.of_string url in
-    let host = Uri.host_with_default uri ~default:"localhost" in
-    let port = Uri.port uri |> Option.value ~default:80 in
-    let addresses =
-      Eio.Net.getaddrinfo net ~service:"http" host
-      |> List.filter_map
-         @@ function
-         | `Tcp (addr, _port) ->
-           let addr = Eio.Net.Ipaddr.fold ~v4:Option.some ~v6:(Fun.const None) addr in
-           Option.map (fun addr -> `Tcp (addr, port)) addr
-         | _ -> None
-    in
-    let socket = Eio.Net.connect ~sw net (List.hd addresses) in
-    let p, u = Eio.Promise.create () in
-    let nonce = "0123456789ABCDEF" in
-    let resource = Uri.path_and_query uri in
-    let _client =
-      Httpun_ws_eio.Client.connect
-        socket
-        ~sw
-        ~nonce
-        ~host
-        ~port
-        ~resource
-        ~error_handler
-        ~websocket_handler:(websocket_handler ~sw u)
-    in
-    Eio.Promise.await p;
-    `Stop_daemon)
+  Result.ok
+  @@ Eio.Fiber.fork_daemon ~sw
+  @@ fun () ->
+  Eio.Fiber.both
+    (fun () -> input_loop ())
+    (fun () ->
+      wsd
+      |> Piaf.Ws.Descriptor.messages
+      |> Piaf.Stream.iter ~f:(fun (_opcode, { Piaf.IOVec.buffer; off; len }) ->
+        let response = Bigstringaf.substring ~off ~len buffer in
+        let module Json = Yojson.Basic in
+        let json = Json.from_string response in
+        Eio.Fiber.both
+          (fun () ->
+            match
+              ( json |> Json.Util.member "method" |> Json.Util.to_string_option
+              , json |> Json.Util.member "sessionId" |> Json.Util.to_string_option )
+            with
+            | None, None -> ()
+            | None, _ -> ()
+            | Some meth, None ->
+              let key = meth in
+              Hashtbl.add events key response;
+              Hashtbl.find_opt listeners key
+              |> Option.iter (call_event_handlers key response)
+            | Some meth, Some sessionId ->
+              let key = meth ^ sessionId in
+              Hashtbl.add events key response;
+              Hashtbl.find_opt listeners key
+              |> Option.iter (call_event_handlers key response))
+          (fun () ->
+            match json |> Json.Util.member "id" |> Json.Util.to_int_option with
+            | None -> ()
+            | Some key ->
+              Hashtbl.find_opt sent_requests key
+              |> Option.iter (fun resolver -> Eio.Promise.resolve resolver response);
+              Hashtbl.remove sent_requests key)));
+  `Stop_daemon
 ;;
 
 let send message =
@@ -148,9 +96,15 @@ let listen ?(look_behind = true) ~event ~sessionId handler =
    | Some stored -> Hashtbl.replace listeners key (handler :: stored));
   if look_behind
   then
-    Hashtbl.find_all events key
-    |> List.iter (fun event ->
-      handler event (fun () ->
-        Hashtbl.remove listeners key;
-        Hashtbl.remove events key))
+    Eio.Switch.run
+    @@ fun sw ->
+    events
+    |> Hashtbl.iter (fun k event ->
+      Eio.Fiber.fork ~sw
+      @@ fun () ->
+      if key = k
+      then
+        handler event (fun () ->
+          Hashtbl.remove listeners key;
+          Hashtbl.remove events key))
 ;;
