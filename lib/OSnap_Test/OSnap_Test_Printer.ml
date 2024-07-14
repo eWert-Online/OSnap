@@ -1,18 +1,48 @@
 open Fmt
 open OSnap_Test_Types
 
+module Progress = struct
+  type t =
+    { mutable current : int
+    ; mutable total : int
+    ; mutable total_length : int
+    }
+
+  let progress = { current = 0; total = 0; total_length = 0 }
+  let progress_mutex = Mutex.create ()
+
+  let get_and_incr () =
+    Mutex.lock progress_mutex;
+    progress.current <- succ progress.current;
+    Mutex.unlock progress_mutex;
+    Fmt.str_like
+      Fmt.stdout
+      "%a"
+      (styled `Faint string)
+      (Printf.sprintf "%*i / %i " progress.total_length progress.current progress.total)
+  ;;
+
+  let set_total i =
+    Mutex.lock progress_mutex;
+    progress.total <- i;
+    progress.total_length <- String.length (string_of_int i);
+    Mutex.unlock progress_mutex
+  ;;
+end
+
 let test_name ~name ~width ~height =
   Fmt.str_like
     Fmt.stdout
     "%s %a"
     name
     (styled `Faint string)
-    (Printf.sprintf "(%ix%i)" width height)
+    (Printf.sprintf "@ %i×%i" width height)
 ;;
 
 let created_message ~name ~width ~height =
   Fmt.pr
-    "%a\t%s @."
+    "%s %a %s @."
+    (Progress.get_and_incr ())
     (styled `Bold (styled `Blue string))
     "CREATE"
     (test_name ~name ~width ~height)
@@ -20,7 +50,8 @@ let created_message ~name ~width ~height =
 
 let skipped_message ~name ~width ~height =
   Fmt.pr
-    "%a\t%s @."
+    "%s %a %s @."
+    (Progress.get_and_incr ())
     (styled `Bold (styled `Yellow string))
     "SKIP"
     (test_name ~name ~width ~height)
@@ -28,7 +59,8 @@ let skipped_message ~name ~width ~height =
 
 let success_message ~name ~width ~height =
   Fmt.pr
-    "%a\t%s @."
+    "%s %a  %s @."
+    (Progress.get_and_incr ())
     (styled `Bold (styled `Green string))
     "PASS"
     (test_name ~name ~width ~height)
@@ -38,7 +70,8 @@ let layout_message ~print_head ~name ~width ~height =
   if print_head
   then
     Fmt.pr
-      "%a\t%s %a @."
+      "%s %a  %s %a @."
+      (Progress.get_and_incr ())
       (styled `Bold (styled `Red string))
       "FAIL"
       (test_name ~name ~width ~height)
@@ -56,7 +89,8 @@ let diff_message ~print_head ~name ~width ~height ~diffCount ~diffPercentage =
   if print_head
   then
     Fmt.pr
-      "%a\t%s %a @."
+      "%s %a  %s %a @."
+      (Progress.get_and_incr ())
       (styled `Bold (styled `Red string))
       "FAIL"
       (test_name ~name ~width ~height)
@@ -74,7 +108,8 @@ let corrupted_message ~print_head ~name ~width ~height =
   if print_head
   then
     Fmt.pr
-      "%a\t%s %a @."
+      "%s %a  %s %a @."
+      (Progress.get_and_incr ())
       (styled `Bold (styled `Red string))
       "FAIL"
       (test_name ~name ~width ~height)
