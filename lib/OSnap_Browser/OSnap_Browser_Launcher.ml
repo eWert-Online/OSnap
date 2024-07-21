@@ -30,6 +30,7 @@ let make ~sw ~env () =
       ; "about:blank"
       ; "--headless=old"
       ; "--disable-gpu"
+      ; "--no-sandbox"
       ; "--hide-scrollbars"
       ; "--remote-debugging-port=0"
       ; "--mute-audio"
