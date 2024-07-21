@@ -1,10 +1,8 @@
-module Io = OSnap_Diff_Io
-module Diff = Odiff.Diff.MakeDiff (Io.PNG) (Io.PNG)
+module Io = Osnap_Diff_Png.IO
+module Diff = Odiff.Diff.MakeDiff (Io) (Io)
 open Bigarray
 
 let ( let* ) = Result.bind
-let ( >> ) = Int32.shift_right
-let ( & ) = Int32.logand
 
 type failState =
   | Io
@@ -21,24 +19,16 @@ let diff
   ()
   =
   let* original_image =
-    try Io.PNG.loadImage original_image_data |> Result.ok with
+    try Io.loadImage original_image_data |> Result.ok with
     | _ -> Result.error Io
   in
   let* new_image =
-    try Io.PNG.loadImage new_image_data |> Result.ok with
+    try Io.loadImage new_image_data |> Result.ok with
     | _ -> Result.error Io
   in
   let free_images () =
-    Io.PNG.freeImage original_image;
-    Io.PNG.freeImage new_image
-  in
-  let diff_pixel_color =
-    let r, g, b = diffPixel in
-    let a = (255 land 0xFF) lsl 24 in
-    let b = (b land 0xFF) lsl 16 in
-    let g = (g land 0xFF) lsl 8 in
-    let r = (r land 0xFF) lsl 0 in
-    Int32.of_int (a lor b lor g lor r)
+    Io.freeImage original_image;
+    Io.freeImage new_image
   in
   Diff.diff
     original_image
@@ -94,9 +84,9 @@ let diff
               Array1.unsafe_get
                 diff_mask.image
                 ((row * diff_mask.width) + (col - diff_mask_start))
-            else diff_pixel_color
+            else 0x00000000l
           in
-          if diff_pixel = diff_pixel_color
+          if not (Int32.equal diff_pixel 0x00000000l)
           then diff_pixel
           else (
             let pixel =
@@ -126,6 +116,10 @@ let diff
       Array1.unsafe_set complete_image offset fill_with
     done;
     free_images ();
-    WritePng.write_png_bigarray output complete_image complete_width complete_height;
+    Osnap_Diff_Png.PngIo.write_png_bigarray
+      output
+      complete_image
+      complete_width
+      complete_height;
     Result.error (Pixel (diffCount, diffPercentage))
 ;;

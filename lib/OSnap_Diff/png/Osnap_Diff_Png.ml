@@ -3,7 +3,9 @@ open Odiff
 
 type data = (int32, int32_elt, c_layout) Array1.t
 
-module PNG = struct
+module PngIo = PngIo
+
+module IO = struct
   type t = data
 
   let readDirectPixel ~(x : int) ~(y : int) (img : t ImageIO.img) =
@@ -17,15 +19,15 @@ module PNG = struct
   ;;
 
   let loadImage buffer : t ImageIO.img =
-    let width, height, data = ReadPng.read_png_buffer buffer (String.length buffer) in
+    let width, height, data = PngIo.read_png_buffer buffer (String.length buffer) in
     { width; height; image = data }
   ;;
 
   let saveImage (img : t ImageIO.img) filename =
-    WritePng.write_png_bigarray filename img.image img.width img.height
+    PngIo.write_png_bigarray filename img.image img.width img.height
   ;;
 
-  let freeImage (img : t ImageIO.img) = ReadPng.free_png_buffer img.image |> ignore
+  let freeImage (img : t ImageIO.img) = ()
 
   let makeSameAsLayout (img : t ImageIO.img) =
     let image = Array1.create int32 c_layout (Array1.dim img.image) in
