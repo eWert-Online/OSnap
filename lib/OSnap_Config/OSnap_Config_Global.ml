@@ -62,8 +62,7 @@ module YAML = struct
     let* parallelism =
       yaml
       |> OSnap_Config_Utils.YAML.get_int_option ~path "parallelism"
-      |> Result.map (Option.value ~default:8)
-      |> Result.map (max 1)
+      |> Result.map (Option.map (max 1))
     in
     let root_path = Eio.Path.split path |> Option.map fst |> Option.get in
     let* test_pattern =
@@ -236,8 +235,7 @@ module JSON = struct
         json
         |> Yojson.Basic.Util.member "parallelism"
         |> Yojson.Basic.Util.to_int_option
-        |> Option.value ~default:8
-        |> max 1
+        |> Option.map (max 1)
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->

@@ -2,6 +2,11 @@ open Cmdliner;;
 
 Fmt.set_style_renderer Fmt.stdout `Ansi_tty
 
+let print_warning msg =
+  let printer = Fmt.pr "%a @." (Fmt.styled `Yellow Fmt.string) in
+  Printf.ksprintf printer msg
+;;
+
 let print_error msg =
   let printer = Fmt.pr "%a @." (Fmt.styled `Red Fmt.string) in
   Printf.ksprintf printer msg
@@ -109,7 +114,7 @@ let default_cmd =
   let parallelism =
     let doc =
       "Overwrite the parallelism defined in the global config file with the specified \
-       value."
+       value. (DEPRECATED)"
     in
     let open Arg in
     value & opt (some int) None & info [ "p"; "parallelism" ] ~doc
@@ -117,18 +122,31 @@ let default_cmd =
   let exec noCreate noOnly noSkip parallelism config_path =
     let ( let*? ) = Result.bind in
     let run ~sw ~env =
-      let*? t =
-        OSnap.setup ~sw ~env ~config_path ~noCreate ~noOnly ~noSkip ~parallelism
+      let*? t = OSnap.setup ~sw ~env ~config_path ~noCreate ~noOnly ~noSkip in
+      let result =
+        Fun.protect
+          ~finally:(fun () -> OSnap.teardown t)
+          (fun () ->
+            try OSnap.run ~env t with
+            | exn -> Result.error (`OSnap_Unknown_Error exn))
       in
-      try
-        OSnap.run ~env t
-        |> Result.map_error (fun e ->
-          let () = OSnap.teardown t in
-          e)
-      with
-      | exn ->
-        let () = OSnap.teardown t in
-        Result.error (`OSnap_Unknown_Error exn)
+      let () =
+        match parallelism, t.config.parallelism with
+        | None, None -> ()
+        | Some _, _ ->
+          print_warning
+            "\n\
+             The --parallelism cli flag is deprecated. The best suitable setting is now \
+             determined automatically.\n\
+             Please remove the flag from your scripts."
+        | _, Some _ ->
+          print_warning
+            "\n\
+             The parallelism option is deprecated. The best suitable setting is now \
+             determined automatically.\n\
+             Please remove the configuration setting from your global osnap config file."
+      in
+      result
     in
     handle_response_eio
     @@ Eio_main.run
