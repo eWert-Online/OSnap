@@ -29,7 +29,7 @@ let make ~sw ~env () =
       [ executable
       ; "about:blank"
       ; "--headless=old"
-      ; "--deterministic-mode"
+      ; "--disable-gpu"
       ; "--hide-scrollbars"
       ; "--remote-debugging-port=0"
       ; "--mute-audio"
