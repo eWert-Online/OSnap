@@ -427,7 +427,12 @@ let screenshot ?(full_size = false) target =
       Request.make
         ~sessionId
         ~params:
-          (Params.make ~format:`png ~captureBeyondViewport:false ~fromSurface:true ())
+          (Params.make
+             ~format:`png
+             ~optimizeForSpeed:true
+             ~captureBeyondViewport:false
+             ~fromSurface:true
+             ())
       |> OSnap_Websocket.send
       |> Response.parse
     in
