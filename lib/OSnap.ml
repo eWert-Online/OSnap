@@ -10,16 +10,11 @@ type t =
   ; browser : Browser.t
   }
 
-let setup ~sw ~env ~noCreate ~noOnly ~noSkip ~parallelism ~config_path =
+let setup ~sw ~env ~noCreate ~noOnly ~noSkip ~config_path =
   let ( let*? ) = Result.bind in
   let open Config.Types in
   let start_time = Unix.gettimeofday () in
   let*? config = Config.Global.init ~env ~config_path in
-  let config =
-    match parallelism with
-    | Some parallelism -> { config with parallelism }
-    | None -> config
-  in
   let () = OSnap_Paths.init_folder_structure config in
   let snapshot_dir = OSnap_Paths.get_base_images_dir config in
   let*? all_tests = Config.Test.init config in
@@ -78,7 +73,7 @@ let run ~env t =
   let ( let*? ) = Result.bind in
   let open Config.Types in
   let { tests_to_run; config; start_time; browser } = t in
-  let parallelism = max 1 config.parallelism in
+  let parallelism = Domain.recommended_domain_count () * 3 in
   let pool =
     Eio.Pool.create
       ~validate:(fun target -> Result.is_ok target)

@@ -14,7 +14,6 @@ val setup
   -> noCreate:bool
   -> noOnly:bool
   -> noSkip:bool
-  -> parallelism:int option
   -> config_path:string
   -> ( t
        , [> `OSnap_CDP_Connection_Failed

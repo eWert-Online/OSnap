@@ -43,5 +43,5 @@ type global =
   ; functions : (string * action list) list
   ; snapshot_directory : string
   ; diff_pixel_color : int * int * int
-  ; parallelism : int
+  ; parallelism : int option
   }

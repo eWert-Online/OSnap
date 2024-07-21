@@ -76,7 +76,7 @@ The number of pixels allowed to be different, before the test will be marked as 
 
 ---
 
-### Parallelism
+### Parallelism (DEPRECATED)
 
 - **Key**: `parallelism`
 - **Required**: `false`
