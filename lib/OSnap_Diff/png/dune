@@ -1,0 +1,18 @@
+(library
+ (name Osnap_Diff_Png)
+ (flags
+  (-w -40 -w +26)
+  (:include png_flags.sexp))
+ (foreign_stubs
+  (language c)
+  (names PngIo)
+  (flags
+   (:include png_c_flags.sexp)))
+ (c_library_flags
+  (:include png_c_library_flags.sexp))
+ (libraries odiff-core))
+
+(rule
+ (targets png_flags.sexp png_c_flags.sexp png_c_library_flags.sexp)
+ (action
+  (run ../config/discover.exe)))

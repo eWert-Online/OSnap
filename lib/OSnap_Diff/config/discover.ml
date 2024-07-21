@@ -29,17 +29,16 @@ let main c =
       in
       C.Process.run_capture_exn c ?env pkgcfg [ lib; "--variable=" ^ dir ]
   in
+  (* LIBSPNG *)
   let switch_prefix = Sys.getenv "OPAM_SWITCH_PREFIX" in
   let spng_include_path = switch_prefix ^ "/include" in
   let libspng = switch_prefix ^ "/lib/libspng_static.a" in
   let z_lib_path = get_path "zlib" "libdir" |> String.trim in
   let zlib = z_lib_path ^ "/libz.a" in
-  C.Flags.write_sexp "png_write_c_flags.sexp" [ "-fPIC"; "-I" ^ spng_include_path ];
-  C.Flags.write_sexp "png_write_c_library_flags.sexp" [ libspng; zlib ];
-  C.Flags.write_sexp "png_write_flags.sexp" [ "-cclib"; libspng ];
   C.Flags.write_sexp "png_c_flags.sexp" [ "-fPIC"; "-I" ^ spng_include_path ];
   C.Flags.write_sexp "png_c_library_flags.sexp" [ libspng; zlib ];
-  C.Flags.write_sexp "png_flags.sexp" [ "-cclib"; libspng ]
+  C.Flags.write_sexp "png_flags.sexp" [ "-cclib"; libspng ];
+  ()
 ;;
 
 C.main ~name:"c-lib-package-resolver" main
