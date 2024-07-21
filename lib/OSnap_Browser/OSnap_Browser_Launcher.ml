@@ -28,12 +28,11 @@ let make ~sw ~env () =
       process_manager
       [ executable
       ; "about:blank"
-      ; "--headless"
-      ; "--no-sandbox"
+      ; "--headless=old"
+      ; "--deterministic-mode"
       ; "--hide-scrollbars"
       ; "--remote-debugging-port=0"
       ; "--mute-audio"
-      ; "--disable-gpu"
       ; "--disable-background-networking"
       ; "--enable-features=NetworkService,NetworkServiceInProcess"
       ; "--disable-background-timer-throttling"
@@ -57,7 +56,6 @@ let make ~sw ~env () =
       ; "--enable-automation"
       ; "--password-store=basic"
       ; "--use-mock-keychain"
-      ; "--enable-blink-features=IdleDetection"
       ]
   in
   let rec get_ws_url ~from proc =
