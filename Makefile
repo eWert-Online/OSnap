@@ -10,8 +10,7 @@ install:
 	if ! [ -e _opam ]; then \
 		opam switch create . --empty ; \
 	fi
-	opam install . --deps-only --with-test --yes
-	opam install -y ocaml-lsp-server ocamlformat
+	opam install . --deps-only --working-dir --with-test --with-dev-setup --yes
 
 update:
 	opam update
