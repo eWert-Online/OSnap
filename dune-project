@@ -35,4 +35,6 @@
   re
   uri
   yaml
-  yojson))
+  yojson
+  (ocaml-lsp-server :with-dev-setup)
+  (ocamlformat :with-dev-setup)))
