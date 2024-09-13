@@ -2,8 +2,9 @@ type revision = string
 
 let revision_to_string revision = revision
 
+(* https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json *)
 let revisions =
-  [ "1298002"; "1289146"; "1056772"; "961656"; "960312"; "884014"; "856583" ]
+  [ "1331488"; "1298002"; "1289146"; "1056772"; "961656"; "960312"; "884014"; "856583" ]
 ;;
 
 let get_latest_revision () = List.hd revisions
