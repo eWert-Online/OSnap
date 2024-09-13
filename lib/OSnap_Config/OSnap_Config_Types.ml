@@ -42,6 +42,6 @@ type global =
   ; default_sizes : size list
   ; functions : (string * action list) list
   ; snapshot_directory : string
-  ; diff_pixel_color : int * int * int
+  ; diff_pixel_color : int32
   ; parallelism : int option
   }

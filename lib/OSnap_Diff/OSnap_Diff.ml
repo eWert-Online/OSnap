@@ -11,9 +11,9 @@ type failState =
 
 let diff
   ~output
-  ?(diffPixel = 255, 0, 0)
   ?(ignoreRegions = [])
   ?(threshold = 0)
+  ~diffPixel
   ~original_image_data
   ~new_image_data
   ()
@@ -41,13 +41,13 @@ let diff
     ~diffPixel
     ()
   |> function
-  | Pixel (_, diffCount, _) when diffCount <= threshold ->
+  | Pixel (_, diffCount, _, _) when diffCount <= threshold ->
     free_images ();
     Result.ok ()
   | Layout ->
     free_images ();
     Result.error Layout
-  | Pixel (diff_mask, diffCount, diffPercentage) ->
+  | Pixel (diff_mask, diffCount, diffPercentage, _) ->
     let border_width = 5 in
     let complete_width =
       original_image.width
