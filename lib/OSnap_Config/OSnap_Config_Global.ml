@@ -115,10 +115,11 @@ module YAML = struct
                 |> Result.join
                 |> Result.map (Option.value ~default:0)
               in
-              Result.ok (r, g, b)))
+              Result.ok
+              @@ Int32.of_int ((0xFF lsl 24) lor (b lsl 16) lor (g lsl 8) lor (r lsl 0))))
       |> Result.map OSnap_Config_Utils.to_result_option
       |> Result.join
-      |> Result.map (Option.value ~default:(255, 0, 0))
+      |> Result.map (Option.value ~default:0xFF0000FFl)
     in
     let duplicates =
       default_sizes
@@ -285,8 +286,9 @@ module JSON = struct
         let* r = assoc |> Yojson.Basic.Util.member "r" |> get_color in
         let* g = assoc |> Yojson.Basic.Util.member "g" |> get_color in
         let* b = assoc |> Yojson.Basic.Util.member "b" |> get_color in
-        Result.ok (r, g, b)
-      | `Null -> Result.ok (255, 0, 0)
+        Result.ok
+        @@ Int32.of_int ((0xFF lsl 24) lor (b lsl 16) lor (g lsl 8) lor (r lsl 0))
+      | `Null -> Result.ok 0xFF0000FFl
       | _ ->
         Result.error
           (`OSnap_Config_Parse_Error

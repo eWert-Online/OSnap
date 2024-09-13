@@ -5,9 +5,9 @@ type failState =
 
 val diff
   :  output:string
-  -> ?diffPixel:int * int * int
   -> ?ignoreRegions:((int * int) * (int * int)) list
   -> ?threshold:int
+  -> diffPixel:int32
   -> original_image_data:string
   -> new_image_data:string
   -> unit
