@@ -150,7 +150,9 @@ let default_cmd =
     in
     handle_response_eio
     @@ Eio_main.run
-    @@ fun env -> Eio.Switch.run @@ fun sw -> run ~sw ~env
+    @@ fun env ->
+    Lwt_eio.with_event_loop ~clock:(Eio.Stdenv.clock env)
+    @@ fun _ -> Eio.Switch.run @@ fun sw -> run ~sw ~env
   in
   ( (let open Term in
      const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config)

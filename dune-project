@@ -21,12 +21,11 @@
   ocaml
   dune
   eio_main
+  lwt_eio
+  httpun-eio
   base64
   cdp
   cmdliner
-  piaf
-  httpun-eio
-  httpun-ws-eio
   decompress
   fileutils
   fmt
@@ -34,6 +33,8 @@
   odiff-core
   re
   uri
+  websocket
+  websocket-lwt-unix
   yaml
   yojson
   (ocaml-lsp-server :with-dev-setup)
