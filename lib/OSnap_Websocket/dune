@@ -2,15 +2,12 @@
  (name OSnap_Websocket)
  (libraries
   OSnap_Utils
-  bigstringaf
-  httpun
-  httpun-ws
-  httpun-ws-eio
-  piaf
-  piaf.stream
+  conduit-lwt
+  conduit-lwt-unix
   uri
-  eio
-  eio.core
-  eio.unix
+  lwt
+  lwt.unix
+  lwt_eio
   yojson
-  base64))
+  websocket
+  websocket-lwt-unix))
