@@ -202,7 +202,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Download release package
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: release-tarball
 
