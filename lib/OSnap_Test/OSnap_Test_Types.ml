@@ -15,6 +15,7 @@ type t =
       | `Failed of [ `Io | `Layout | `Pixel of int * float ]
       | `Passed
       | `Skipped
+      | `Retry of int
       ]
         option
   }

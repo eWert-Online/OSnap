@@ -20,9 +20,9 @@ let setup ~sw ~env ~noCreate ~noOnly ~noSkip ~config_path =
   let*? all_tests = Config.Test.init config in
   let*? only_tests, tests =
     all_tests
-    |> ResultList.map_p_until_first_error (fun test ->
+    |> ResultList.traverse (fun test ->
       test.sizes
-      |> ResultList.map_p_until_first_error (fun size ->
+      |> ResultList.traverse (fun size ->
         let { name = _size_name; width; height } = size in
         let filename = Test.get_filename test.name width height in
         let current_image_path = Eio.Path.(snapshot_dir / filename) in
@@ -70,10 +70,10 @@ let setup ~sw ~env ~noCreate ~noOnly ~noSkip ~config_path =
 let teardown t = Browser.Launcher.shutdown t.browser
 
 let run ~env t =
-  let ( let*? ) = Result.bind in
   let open Config.Types in
   let { tests_to_run; config; start_time; browser } = t in
-  let parallelism = Domain.recommended_domain_count () * 3 in
+  let num_domains = Domain.recommended_domain_count () in
+  let parallelism = num_domains * 3 in
   let pool =
     Eio.Pool.create
       ~validate:(fun target -> Result.is_ok target)
@@ -81,28 +81,42 @@ let run ~env t =
       (fun () -> Browser.Target.make browser)
   in
   Test.Printer.Progress.set_total (List.length tests_to_run);
+  let rec run_remaining lst =
+    let*? result =
+      lst
+      |> ResultList.traverse (function
+        | Test.Types.{ result = None | Some (`Retry _); _ } as test ->
+          Eio.Pool.use pool (fun target ->
+            Test.run ~env config (Result.get_ok target) test)
+        | r -> Ok r)
+    in
+    let has_retries =
+      result
+      |> List.exists (function
+        | Test.Types.{ result = None | Some (`Retry _); _ } -> true
+        | _ -> false)
+    in
+    if has_retries then run_remaining result else Ok result
+  in
   let*? test_results =
     tests_to_run
-    |> ResultList.map_p_until_first_error (fun test ->
-      Eio.Pool.use pool (fun target ->
-        let test, { name = size_name; width; height }, exists = test in
-        let test =
-          Test.Types.
-            { exists
-            ; size_name
-            ; width
-            ; height
-            ; skip = test.OSnap_Config.Types.skip
-            ; url = test.OSnap_Config.Types.url
-            ; name = test.OSnap_Config.Types.name
-            ; actions = test.OSnap_Config.Types.actions
-            ; ignore_regions = test.OSnap_Config.Types.ignore
-            ; threshold = test.OSnap_Config.Types.threshold
-            ; warnings = []
-            ; result = None
-            }
-        in
-        Test.run ~env config (Result.get_ok target) test))
+    |> List.map (fun target ->
+      let test, { name = size_name; width; height }, exists = target in
+      Test.Types.
+        { exists
+        ; size_name
+        ; width
+        ; height
+        ; skip = test.OSnap_Config.Types.skip
+        ; url = test.OSnap_Config.Types.url
+        ; name = test.OSnap_Config.Types.name
+        ; actions = test.OSnap_Config.Types.actions
+        ; ignore_regions = test.OSnap_Config.Types.ignore
+        ; threshold = test.OSnap_Config.Types.threshold
+        ; warnings = []
+        ; result = None
+        })
+    |> run_remaining
   in
   let end_time = Unix.gettimeofday () in
   let seconds = end_time -. start_time in

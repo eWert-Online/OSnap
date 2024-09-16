@@ -124,7 +124,7 @@ let get_ignore_regions ~document target size_name regions =
     | Error (`OSnap_Selector_Not_Found _s) -> None
     | Error (`OSnap_Selector_Not_Visible _s) -> None
     | Error (`OSnap_CDP_Protocol_Error _ as e) -> Some (Result.error e))
-  |> ResultList.map_p_until_first_error Fun.id
+  |> ResultList.traverse Fun.id
   |> Result.map List.flatten
 ;;
 
@@ -216,15 +216,19 @@ let run ~env (global_config : Config.Types.global) target test =
             let*? () = save_screenshot screenshot ~path:updated_snapshot in
             Result.ok (`Failed `Layout)
           | Error (Pixel (diffCount, diffPercentage)) ->
-            Printer.diff_message
-              ~print_head:true
-              ~name:test.name
-              ~width:test.width
-              ~height:test.height
-              ~diffCount
-              ~diffPercentage;
-            let*? () = save_screenshot screenshot ~path:updated_snapshot in
-            Result.ok (`Failed (`Pixel (diffCount, diffPercentage)))
+            (match test.result with
+             | None -> Result.ok (`Retry 3)
+             | Some (`Retry i) when i > 0 -> Result.ok (`Retry (pred i))
+             | _ ->
+               Printer.diff_message
+                 ~print_head:true
+                 ~name:test.name
+                 ~width:test.width
+                 ~height:test.height
+                 ~diffCount
+                 ~diffPercentage;
+               let*? () = save_screenshot screenshot ~path:updated_snapshot in
+               Result.ok (`Failed (`Pixel (diffCount, diffPercentage))))
     in
     { test with result = Some result } |> Result.ok)
 ;;
