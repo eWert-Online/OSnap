@@ -217,8 +217,20 @@ let run ~env (global_config : Config.Types.global) target test =
             Result.ok (`Failed `Layout)
           | Error (Pixel (diffCount, diffPercentage)) ->
             (match test.result with
-             | None -> Result.ok (`Retry 3)
-             | Some (`Retry i) when i > 0 -> Result.ok (`Retry (pred i))
+             | None ->
+               Printer.retry_message
+                 ~count:1
+                 ~name:test.name
+                 ~width:test.width
+                 ~height:test.height;
+               Result.ok (`Retry 1)
+             | Some (`Retry i) when i < 3 ->
+               Printer.retry_message
+                 ~count:(succ i)
+                 ~name:test.name
+                 ~width:test.width
+                 ~height:test.height;
+               Result.ok (`Retry (succ i))
              | _ ->
                Printer.diff_message
                  ~print_head:true
