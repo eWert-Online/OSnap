@@ -224,7 +224,7 @@ let run ~env (global_config : Config.Types.global) target test =
                  ~width:test.width
                  ~height:test.height;
                Result.ok (`Retry 1)
-             | Some (`Retry i) when i < 3 ->
+             | Some (`Retry i) when i < test.retry ->
                Printer.retry_message
                  ~count:(succ i)
                  ~name:test.name

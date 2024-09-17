@@ -25,6 +25,7 @@ type test =
   { only : bool
   ; skip : bool
   ; threshold : int
+  ; retry : int
   ; name : string
   ; url : string
   ; sizes : size list
@@ -35,6 +36,7 @@ type test =
 type global =
   { root_path : Eio.Fs.dir_ty Eio.Path.t
   ; threshold : int
+  ; retry : int
   ; ignore_patterns : string list
   ; test_pattern : string
   ; base_url : string

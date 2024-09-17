@@ -7,6 +7,7 @@ type t =
   ; actions : OSnap_Config.Types.action list
   ; ignore_regions : OSnap_Config.Types.ignoreType list
   ; threshold : int
+  ; retry : int
   ; exists : bool
   ; skip : bool
   ; warnings : string list
