@@ -69,6 +69,17 @@ The number of pixels allowed to be different, before the test will be marked as 
 
 ---
 
+### Retry
+
+- **Key**: `retry`
+- **Required**: `false`
+- **Type**: `int`
+- **Default**: _Whatever is specified in the [global retry](../Setup/configuration#retry)_
+
+The number of times a failed test should be retried before it is reported as failed.
+
+---
+
 ### Ignore Regions
 
 - **Key**: `ignore`

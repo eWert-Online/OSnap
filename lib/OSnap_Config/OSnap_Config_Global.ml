@@ -22,6 +22,11 @@ module YAML = struct
       |> OSnap_Config_Utils.YAML.get_int_option ~path "threshold"
       |> Result.map (Option.value ~default:0)
     in
+    let* retry =
+      yaml
+      |> OSnap_Config_Utils.YAML.get_int_option ~path "retry"
+      |> Result.map (Option.value ~default:1)
+    in
     let* ignore_patterns =
       yaml
       |> OSnap_Config_Utils.YAML.get_string_list_option ~path "ignorePatterns"
@@ -135,6 +140,7 @@ module YAML = struct
       Result.ok
         { root_path
         ; threshold
+        ; retry
         ; test_pattern
         ; ignore_patterns
         ; base_url
@@ -181,6 +187,17 @@ module JSON = struct
         |> Yojson.Basic.Util.member "threshold"
         |> Yojson.Basic.Util.to_int_option
         |> Option.value ~default:0
+        |> Result.ok
+      with
+      | Yojson.Basic.Util.Type_error (message, _) ->
+        Result.error (`OSnap_Config_Parse_Error (message, path))
+    in
+    let* retry =
+      try
+        json
+        |> Yojson.Basic.Util.member "retry"
+        |> Yojson.Basic.Util.to_int_option
+        |> Option.value ~default:1
         |> Result.ok
       with
       | Yojson.Basic.Util.Type_error (message, _) ->
@@ -308,6 +325,7 @@ module JSON = struct
       Result.ok
         { root_path
         ; threshold
+        ; retry
         ; test_pattern
         ; ignore_patterns
         ; base_url

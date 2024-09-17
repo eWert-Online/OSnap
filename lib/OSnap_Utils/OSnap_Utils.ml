@@ -87,7 +87,7 @@ module List = struct
 end
 
 module ResultList = struct
-  let map_p_until_first_error (type err) (fn : 'a -> ('b, err) result) list =
+  let traverse (type err) (fn : 'a -> ('b, err) result) list =
     let exception FoundError of err in
     try
       list

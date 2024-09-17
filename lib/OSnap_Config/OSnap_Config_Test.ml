@@ -138,6 +138,17 @@ module JSON = struct
       | Yojson.Basic.Util.Type_error (message, _) ->
         Result.error (`OSnap_Config_Parse_Error (message, path))
     in
+    let* retry =
+      try
+        test
+        |> Yojson.Basic.Util.member "retry"
+        |> Yojson.Basic.Util.to_int_option
+        |> Option.value ~default:global_config.retry
+        |> Result.ok
+      with
+      | Yojson.Basic.Util.Type_error (message, _) ->
+        Result.error (`OSnap_Config_Parse_Error (message, path))
+    in
     let* url =
       try
         test |> Yojson.Basic.Util.member "url" |> Yojson.Basic.Util.to_string |> Result.ok
@@ -176,7 +187,7 @@ module JSON = struct
       | _ -> Result.ok []
     in
     let* () = Common.collect_duplicates sizes in
-    Result.ok { only; skip; threshold; name; url; sizes; actions; ignore }
+    Result.ok { only; skip; threshold; retry; name; url; sizes; actions; ignore }
   ;;
 
   let parse global_config path =
@@ -226,6 +237,11 @@ module YAML = struct
       |> OSnap_Config_Utils.YAML.get_int_option ~path "threshold"
       |> Result.map (Option.value ~default:global_config.threshold)
     in
+    let* retry =
+      test
+      |> OSnap_Config_Utils.YAML.get_int_option ~path "retry"
+      |> Result.map (Option.value ~default:global_config.retry)
+    in
     let* sizes =
       test
       |> OSnap_Config_Utils.YAML.get_list_option
@@ -255,7 +271,7 @@ module YAML = struct
       |> Result.map (Option.value ~default:[])
     in
     let* () = Common.collect_duplicates sizes in
-    Result.ok { only; skip; threshold; name; url; sizes; actions; ignore }
+    Result.ok { only; skip; threshold; retry; name; url; sizes; actions; ignore }
   ;;
 
   let parse global_config path =

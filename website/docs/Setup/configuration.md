@@ -76,6 +76,17 @@ The number of pixels allowed to be different, before the test will be marked as 
 
 ---
 
+### Retry
+
+- **Key**: `retry`
+- **Required**: `false`
+- **Type**: `int`
+- **Default**: `1`
+
+The number of times a failed test should be retried before it is reported as failed.
+
+---
+
 ### Parallelism (DEPRECATED)
 
 - **Key**: `parallelism`

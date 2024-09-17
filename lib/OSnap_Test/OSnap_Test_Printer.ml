@@ -22,6 +22,14 @@ module Progress = struct
       (Printf.sprintf "%*i / %i " progress.total_length progress.current progress.total)
   ;;
 
+  let none () =
+    Fmt.str_like
+      Fmt.stdout
+      "%a"
+      (styled `Faint string)
+      (Printf.sprintf "%*s / %i " progress.total_length "-" progress.total)
+  ;;
+
   let set_total i =
     Mutex.lock progress_mutex;
     progress.total <- i;
@@ -52,9 +60,20 @@ let skipped_message ~name ~width ~height =
   Fmt.pr
     "%s %a %s @."
     (Progress.get_and_incr ())
-    (styled `Bold (styled `Yellow string))
+    (styled `Bold (styled `Magenta string))
     "SKIP"
     (test_name ~name ~width ~height)
+;;
+
+let retry_message ~count ~name ~width ~height =
+  Fmt.pr
+    "%s %a %s %a @."
+    (Progress.none ())
+    (styled `Bold (styled `Yellow string))
+    "RETRY"
+    (test_name ~name ~width ~height)
+    (styled `Bold (styled `Yellow string))
+    (Printf.sprintf "(%i)" count)
 ;;
 
 let success_message ~name ~width ~height =

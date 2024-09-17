@@ -20,9 +20,9 @@ let setup ~sw ~env ~noCreate ~noOnly ~noSkip ~config_path =
   let*? all_tests = Config.Test.init config in
   let*? only_tests, tests =
     all_tests
-    |> ResultList.map_p_until_first_error (fun test ->
+    |> ResultList.traverse (fun test ->
       test.sizes
-      |> ResultList.map_p_until_first_error (fun size ->
+      |> ResultList.traverse (fun size ->
         let { name = _size_name; width; height } = size in
         let filename = Test.get_filename test.name width height in
         let current_image_path = Eio.Path.(snapshot_dir / filename) in
@@ -70,39 +70,62 @@ let setup ~sw ~env ~noCreate ~noOnly ~noSkip ~config_path =
 let teardown t = Browser.Launcher.shutdown t.browser
 
 let run ~env t =
-  let ( let*? ) = Result.bind in
+  Eio.Switch.run
+  @@ fun sw ->
   let open Config.Types in
   let { tests_to_run; config; start_time; browser } = t in
-  let parallelism = Domain.recommended_domain_count () * 3 in
-  let pool =
+  Test.Printer.Progress.set_total (List.length tests_to_run);
+  let domain_count = Domain.recommended_domain_count () in
+  let parallelism = domain_count * 3 in
+  let test_stream = Eio.Stream.create 0 in
+  let browser_pool =
     Eio.Pool.create
-      ~validate:(fun target -> Result.is_ok target)
       parallelism
       (fun () -> Browser.Target.make browser)
+      ~validate:(fun target -> Result.is_ok target)
   in
-  Test.Printer.Progress.set_total (List.length tests_to_run);
+  for _ = 1 to parallelism do
+    Eio.Fiber.fork_daemon ~sw (fun () ->
+      let rec aux () =
+        let request, reply = Eio.Stream.take test_stream in
+        let test_result =
+          Eio.Pool.use browser_pool (fun target ->
+            Test.run ~env config (Result.get_ok target) request)
+        in
+        Eio.Promise.resolve reply test_result;
+        aux ()
+      in
+      aux ())
+  done;
+  let rec run_test test =
+    let reply, resolve_reply = Eio.Promise.create () in
+    Eio.Stream.add test_stream (test, resolve_reply);
+    let response = Eio.Promise.await reply in
+    match response with
+    | Ok ({ result = Some (`Retry _); _ } as test) -> run_test test
+    | r -> r
+  in
   let*? test_results =
     tests_to_run
-    |> ResultList.map_p_until_first_error (fun test ->
-      Eio.Pool.use pool (fun target ->
-        let test, { name = size_name; width; height }, exists = test in
-        let test =
-          Test.Types.
-            { exists
-            ; size_name
-            ; width
-            ; height
-            ; skip = test.OSnap_Config.Types.skip
-            ; url = test.OSnap_Config.Types.url
-            ; name = test.OSnap_Config.Types.name
-            ; actions = test.OSnap_Config.Types.actions
-            ; ignore_regions = test.OSnap_Config.Types.ignore
-            ; threshold = test.OSnap_Config.Types.threshold
-            ; warnings = []
-            ; result = None
-            }
-        in
-        Test.run ~env config (Result.get_ok target) test))
+    |> ResultList.traverse
+       @@ fun target ->
+       let test, { name = size_name; width; height }, exists = target in
+       run_test
+         Test.Types.
+           { exists
+           ; size_name
+           ; width
+           ; height
+           ; skip = test.OSnap_Config.Types.skip
+           ; url = test.OSnap_Config.Types.url
+           ; name = test.OSnap_Config.Types.name
+           ; actions = test.OSnap_Config.Types.actions
+           ; ignore_regions = test.OSnap_Config.Types.ignore
+           ; threshold = test.OSnap_Config.Types.threshold
+           ; retry = test.OSnap_Config.Types.retry
+           ; warnings = []
+           ; result = None
+           }
   in
   let end_time = Unix.gettimeofday () in
   let seconds = end_time -. start_time in
