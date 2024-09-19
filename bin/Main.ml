@@ -12,7 +12,7 @@ let print_error msg =
   Printf.ksprintf printer msg
 ;;
 
-let handle_response_eio response =
+let handle_response response =
   match response with
   | Ok () -> 0
   | Error `OSnap_Test_Failure -> 1
@@ -145,7 +145,7 @@ let default_cmd =
       in
       result
     in
-    handle_response_eio
+    handle_response
     @@ Eio_main.run
     @@ fun env ->
     Lwt_eio.with_event_loop ~clock:(Eio.Stdenv.clock env)
@@ -182,7 +182,7 @@ let default_cmd =
 
 let cleanup_cmd =
   let exec config_path =
-    handle_response_eio @@ Eio_main.run @@ fun env -> OSnap.cleanup ~env ~config_path
+    handle_response @@ Eio_main.run @@ fun env -> OSnap.cleanup ~env ~config_path
   in
   ( (let open Term in
      const exec $ config)
