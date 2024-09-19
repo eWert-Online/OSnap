@@ -8,5 +8,3 @@ val make
          | `OSnap_Chromium_Download_Failed
          ] )
        result
-
-val shutdown : OSnap_Browser_Types.t -> unit

@@ -92,5 +92,3 @@ let make ~sw ~env () =
   in
   Result.ok { ws = url; process; browserContextId = result.browserContextId }
 ;;
-
-let shutdown browser = Eio.Process.signal browser.process Sys.sigkill

@@ -67,8 +67,6 @@ let setup ~sw ~env ~noCreate ~noOnly ~noSkip ~config_path =
   Result.ok { config; tests_to_run; start_time; browser }
 ;;
 
-let teardown t = Browser.Launcher.shutdown t.browser
-
 let run ~env t =
   Eio.Switch.run
   @@ fun sw ->
@@ -129,7 +127,6 @@ let run ~env t =
   in
   let end_time = Unix.gettimeofday () in
   let seconds = end_time -. start_time in
-  Browser.Launcher.shutdown browser;
   Test.Printer.stats ~seconds test_results
 ;;
 

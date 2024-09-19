@@ -31,8 +31,6 @@ val setup
          ] )
        result
 
-val teardown : t -> unit
-
 val run
   :  env:Eio_unix.Stdenv.base
   -> t

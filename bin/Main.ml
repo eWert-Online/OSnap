@@ -124,11 +124,8 @@ let default_cmd =
     let run ~sw ~env =
       let*? t = OSnap.setup ~sw ~env ~config_path ~noCreate ~noOnly ~noSkip in
       let result =
-        Fun.protect
-          ~finally:(fun () -> OSnap.teardown t)
-          (fun () ->
-            try OSnap.run ~env t with
-            | exn -> Result.error (`OSnap_Unknown_Error exn))
+        try OSnap.run ~env t with
+        | exn -> Result.error (`OSnap_Unknown_Error exn)
       in
       let () =
         match parallelism, t.config.parallelism with
