@@ -13,7 +13,7 @@ type t =
 let setup ~sw ~env ~noCreate ~noOnly ~noSkip ~config_path =
   let ( let*? ) = Result.bind in
   let open Config.Types in
-  let start_time = Unix.gettimeofday () in
+  let start_time = Eio.Time.now (Eio.Stdenv.clock env) in
   let*? config = Config.Global.init ~env ~config_path in
   let () = OSnap_Paths.init_folder_structure config in
   let snapshot_dir = OSnap_Paths.get_base_images_dir config in
@@ -125,7 +125,7 @@ let run ~env t =
            ; result = None
            }
   in
-  let end_time = Unix.gettimeofday () in
+  let end_time = Eio.Time.now (Eio.Stdenv.clock env) in
   let seconds = end_time -. start_time in
   Test.Printer.stats ~seconds test_results
 ;;
