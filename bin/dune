@@ -4,4 +4,13 @@
  (public_name osnap)
  (package osnap)
  (ocamlopt_flags -O3)
- (libraries OSnap cmdliner lwt_eio eio eio.core eio_main fmt))
+ (libraries
+  OSnap
+  cmdliner
+  mirage-crypto-rng
+  mirage-crypto-rng-eio
+  lwt_eio
+  eio
+  eio.core
+  eio_main
+  fmt))

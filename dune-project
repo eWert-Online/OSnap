@@ -23,6 +23,7 @@
   eio_main
   lwt_eio
   httpun-eio
+  mirage-crypto-rng-eio
   base64
   cdp
   cmdliner
