@@ -10,12 +10,12 @@ module IO = struct
 
   let readDirectPixel ~(x : int) ~(y : int) (img : t ImageIO.img) =
     let image = (img.image : data) in
-    Array1.unsafe_get image ((y * img.width) + x)
+    Array1.get image ((y * img.width) + x)
   ;;
 
   let setImgColor ~x ~y color (img : t ImageIO.img) =
     let image = (img.image : data) in
-    Array1.unsafe_set image ((y * img.width) + x) color
+    Array1.set image ((y * img.width) + x) color
   ;;
 
   let loadImage buffer : t ImageIO.img =

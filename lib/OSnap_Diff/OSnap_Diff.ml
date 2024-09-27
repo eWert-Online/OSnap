@@ -75,13 +75,13 @@ let diff
         if col >= original_image_start
            && col < original_image_end
            && row < original_image.height
-        then Array1.unsafe_get original_image.image ((row * original_image.width) + col)
+        then Array1.get original_image.image ((row * original_image.width) + col)
         else if col > diff_mask_start && col < diff_mask_end
         then (
           let diff_pixel =
             if row < diff_mask.height
             then
-              Array1.unsafe_get
+              Array1.get
                 diff_mask.image
                 ((row * diff_mask.width) + (col - diff_mask_start))
             else 0x00000000l
@@ -90,7 +90,7 @@ let diff
           then diff_pixel
           else (
             let pixel =
-              Array1.unsafe_get
+              Array1.get
                 original_image.image
                 ((row * original_image.width) + (col - diff_mask_start))
               |> Int32.to_int
@@ -107,13 +107,10 @@ let diff
             let r = (mono land 0xFF) lsl 0 in
             Int32.of_int (a lor b lor g lor r)))
         else if col > new_image_start && col <= new_image_end && row < new_image.height
-        then
-          Array1.unsafe_get
-            new_image.image
-            ((row * new_image.width) + (col - new_image_start))
+        then Array1.get new_image.image ((row * new_image.width) + (col - new_image_start))
         else 0x00000000l
       in
-      Array1.unsafe_set complete_image offset fill_with
+      Array1.set complete_image offset fill_with
     done;
     free_images ();
     Osnap_Diff_Png.PngIo.write_png_bigarray
