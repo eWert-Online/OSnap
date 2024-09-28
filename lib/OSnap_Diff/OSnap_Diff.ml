@@ -88,7 +88,8 @@ let diff
           in
           if not (Int32.equal diff_pixel 0x00000000l)
           then diff_pixel
-          else (
+          else if row < original_image.height
+          then (
             let pixel =
               Array1.get
                 original_image.image
@@ -105,7 +106,8 @@ let diff
             let b = (mono land 0xFF) lsl 16 in
             let g = (mono land 0xFF) lsl 8 in
             let r = (mono land 0xFF) lsl 0 in
-            Int32.of_int (a lor b lor g lor r)))
+            Int32.of_int (a lor b lor g lor r))
+          else 0x00000000l)
         else if col > new_image_start && col <= new_image_end && row < new_image.height
         then Array1.get new_image.image ((row * new_image.width) + (col - new_image_start))
         else 0x00000000l
