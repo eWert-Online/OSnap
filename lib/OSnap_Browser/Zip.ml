@@ -46,7 +46,7 @@ let read_4_bytes_int ic =
 let read_string ic len =
   let buf = Bytes.create len in
   really_input ic buf 0 len;
-  Bytes.unsafe_to_string buf
+  Bytes.to_string buf
 ;;
 
 let int64_of_uint32 n = Int64.(logand (of_int32 n) 0xFFFF_FFFFL)
