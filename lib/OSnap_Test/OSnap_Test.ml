@@ -183,7 +183,13 @@ let run ~env (global_config : Config.Types.global) target test =
         then (
           Printer.success_message ~name:test.name ~width:test.width ~height:test.height;
           Result.ok `Passed)
-        else
+        else (
+          let should_retry =
+            match test.result with
+            | None -> Some 1
+            | Some (`Retry i) when i < test.retry -> Some (succ i)
+            | _ -> None
+          in
           let*? ignoreRegions =
             test.ignore_regions |> get_ignore_regions ~document target test.size_name
           in
@@ -195,6 +201,7 @@ let run ~env (global_config : Config.Types.global) target test =
               ~output:(Eio.Path.native_exn diff_image)
               ~original_image_data
               ~new_image_data:screenshot
+              ~generateDiffImage:(Option.is_none should_retry)
           in
           match diff () with
           | Ok () ->
@@ -216,22 +223,15 @@ let run ~env (global_config : Config.Types.global) target test =
             let*? () = save_screenshot screenshot ~path:updated_snapshot in
             Result.ok (`Failed `Layout)
           | Error (Pixel (diffCount, diffPercentage)) ->
-            (match test.result with
+            (match should_retry with
+             | Some i ->
+               Printer.retry_message
+                 ~count:i
+                 ~name:test.name
+                 ~width:test.width
+                 ~height:test.height;
+               Result.ok (`Retry i)
              | None ->
-               Printer.retry_message
-                 ~count:1
-                 ~name:test.name
-                 ~width:test.width
-                 ~height:test.height;
-               Result.ok (`Retry 1)
-             | Some (`Retry i) when i < test.retry ->
-               Printer.retry_message
-                 ~count:(succ i)
-                 ~name:test.name
-                 ~width:test.width
-                 ~height:test.height;
-               Result.ok (`Retry (succ i))
-             | _ ->
                Printer.diff_message
                  ~print_head:true
                  ~name:test.name
@@ -240,7 +240,7 @@ let run ~env (global_config : Config.Types.global) target test =
                  ~diffCount
                  ~diffPercentage;
                let*? () = save_screenshot screenshot ~path:updated_snapshot in
-               Result.ok (`Failed (`Pixel (diffCount, diffPercentage))))
+               Result.ok (`Failed (`Pixel (diffCount, diffPercentage)))))
     in
     { test with result = Some result } |> Result.ok)
 ;;
