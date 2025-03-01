@@ -16,8 +16,8 @@ let wait_for ~clock ?timeout ?look_behind ~event target =
     Eio.Fiber.first
       (fun () -> Eio.Promise.await p)
       (fun () ->
-        Eio.Time.sleep clock (t /. 1000.);
-        `Timeout)
+         Eio.Time.sleep clock (t /. 1000.);
+         `Timeout)
 ;;
 
 let get_document target =
@@ -54,7 +54,7 @@ let select_element_all ~document ~selector ~sessionId =
   | _, Some { nodeIds = [] } ->
     Result.error
       (`OSnap_CDP_Protocol_Error
-        (Printf.sprintf "No node with the selector %S could not be found." selector))
+          (Printf.sprintf "No node with the selector %S could not be found." selector))
   | None, None -> Result.error (`OSnap_CDP_Protocol_Error "")
   | Some { message; _ }, None -> Result.error (`OSnap_CDP_Protocol_Error message)
   | Some _, Some result | None, Some result -> Result.ok result
@@ -204,18 +204,18 @@ let get_quads_all ~document ~selector target =
     nodeIds
     |> List.fold_left
          (fun acc nodeId ->
-           let open GetContentQuads in
-           let response =
-             Request.make ~sessionId ~params:(Params.make ~nodeId ())
-             |> OSnap_Websocket.send
-             |> Response.parse
-           in
-           match response.Response.error, response.Response.result with
-           | ( (None | Some _)
-             , Some
-                 { quads = (x1 :: y1 :: x2 :: _y2 :: _x3 :: y2 :: _x4 :: _y4 :: _) :: _ }
-             ) -> ((to_float x1, to_float y1), (to_float x2, to_float y2)) :: acc
-           | _ -> acc)
+            let open GetContentQuads in
+            let response =
+              Request.make ~sessionId ~params:(Params.make ~nodeId ())
+              |> OSnap_Websocket.send
+              |> Response.parse
+            in
+            match response.Response.error, response.Response.result with
+            | ( (None | Some _)
+              , Some
+                  { quads = (x1 :: y1 :: x2 :: _y2 :: _x3 :: y2 :: _x4 :: _y4 :: _) :: _ }
+              ) -> ((to_float x1, to_float y1), (to_float x2, to_float y2)) :: acc
+            | _ -> acc)
          []
   in
   Result.ok quads

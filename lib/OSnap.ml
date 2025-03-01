@@ -31,22 +31,22 @@ let setup ~sw ~env ~noCreate ~noOnly ~noSkip ~config_path =
         then
           Result.error
             (`OSnap_Invalid_Run
-              (Printf.sprintf
-                 "Flag --no-create is set. Cannot create new images for %s."
-                 test.name))
+                (Printf.sprintf
+                   "Flag --no-create is set. Cannot create new images for %s."
+                   test.name))
         else if noSkip && test.skip
         then
           Result.error
             (`OSnap_Invalid_Run
-              (Printf.sprintf "Flag --no-skip is set. Cannot skip test %s." test.name))
+                (Printf.sprintf "Flag --no-skip is set. Cannot skip test %s." test.name))
         else if noOnly && test.only
         then
           Result.error
             (`OSnap_Invalid_Run
-              (Printf.sprintf
-                 "Flag --no-only is set but the following test still has only set to \
-                  true %s."
-                 test.name))
+                (Printf.sprintf
+                   "Flag --no-only is set but the following test still has only set to \
+                    true %s."
+                   test.name))
         else if test.only
         then Result.ok (Either.left (test, size, exists))
         else Result.ok (Either.right (test, size, exists))))

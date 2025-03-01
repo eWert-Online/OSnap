@@ -1,16 +1,3 @@
-let get_format path =
-  path
-  |> Eio.Path.split
-  |> Option.map snd
-  |> Option.value ~default:""
-  |> Filename.extension
-  |> String.lowercase_ascii
-  |> function
-  | ".json" -> Result.ok OSnap_Config_Types.JSON
-  | ".yaml" -> Result.ok OSnap_Config_Types.YAML
-  | _ -> Result.error (`OSnap_Config_Unsupported_Format path)
-;;
-
 let to_result_option = function
   | None -> Ok None
   | Some (Ok v) -> Ok (Some v)
@@ -18,15 +5,15 @@ let to_result_option = function
 ;;
 
 let collect_action
-  ~global_fns
-  ~path
-  ~selector
-  ~size_restriction
-  ~name
-  ~text
-  ~timeout
-  ~px
-  action
+      ~global_fns
+      ~path
+      ~selector
+      ~size_restriction
+      ~name
+      ~text
+      ~timeout
+      ~px
+      action
   =
   match action with
   | "scroll" ->
@@ -34,15 +21,15 @@ let collect_action
      | None, None ->
        Result.error
          (`OSnap_Config_Invalid
-           ( "Neither selector nor px was provided for scroll action. Please provide one \
-              of them."
-           , path ))
+             ( "Neither selector nor px was provided for scroll action. Please provide \
+                one of them."
+             , path ))
      | Some _, Some _ ->
        Result.error
          (`OSnap_Config_Invalid
-           ( "Both selector and px were provided for scroll action. Please provide only \
-              one of them."
-           , path ))
+             ( "Both selector and px were provided for scroll action. Please provide \
+                only one of them."
+             , path ))
      | None, Some px ->
        [ OSnap_Config_Types.Scroll (`PxAmount px, size_restriction) ] |> Result.ok
      | Some selector, None ->
@@ -98,136 +85,6 @@ let collect_action
       (`OSnap_Config_Invalid (Printf.sprintf "found unknown action %S" action, path))
 ;;
 
-module JSON = struct
-  let ( let* ) = Result.bind
-
-  let parse_size ~path size =
-    let* name =
-      try
-        size
-        |> Yojson.Basic.Util.member "name"
-        |> Yojson.Basic.Util.to_string_option
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* width =
-      try
-        size
-        |> Yojson.Basic.Util.member "width"
-        |> (function
-              | `Null ->
-                Result.error
-                  (`OSnap_Config_Parse_Error
-                    ( "defaultSize has an invalid format. \"width\" is required but not \
-                       provided!"
-                    , path ))
-              | v -> Result.ok v)
-        |> Result.map Yojson.Basic.Util.to_int
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* height =
-      try
-        size
-        |> Yojson.Basic.Util.member "height"
-        |> (function
-              | `Null ->
-                Result.error
-                  (`OSnap_Config_Parse_Error
-                    ( "defaultSize has an invalid format. \"height\" is required but not \
-                       provided!"
-                    , path ))
-              | v -> Result.ok v)
-        |> Result.map Yojson.Basic.Util.to_int
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    OSnap_Config_Types.{ name; width; height } |> Result.ok
-  ;;
-
-  let parse_action ~global_fns ~path a =
-    let* action =
-      try
-        a |> Yojson.Basic.Util.member "action" |> Yojson.Basic.Util.to_string |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* size_restriction =
-      try
-        a
-        |> Yojson.Basic.Util.member "@"
-        |> Yojson.Basic.Util.to_option Yojson.Basic.Util.to_list
-        |> Option.map (List.map Yojson.Basic.Util.to_string)
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* px =
-      try
-        a |> Yojson.Basic.Util.member "px" |> Yojson.Basic.Util.to_int_option |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* selector =
-      try
-        a
-        |> Yojson.Basic.Util.member "selector"
-        |> Yojson.Basic.Util.to_string_option
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* text =
-      try
-        a
-        |> Yojson.Basic.Util.member "text"
-        |> Yojson.Basic.Util.to_string_option
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* timeout =
-      try
-        a
-        |> Yojson.Basic.Util.member "timeout"
-        |> Yojson.Basic.Util.to_int_option
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* name =
-      try
-        a
-        |> Yojson.Basic.Util.member "name"
-        |> Yojson.Basic.Util.to_string_option
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    collect_action
-      ~global_fns
-      ~path
-      ~selector
-      ~size_restriction
-      ~text
-      ~timeout
-      ~name
-      ~px
-      action
-  ;;
-end
-
 module YAML = struct
   let ( let* ) = Result.bind
 
@@ -235,7 +92,7 @@ module YAML = struct
     obj
     |> Yaml.Util.find key
     |> Result.map_error (function `Msg message ->
-      `OSnap_Config_Parse_Error (message, path))
+        `OSnap_Config_Parse_Error (message, path))
     |> Result.map
          (Option.map (fun v ->
             match v with
@@ -243,38 +100,38 @@ module YAML = struct
             | `Bool _ ->
               Result.error
                 (`OSnap_Config_Parse_Error
-                  ( Printf.sprintf
-                      "%S is in an invalid format. Expected array, got boolean."
-                      key
-                  , path ))
+                    ( Printf.sprintf
+                        "%S is in an invalid format. Expected array, got boolean."
+                        key
+                    , path ))
             | `Float _ ->
               Result.error
                 (`OSnap_Config_Parse_Error
-                  ( Printf.sprintf
-                      "%S is in an invalid format. Expected array, got number."
-                      key
-                  , path ))
+                    ( Printf.sprintf
+                        "%S is in an invalid format. Expected array, got number."
+                        key
+                    , path ))
             | `Null ->
               Result.error
                 (`OSnap_Config_Parse_Error
-                  ( Printf.sprintf
-                      "%S is in an invalid format. Expected array, got null."
-                      key
-                  , path ))
+                    ( Printf.sprintf
+                        "%S is in an invalid format. Expected array, got null."
+                        key
+                    , path ))
             | `O _ ->
               Result.error
                 (`OSnap_Config_Parse_Error
-                  ( Printf.sprintf
-                      "%S is in an invalid format. Expected array, got object."
-                      key
-                  , path ))
+                    ( Printf.sprintf
+                        "%S is in an invalid format. Expected array, got object."
+                        key
+                    , path ))
             | `String _ ->
               Result.error
                 (`OSnap_Config_Parse_Error
-                  ( Printf.sprintf
-                      "%S is in an invalid format. Expected array, got string."
-                      key
-                  , path ))))
+                    ( Printf.sprintf
+                        "%S is in an invalid format. Expected array, got string."
+                        key
+                    , path ))))
     |> Result.map to_result_option
     |> Result.join
     |> Result.map (Option.map (OSnap_Utils.List.map_until_exception parser))
@@ -286,7 +143,7 @@ module YAML = struct
     let parser v =
       Yaml.Util.to_string v
       |> Result.map_error (function `Msg message ->
-        `OSnap_Config_Parse_Error (message, path))
+          `OSnap_Config_Parse_Error (message, path))
     in
     get_list_option ~path ~parser key obj
   ;;
@@ -298,7 +155,7 @@ module YAML = struct
     |> Result.map to_result_option
     |> Result.join
     |> Result.map_error (function `Msg message ->
-      `OSnap_Config_Parse_Error (message, path))
+        `OSnap_Config_Parse_Error (message, path))
   ;;
 
   let get_string ~path ?(additional_error_message = "") key obj =
@@ -312,11 +169,11 @@ module YAML = struct
     | Ok None ->
       Result.error
         (`OSnap_Config_Parse_Error
-          ( Printf.sprintf
-              "%S is required but not provided! %s"
-              key
-              additional_error_message
-          , path ))
+            ( Printf.sprintf
+                "%S is required but not provided! %s"
+                key
+                additional_error_message
+            , path ))
     | Error (`Msg message) -> Result.error (`OSnap_Config_Parse_Error (message, path))
   ;;
 
@@ -327,7 +184,7 @@ module YAML = struct
     |> Result.map to_result_option
     |> Result.join
     |> Result.map_error (function `Msg message ->
-      `OSnap_Config_Parse_Error (message, path))
+        `OSnap_Config_Parse_Error (message, path))
   ;;
 
   let get_bool ~path ?(additional_error_message = "") key obj =
@@ -341,11 +198,11 @@ module YAML = struct
     | Ok None ->
       Result.error
         (`OSnap_Config_Parse_Error
-          ( Printf.sprintf
-              "%S is required but not provided! %s"
-              key
-              additional_error_message
-          , path ))
+            ( Printf.sprintf
+                "%S is required but not provided! %s"
+                key
+                additional_error_message
+            , path ))
     | Error (`Msg message) -> Result.error (`OSnap_Config_Parse_Error (message, path))
   ;;
 
@@ -361,11 +218,11 @@ module YAML = struct
     | Ok None ->
       Result.error
         (`OSnap_Config_Parse_Error
-          ( Printf.sprintf
-              "%S is required but not provided! %s"
-              key
-              additional_error_message
-          , path ))
+            ( Printf.sprintf
+                "%S is required but not provided! %s"
+                key
+                additional_error_message
+            , path ))
     | Error (`Msg message) -> Result.error (`OSnap_Config_Parse_Error (message, path))
   ;;
 
@@ -377,7 +234,7 @@ module YAML = struct
     |> Result.join
     |> Result.map (Option.map Float.to_int)
     |> Result.map_error (function `Msg message ->
-      `OSnap_Config_Parse_Error (message, path))
+        `OSnap_Config_Parse_Error (message, path))
   ;;
 
   let parse_size ~path size =

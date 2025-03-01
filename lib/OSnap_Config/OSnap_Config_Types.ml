@@ -1,7 +1,3 @@
-type format =
-  | JSON
-  | YAML
-
 type size =
   { name : string option
   ; width : int

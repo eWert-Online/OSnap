@@ -84,14 +84,15 @@ let read_ecd ic =
     let newlen = min (toread + len) 256 in
     (* Search for magic number *)
     let ofs = find_last_occurrence "PK\005\006" buf 0 newlen in
-    if ofs < 0
-       || newlen < 22
-       ||
-       let comment_len =
-         Char.code (Bytes.get buf (ofs + 20))
-         lor (Char.code (Bytes.get buf (ofs + 21)) lsl 8)
-       in
-       Int64.(add newpos (of_int (ofs + 22 + comment_len))) <> filelen
+    if
+      ofs < 0
+      || newlen < 22
+      ||
+      let comment_len =
+        Char.code (Bytes.get buf (ofs + 20))
+        lor (Char.code (Bytes.get buf (ofs + 21)) lsl 8)
+      in
+      Int64.(add newpos (of_int (ofs + 22 + comment_len))) <> filelen
     then find_ecd newpos newlen
     else Int64.(add newpos (of_int ofs))
   in

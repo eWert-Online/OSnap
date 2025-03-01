@@ -12,9 +12,9 @@ import TabItem from "@theme/TabItem";
 Before you can run your first test suite, OSnap needs to be configured. <br />
 To do this, you need two files. The global config file and at least one test file.
 
-All configuration files may be written in either `JSON` or `YAML` format.
+All configuration files are written in `YAML` format.
 
-The global config file has to be named `osnap.config.json` or `osnap.config.yaml` and lives in the root folder of your project.
+The global config file has to be named `osnap.config.yaml` and lives in the root folder of your project.
 If you want to have the config file in a different location, you may specify the `--config` flag as an [cli option](cli).
 
 ## Options
@@ -103,7 +103,7 @@ The number of workers OSnap should spawn to run your tests.
 - **Key**: `testPattern`
 - **Required**: `false`
 - **Type**: `string`
-- **Default**: `**/*.osnap.json`
+- **Default**: `**/*.osnap.yaml`
 
 A glob pattern used to locate the test files to run.
 If you want to use `YAML` as your test format, you have to change this.
@@ -204,66 +204,6 @@ functions:
       text: "password123!"
     - action: click
       selector: "#submit_login"
-```
-
-</TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-{
-  "baseUrl": "http://localhost:3000",
-  "fullScreen": true,
-  "threshold": 10,
-  "parallelism": 20,
-  "snapshotDirectory": "./__image-snapshots__",
-  "testPattern": "src/**/*.osnap.json",
-  "ignorePatterns": ["node_modules", "vendor", "dist"],
-  "diffPixelColor": {
-    "r": 209,
-    "g": 63,
-    "b": 255
-  },
-  "defaultSizes": [
-    { "name": "xxl", "width": 1600, "height": 900 },
-    { "name": "xl", "width": 1366, "height": 768 },
-    { "name": "md", "width": 1024, "height": 576 },
-    { "name": "sm", "width": 768, "height": 432 },
-    { "name": "xs", "width": 640, "height": 360 },
-    { "name": "xxs", "width": 320, "height": 180 }
-  ],
-  "functions": {
-    "accept_cookies": [
-      {
-        "action": "click",
-        "selector": "#cookie-consent .settings"
-      },
-      {
-        "action": "click",
-        "selector": "#cookie-consent .accept"
-      },
-      {
-        "action": "click",
-        "selector": "#cookie-consent .confirm"
-      }
-    ],
-    "login": [
-      {
-        "action": "type",
-        "selector": "#username",
-        "text": "my_testuser"
-      },
-      {
-        "action": "type",
-        "selector": "#password",
-        "text": "password123!"
-      },
-      {
-        "action": "click",
-        "selector": "#submit_login"
-      }
-    ]
-  }
-}
 ```
 
 </TabItem>

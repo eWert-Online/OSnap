@@ -26,180 +26,7 @@ module Common = struct
     | _ ->
       Result.error
         (`OSnap_Config_Invalid
-          ("Did not find a complete configuration for an ignore region.", path))
-  ;;
-end
-
-module JSON = struct
-  let parse_ignore ~path r =
-    let* size_restriction =
-      try
-        r
-        |> Yojson.Basic.Util.member "@"
-        |> Yojson.Basic.Util.to_option Yojson.Basic.Util.to_list
-        |> Option.map (List.map Yojson.Basic.Util.to_string)
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* x1 =
-      try
-        r |> Yojson.Basic.Util.member "x1" |> Yojson.Basic.Util.to_int_option |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* y1 =
-      try
-        r |> Yojson.Basic.Util.member "y1" |> Yojson.Basic.Util.to_int_option |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* x2 =
-      try
-        r |> Yojson.Basic.Util.member "x2" |> Yojson.Basic.Util.to_int_option |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* y2 =
-      try
-        r |> Yojson.Basic.Util.member "y2" |> Yojson.Basic.Util.to_int_option |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* selector =
-      try
-        r
-        |> Yojson.Basic.Util.member "selector"
-        |> Yojson.Basic.Util.to_string_option
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* selector_all =
-      try
-        r
-        |> Yojson.Basic.Util.member "selectorAll"
-        |> Yojson.Basic.Util.to_string_option
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    Common.collect_ignore ~path ~size_restriction ~selector ~selector_all ~x1 ~y1 ~x2 ~y2
-  ;;
-
-  let parse_single_test ~path (global_config : OSnap_Config_Types.global) test =
-    let* name =
-      try
-        test
-        |> Yojson.Basic.Util.member "name"
-        |> Yojson.Basic.Util.to_string
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* only =
-      try
-        test
-        |> Yojson.Basic.Util.member "only"
-        |> Yojson.Basic.Util.to_bool_option
-        |> Option.value ~default:false
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* skip =
-      try
-        test
-        |> Yojson.Basic.Util.member "skip"
-        |> Yojson.Basic.Util.to_bool_option
-        |> Option.value ~default:false
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* threshold =
-      try
-        test
-        |> Yojson.Basic.Util.member "threshold"
-        |> Yojson.Basic.Util.to_int_option
-        |> Option.value ~default:global_config.threshold
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* retry =
-      try
-        test
-        |> Yojson.Basic.Util.member "retry"
-        |> Yojson.Basic.Util.to_int_option
-        |> Option.value ~default:global_config.retry
-        |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* url =
-      try
-        test |> Yojson.Basic.Util.member "url" |> Yojson.Basic.Util.to_string |> Result.ok
-      with
-      | Yojson.Basic.Util.Type_error (message, _) ->
-        Result.error (`OSnap_Config_Parse_Error (message, path))
-    in
-    let* sizes =
-      test
-      |> Yojson.Basic.Util.member "sizes"
-      |> function
-      | `Null -> Result.ok global_config.default_sizes
-      | `List list ->
-        list
-        |> OSnap_Utils.List.map_until_exception (OSnap_Config_Utils.JSON.parse_size ~path)
-      | _ -> Result.error (`OSnap_Config_Invalid ("sizes has an invalid format.", path))
-    in
-    let* actions =
-      test
-      |> Yojson.Basic.Util.member "actions"
-      |> function
-      | `List list ->
-        list
-        |> OSnap_Utils.List.map_until_exception
-             (OSnap_Config_Utils.JSON.parse_action
-                ~global_fns:global_config.functions
-                ~path)
-        |> Result.map List.flatten
-      | _ -> Result.ok []
-    in
-    let* ignore =
-      test
-      |> Yojson.Basic.Util.member "ignore"
-      |> function
-      | `List list -> OSnap_Utils.List.map_until_exception (parse_ignore ~path) list
-      | _ -> Result.ok []
-    in
-    let* () = Common.collect_duplicates sizes in
-    Result.ok { only; skip; threshold; retry; name; url; sizes; actions; ignore }
-  ;;
-
-  let parse global_config path =
-    let config = Eio.Path.load path in
-    let json = config |> Yojson.Basic.from_string in
-    try
-      json
-      |> Yojson.Basic.Util.to_list
-      |> OSnap_Utils.List.map_until_exception (parse_single_test ~path global_config)
-    with
-    | Yojson.Basic.Util.Type_error (message, _) ->
-      Result.error (`OSnap_Config_Parse_Error (message, path))
+            ("Did not find a complete configuration for an ignore region.", path))
   ;;
 end
 
@@ -284,11 +111,10 @@ module YAML = struct
     in
     yaml
     |> (function
-          | `A lst -> Result.ok lst
-          | _ ->
-            Result.error
-              (`OSnap_Config_Parse_Error
-                ("A test file has to be an array of tests.", path)))
+     | `A lst -> Result.ok lst
+     | _ ->
+       Result.error
+         (`OSnap_Config_Parse_Error ("A test file has to be an array of tests.", path)))
     |> Result.map
          (OSnap_Utils.List.map_until_exception (parse_single_test ~path global_config))
     |> Result.join
@@ -301,11 +127,11 @@ let find ~root_path ~pattern ~ignore_patterns =
     |> String.split_on_char Filename.dir_sep.[0]
     |> List.fold_left
          (fun acc curr ->
-           match acc, curr with
-           | (true, left, right), s -> true, left, s :: right
-           | (false, left, right), s when s = "**" || String.starts_with ~prefix:"*" s ->
-             true, left, s :: right
-           | (false, left, right), s -> false, s :: left, right)
+            match acc, curr with
+            | (true, left, right), s -> true, left, s :: right
+            | (false, left, right), s when s = "**" || String.starts_with ~prefix:"*" s ->
+              true, left, s :: right
+            | (false, left, right), s -> false, s :: left, right)
          (false, [], [])
   in
   let pattern = pattern_segments |> OSnap_Utils.path_of_segments in
@@ -316,7 +142,7 @@ let find ~root_path ~pattern ~ignore_patterns =
     | _ ->
       Result.error
         (`OSnap_Config_Global_Invalid
-          "The testPattern path could not be resolved. Please make sure it exists")
+            "The testPattern path could not be resolved. Please make sure it exists")
   in
   let pattern = pattern |> Re.Glob.glob |> Re.compile in
   let ignore_patterns =
@@ -339,10 +165,7 @@ let find ~root_path ~pattern ~ignore_patterns =
     | _ :: rest -> rest |> find_matching_files files
     | [] -> files
   in
-  find_matching_files [] [ root_path ]
-  |> OSnap_Utils.List.map_until_exception (fun path ->
-    let* format = OSnap_Config_Utils.get_format path in
-    Result.ok (path, format))
+  Result.ok @@ find_matching_files [] [ root_path ]
 ;;
 
 let init config =
@@ -354,10 +177,7 @@ let init config =
   in
   let* tests =
     tests
-    |> OSnap_Utils.List.map_until_exception (fun (path, test_format) ->
-      match test_format with
-      | OSnap_Config_Types.JSON -> JSON.parse config path
-      | OSnap_Config_Types.YAML -> YAML.parse config path)
+    |> OSnap_Utils.List.map_until_exception (YAML.parse config)
     |> Result.map List.flatten
   in
   let duplicates =
@@ -368,5 +188,5 @@ let init config =
   | duplicates ->
     Result.error
       (`OSnap_Config_Duplicate_Tests
-        (duplicates |> List.map (fun (t : OSnap_Config_Types.test) -> t.name)))
+          (duplicates |> List.map (fun (t : OSnap_Config_Types.test) -> t.name)))
 ;;

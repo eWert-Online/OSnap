@@ -42,19 +42,6 @@ If `@` is not present, the action runs on all sizes.
 ```
 
 </TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-[
-  {
-    "@": ["xxl"],
-    "action": "wait",
-    "timeout": 2000
-  }
-]
-```
-
-</TabItem>
 </Tabs>
 
 ---
@@ -74,19 +61,6 @@ If `@` is not present, the action runs on all sizes.
 - "@": ["xxl"]
   action: "click"
   selector: "#id-to-click"
-```
-
-</TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-[
-  {
-    "@": ["xxl"],
-    "action": "click",
-    "selector": "#id-to-click"
-  }
-]
 ```
 
 </TabItem>
@@ -111,20 +85,6 @@ If `@` is not present, the action runs on all sizes.
   action: "type"
   selector: "#search"
   text: "some searchword"
-```
-
-</TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-[
-  {
-    "@": ["xxl"],
-    "action": "type",
-    "selector": "#search",
-    "text": "some searchword"
-  }
-]
 ```
 
 </TabItem>
@@ -153,24 +113,6 @@ If `@` is not present, the action runs on all sizes.
 ```
 
 </TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-[
-  {
-    "@": ["xxl"],
-    "action": "scroll",
-    "px": 200
-  },
-  {
-    "@": ["l"],
-    "action": "scroll",
-    "selector": ".button"
-  }
-]
-```
-
-</TabItem>
 </Tabs>
 
 ### Function
@@ -187,18 +129,6 @@ If `@` is not present, the action runs on all sizes.
 ```yaml
 - action: function
   name: accept_cookies
-```
-
-</TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-[
-  {
-    "action": "function",
-    "name": "accept_cookies"
-  }
-]
 ```
 
 </TabItem>

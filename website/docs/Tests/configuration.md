@@ -9,7 +9,7 @@ import TabItem from "@theme/TabItem";
 
 # Configuration
 
-The test config files (`**.osnap.json` by default), are used to specify a single test to be executed on all [`defaultSizes`](../Setup/configuration#default-sizes). A test file consists of an array of tests with the following possible options:
+The test config files (`**.osnap.yaml` by default), are used to specify a single test to be executed on all [`defaultSizes`](../Setup/configuration#default-sizes). A test file consists of an array of tests with the following possible options:
 
 ## Options
 
@@ -115,18 +115,6 @@ The smallest possible test file would look like this:
 ```
 
 </TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-[
-  {
-    "name": "Login",
-    "url": "/path/to/login.html"
-  }
-]
-```
-
-</TabItem>
 </Tabs>
 
 **A full example of a test file:**
@@ -167,64 +155,6 @@ The smallest possible test file would look like this:
     - "@": ["xxs", "xs"]
       action: wait
       timeout: 2000
-```
-
-</TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-[
-  {
-    "name": "Home",
-    "url": "/",
-    "threshold": 20,
-    "sizes": [
-      {
-        "name": "xl",
-        "width": 1600,
-        "height": 768
-      },
-      {
-        "name": "xs",
-        "width": 768,
-        "height": 1024
-      },
-      {
-        "name": "xxs",
-        "width": 320,
-        "height": 500
-      }
-    ],
-    "ignore": [
-      {
-        "@": ["xxs"],
-        "x1": 0,
-        "y1": 0,
-        "x2": 100,
-        "y2": 100
-      },
-      {
-        "selector": ".my-animation"
-      }
-    ],
-    "actions": [
-      {
-        "action": "type",
-        "selector": "#search",
-        "text": "some text to type"
-      },
-      {
-        "action": "click",
-        "selector": "#id .class"
-      },
-      {
-        "@": ["xxs", "xs"],
-        "action": "wait",
-        "timeout": 2000
-      }
-    ]
-  }
-]
 ```
 
 </TabItem>

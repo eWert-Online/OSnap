@@ -63,9 +63,9 @@ let path_of_segments paths =
   |> List.rev
   |> List.fold_left
        (fun acc curr ->
-         match acc with
-         | "" -> curr
-         | path -> Filename.concat path curr)
+          match acc with
+          | "" -> curr
+          | path -> Filename.concat path curr)
        ""
 ;;
 

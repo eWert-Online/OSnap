@@ -193,17 +193,17 @@ let stats ~seconds results =
     results
     |> List.fold_left
          (fun acc test ->
-           let created, skipped, passed, failed = acc in
-           match test with
-           | OSnap_Test_Types.{ result = Some `Created; _ } ->
-             test :: created, skipped, passed, failed
-           | OSnap_Test_Types.{ result = Some `Skipped; _ } ->
-             created, test :: skipped, passed, failed
-           | OSnap_Test_Types.{ result = Some `Passed; _ } ->
-             created, skipped, test :: passed, failed
-           | OSnap_Test_Types.{ result = Some (`Failed _); _ } ->
-             created, skipped, passed, test :: failed
-           | _ -> acc)
+            let created, skipped, passed, failed = acc in
+            match test with
+            | OSnap_Test_Types.{ result = Some `Created; _ } ->
+              test :: created, skipped, passed, failed
+            | OSnap_Test_Types.{ result = Some `Skipped; _ } ->
+              created, test :: skipped, passed, failed
+            | OSnap_Test_Types.{ result = Some `Passed; _ } ->
+              created, skipped, test :: passed, failed
+            | OSnap_Test_Types.{ result = Some (`Failed _); _ } ->
+              created, skipped, passed, test :: failed
+            | _ -> acc)
          ([], [], [], [])
   in
   let create_count = List.length created in

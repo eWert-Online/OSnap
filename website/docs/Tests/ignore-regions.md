@@ -45,21 +45,6 @@ You may either ignore a region by specifying its coordinates `(x1, y1)` & `(x2, 
 ```
 
 </TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-[
-  {
-    "@": ["xxs", "xs"],
-    "x1": 0,
-    "y1": 0,
-    "x2": 100,
-    "y2": 100
-  }
-]
-```
-
-</TabItem>
 </Tabs>
 
 The given coordinates are used to create a rectangle.
@@ -85,18 +70,6 @@ Everything inside these coordinates is ignored.
 ```
 
 </TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-[
-  {
-    "@": ["xxs", "xs"],
-    "selector": ".class-to-ignore"
-  }
-]
-```
-
-</TabItem>
 </Tabs>
 
 When the element with the given selector is found, everything inside the bounds of the element is ignored.
@@ -115,18 +88,6 @@ When the element with the given selector is found, everything inside the bounds 
 ```yaml
 - "@": ["xxs", "xs"]
   selectorAll: ".class-to-ignore"
-```
-
-</TabItem>
-<TabItem value="json" label="JSON">
-
-```json
-[
-  {
-    "@": ["xxs", "xs"],
-    "selectorAll": ".class-to-ignore"
-  }
-]
 ```
 
 </TabItem>

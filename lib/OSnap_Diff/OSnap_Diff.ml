@@ -10,14 +10,14 @@ type failState =
   | Layout
 
 let diff
-  ~output
-  ?(ignoreRegions = [])
-  ?(threshold = 0)
-  ~generateDiffImage
-  ~diffPixel
-  ~original_image_data
-  ~new_image_data
-  ()
+      ~output
+      ?(ignoreRegions = [])
+      ?(threshold = 0)
+      ~generateDiffImage
+      ~diffPixel
+      ~original_image_data
+      ~new_image_data
+      ()
   =
   let* original_image =
     try Io.loadImage original_image_data |> Result.ok with
@@ -70,9 +70,10 @@ let diff
           let row = offset / complete_width in
           let col = offset mod complete_width in
           let fill_with =
-            if col >= original_image_start
-               && col < original_image_end
-               && row < original_image.height
+            if
+              col >= original_image_start
+              && col < original_image_end
+              && row < original_image.height
             then Array1.get original_image.image ((row * original_image.width) + col)
             else if col > diff_mask_start && col < diff_mask_end
             then (
@@ -106,9 +107,8 @@ let diff
                 let r = (mono land 0xFF) lsl 0 in
                 Int32.of_int (a lor b lor g lor r))
               else 0x00000000l)
-            else if col > new_image_start
-                    && col <= new_image_end
-                    && row < new_image.height
+            else if
+              col > new_image_start && col <= new_image_end && row < new_image.height
             then
               Array1.get
                 new_image.image

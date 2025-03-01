@@ -26,7 +26,7 @@ let handle_response response =
   | Error `OSnap_Config_Global_Not_Found ->
     print_error "Unable to find a global config file.";
     print_error
-      "Please create a \"osnap.config.json\" at the root of your project or specifiy the \
+      "Please create a \"osnap.config.yaml\" at the root of your project or specifiy the \
        location using the --config option.";
     1
   | Error (`OSnap_Config_Global_Invalid s) ->
@@ -37,7 +37,7 @@ let handle_response response =
     let path = Eio.Path.native_exn path in
     print_error "Your config file has an unknown format.";
     print_error "Tried to parse %s." path;
-    print_error "Known formats are json and yaml";
+    print_error "Known formats are yaml";
     1
   | Error `OSnap_CDP_Connection_Failed ->
     print_error "Could not connect to Chrome.";
