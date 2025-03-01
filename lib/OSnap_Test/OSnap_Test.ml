@@ -68,12 +68,12 @@ let execute_actions ~env ~document ~target ?size_name actions =
   actions
   |> List.fold_left
        (fun acc curr ->
-         let result = run curr in
-         match result with
-         | Ok () -> acc
-         | Error (`OSnap_Selector_Not_Found _s) -> acc
-         | Error (`OSnap_Selector_Not_Visible _s) -> acc
-         | Error (`OSnap_CDP_Protocol_Error _) as e -> e)
+          let result = run curr in
+          match result with
+          | Ok () -> acc
+          | Error (`OSnap_Selector_Not_Found _s) -> acc
+          | Error (`OSnap_Selector_Not_Visible _s) -> acc
+          | Error (`OSnap_CDP_Protocol_Error _) as e -> e)
        (Result.ok ())
 ;;
 

@@ -1,14 +1,6 @@
 FROM debian:bookworm
 
-RUN apt-get update && \ 
-  DEBIAN_FRONTEND=noninteractive apt-get install -yq chromium-sandbox=128.* && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -yq chromium-common=128.* && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -yq chromium=128.* && \
-  mkdir -p ~/osnap_chromium_1331488/chrome-linux && \
-  mv /usr/lib/chromium/* ~/osnap_chromium_1331488/chrome-linux && \
-  mv ~/osnap_chromium_1331488/chrome-linux/chromium ~/osnap_chromium_1331488/chrome-linux/chrome && \
-  rm -f /usr/bin/chromium
-
+COPY --from=chromedp/headless-shell:133.0.6943.142 /headless-shell ~/osnap_chromium_1402768/chrome-headless-shell-linux64
 COPY _release /usr/local
 
 RUN chmod +x /usr/local/bin/osnap

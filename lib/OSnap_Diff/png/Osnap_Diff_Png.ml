@@ -8,9 +8,16 @@ module PngIo = PngIo
 module IO = struct
   type t = data
 
-  let readDirectPixel ~(x : int) ~(y : int) (img : t ImageIO.img) =
+  let readRawPixelAtOffset offset (img : t Odiff.ImageIO.img) =
     let image = (img.image : data) in
-    Array1.get image ((y * img.width) + x)
+    Array1.unsafe_get image offset
+  [@@inline always]
+  ;;
+
+  let readRawPixel ~(x : int) ~(y : int) (img : t Odiff.ImageIO.img) =
+    let image : data = img.image in
+    Array1.unsafe_get image ((y * img.width) + x)
+  [@@inline always]
   ;;
 
   let setImgColor ~x ~y color (img : t ImageIO.img) =
