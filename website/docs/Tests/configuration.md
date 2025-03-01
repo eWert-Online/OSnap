@@ -80,6 +80,19 @@ The number of times a failed test should be retried before it is reported as fai
 
 ---
 
+### Sizes
+
+- **Key**: `sizes`
+- **Required**: `false`
+- **Type**: `Array<{name: string?, width: int, height: int} | string>`
+
+An array of sizes to run your test in. If fullScreen is set to true, the height is the minimum height of the snapshot.
+The size can be a newly defined size or the name of an existing default size from the global config file.
+
+You may specify an optional `name` for each size. This is useful for running actions or ignore regions only on some screen sizes.
+
+---
+
 ### Ignore Regions
 
 - **Key**: `ignore`
@@ -128,9 +141,7 @@ The smallest possible test file would look like this:
   threshold: 20
 
   sizes:
-    - name: xl
-      width: 1600
-      height: 768
+    - xl
     - name: xs
       width: 768
       height: 1024

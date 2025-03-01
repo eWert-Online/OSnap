@@ -37,7 +37,7 @@ The base url used for all of your tests. This gets prepended to all your test ur
 
 An array of default sizes to run your tests in. If fullScreen is set to true, the height is the minimum height of the snapshot.
 
-You may specify an optional `name` for each size. This is useful for running actions or ignore regions only on some screen sizes.
+You may specify an optional `name` for each size. This is useful for running actions, ignore regions or whole tests only on some screen sizes.
 
 ---
 

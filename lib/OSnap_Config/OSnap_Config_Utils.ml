@@ -237,11 +237,34 @@ module YAML = struct
         `OSnap_Config_Parse_Error (message, path))
   ;;
 
-  let parse_size ~path size =
+  let parse_global_size ~path size =
     let* name = size |> get_string_option ~path "name" in
     let* height = size |> get_int ~path "height" in
     let* width = size |> get_int ~path "width" in
     OSnap_Config_Types.{ name; width; height } |> Result.ok
+  ;;
+
+  let parse_size ~path ~default_sizes size =
+    match size with
+    | `String name ->
+      let global_size =
+        default_sizes
+        |> List.find_opt (fun (size : OSnap_Config_Types.size) ->
+          match size.OSnap_Config_Types.name with
+          | None -> false
+          | Some global_name -> global_name = name)
+      in
+      (match global_size with
+       | Some size -> Result.ok size
+       | None ->
+         Result.error
+           (`OSnap_Config_Parse_Error
+               (Printf.sprintf "No size with the name %S was found." name, path)))
+    | size ->
+      let* name = size |> get_string_option ~path "name" in
+      let* height = size |> get_int ~path "height" in
+      let* width = size |> get_int ~path "width" in
+      Result.ok OSnap_Config_Types.{ name; width; height }
   ;;
 
   let parse_action ~global_fns ~path a =

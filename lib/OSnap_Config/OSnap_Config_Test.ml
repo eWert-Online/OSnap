@@ -74,7 +74,10 @@ module YAML = struct
       |> OSnap_Config_Utils.YAML.get_list_option
            ~path
            "sizes"
-           ~parser:(OSnap_Config_Utils.YAML.parse_size ~path)
+           ~parser:
+             (OSnap_Config_Utils.YAML.parse_size
+                ~default_sizes:global_config.default_sizes
+                ~path)
       |> Result.map (Option.value ~default:global_config.default_sizes)
     in
     let* actions =
