@@ -13,7 +13,7 @@ depends: [
   "eio_main"
   "lwt_eio"
   "httpun-eio"
-  "mirage-crypto-rng-eio"
+  "mirage-crypto-rng"
   "base64"
   "cdp"
   "cmdliner"
@@ -48,7 +48,7 @@ build: [
 ]
 dev-repo: "git+https://github.com/eWert-Online/OSnap.git"
 pin-depends: [
-  [ "cdp.dev" "git+https://github.com/eWert-Online/reason-cdp.git#80747e0b93d3dd81f162f2c7b37aae6bd96fe0c9"]
+  [ "cdp.dev" "git+https://github.com/eWert-Online/reason-cdp.git#44707c5bc90501935e130025594d86d203e50c71"]
   [ "libspng.dev" "git+https://github.com/eWert-Online/esy-libspng.git#opam"]
-  [ "odiff-core.dev" "git+https://github.com/dmtrKovalenko/odiff.git#v3.1.1"]
+  [ "odiff-core.dev" "git+https://github.com/dmtrKovalenko/odiff.git#ocaml-version"]
 ]

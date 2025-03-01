@@ -12,10 +12,14 @@ let make ~sw ~env () =
   let base_path = OSnap_Browser_Path.get_chromium_path latest_chromium_revision in
   let executable =
     match OSnap_Utils.detect_platform () with
-    | MacOS | MacOS_ARM ->
-      Filename.concat base_path "chrome-mac/Chromium.app/Contents/MacOS/Chromium"
-    | Linux -> Filename.concat base_path "chrome-linux/chrome"
-    | Win64 -> Filename.concat base_path "chrome-win/chrome.exe"
+    | MacOS ->
+      Filename.concat base_path "chrome-headless-shell-mac-x64/chrome-headless-shell"
+    | MacOS_ARM ->
+      Filename.concat base_path "chrome-headless-shell-mac-arm64/chrome-headless-shell"
+    | Linux ->
+      Filename.concat base_path "chrome-headless-shell-linux64/chrome-headless-shell"
+    | Win64 ->
+      Filename.concat base_path "chrome-headless-shell-win64/chrome-headless-shell.exe"
     | Win32 -> ""
   in
   let process_manager = Eio.Stdenv.process_mgr env in
@@ -28,11 +32,11 @@ let make ~sw ~env () =
       process_manager
       [ executable
       ; "about:blank"
-      ; "--headless=old"
+      ; "--remote-debugging-address=0.0.0.0"
+      ; "--remote-debugging-port=0"
       ; "--disable-gpu"
       ; "--no-sandbox"
       ; "--hide-scrollbars"
-      ; "--remote-debugging-port=0"
       ; "--mute-audio"
       ; "--disable-background-networking"
       ; "--enable-features=NetworkService,NetworkServiceInProcess"

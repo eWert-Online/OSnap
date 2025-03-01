@@ -145,11 +145,10 @@ let default_cmd =
       in
       result
     in
+    Mirage_crypto_rng_unix.use_default ();
     handle_response
     @@ Eio_main.run
     @@ fun env ->
-    Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env
-    @@ fun () ->
     Lwt_eio.with_event_loop ~clock:(Eio.Stdenv.clock env)
     @@ fun _ -> Eio.Switch.run @@ fun sw -> run ~sw ~env
   in

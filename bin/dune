@@ -8,7 +8,7 @@
   OSnap
   cmdliner
   mirage-crypto-rng
-  mirage-crypto-rng-eio
+  mirage-crypto-rng.unix
   lwt_eio
   eio
   eio.core

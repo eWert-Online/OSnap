@@ -1,14 +1,24 @@
 open OSnap_Utils
 
-let get_uri revision (platform : OSnap_Utils.platform) =
+let get_uri ~version (platform : OSnap_Utils.platform) =
   let host = "storage.googleapis.com" in
   let port = 80 in
   let path =
     match platform with
-    | MacOS -> "/chromium-browser-snapshots/Mac/" ^ revision ^ "/chrome-mac.zip"
-    | MacOS_ARM -> "/chromium-browser-snapshots/Mac_Arm/" ^ revision ^ "/chrome-mac.zip"
-    | Linux -> "/chromium-browser-snapshots/Linux_x64/" ^ revision ^ "/chrome-linux.zip"
-    | Win64 -> "/chromium-browser-snapshots/Win_x64/" ^ revision ^ "/chrome-win.zip"
+    | MacOS ->
+      "/chrome-for-testing-public/"
+      ^ version
+      ^ "/mac-x64/chrome-headless-shell-mac-x64.zip"
+    | MacOS_ARM ->
+      "/chrome-for-testing-public/"
+      ^ version
+      ^ "/mac-arm64/chrome-headless-shell-mac-arm64.zip"
+    | Linux ->
+      "/chrome-for-testing-public/"
+      ^ version
+      ^ "/linux64/chrome-headless-shell-linux64.zip"
+    | Win64 ->
+      "/chrome-for-testing-public/" ^ version ^ "/win64/chrome-headless-shell-win64.zip"
     | Win32 ->
       print_endline "Error: x86 is currently not supported on Windows";
       exit 1
@@ -19,13 +29,13 @@ let get_uri revision (platform : OSnap_Utils.platform) =
 let download ~revision dir =
   let zip_path = Eio.Path.(dir / "chromium.zip") in
   Eio.Path.rmtree ~missing_ok:true zip_path;
-  let revision_string = OSnap_Browser_Path.revision_to_string revision in
-  let host, port, path = get_uri revision_string (OSnap_Utils.detect_platform ()) in
+  let version = OSnap_Browser_Path.revision_to_version revision in
+  let host, port, path = get_uri ~version (OSnap_Utils.detect_platform ()) in
   print_endline
     (Printf.sprintf
-       "Downloading chromium revision %s.\n\
+       "Downloading chromium version %s.\n\
         This is a one time setup and will only happen, if there are updates from OSnap..."
-       revision_string);
+       version);
   Eio.Switch.run
   @@ fun sw ->
   let fd = Unix.socket ~cloexec:true Unix.PF_INET Unix.SOCK_STREAM 0 in
@@ -142,10 +152,10 @@ let download ~env revision =
       Eio.Path.with_open_dir
         Eio.Path.(fs / temp_dir)
         (fun dir ->
-          let*? path = download dir ~revision in
-          extract_zip path ~dest:extract_path;
-          Eio.Path.rmtree ~missing_ok:true path;
-          Result.ok ()))
+           let*? path = download dir ~revision in
+           extract_zip path ~dest:extract_path;
+           Eio.Path.rmtree ~missing_ok:true path;
+           Result.ok ()))
   in
   cleanup_old_revisions ();
   Result.ok ()
