@@ -64,11 +64,11 @@ npm install @space-labs/osnap --save-dev
 
 Before you can run your first test suite, OSnap needs to be configured. To do this, you need at least two files. The global config file and one test file.
 
-After you have created them you have to run `yarn osnap`, `npx osnap` or create a npm script running `osnap` with the optional [cli flags](https://ewert-online.github.io/OSnap/cli) available.
+After you have created them you have to run `yarn osnap`, `npx osnap` or create a npm script running `osnap` with the optional [cli flags](https://osnap.devtools.foo/cli) available.
 
 In in-depth documentation with configuration options and examples can be found at:
 
-### **https://ewert-online.github.io/OSnap**
+### **https://osnap.devtools.foo**
 
 <br />
 

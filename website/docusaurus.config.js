@@ -8,8 +8,8 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
     title: "OSnap Docs",
     tagline:
       "The speedy and easy to use Snapshot Testing tool for your project!",
-    url: "https://ewert-online.github.io",
-    baseUrl: "/OSnap/",
+    url: "https://osnap.devtools.foo",
+    baseUrl: "/",
     onBrokenLinks: "throw",
     onBrokenMarkdownLinks: "warn",
     favicon: "img/favicon.ico",

@@ -1,0 +1,20 @@
+services:
+  osnap-docs:
+    container_name: osnap-docs
+    image: ${IMAGE}
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.osnap-docs.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.osnap-docs.entrypoints=websecure"
+      - "traefik.http.routers.osnap-docs.tls=true"
+      - "traefik.http.routers.osnap-docs.tls.certresolver=letencrypt"
+      - "traefik.http.services.osnap-docs.loadbalancer.server.port=3000"
+    networks:
+      - web
+
+networks:
+  web:
+    name: web
+    external: true
