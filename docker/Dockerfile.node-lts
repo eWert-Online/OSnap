@@ -1,6 +1,6 @@
 FROM node:lts-bookworm
 
-COPY --from=chromedp/headless-shell:133.0.6943.142 /headless-shell ~/osnap_chromium_1402768/chrome-headless-shell-linux64
+COPY --from=chromedp/headless-shell:133.0.6943.142 /headless-shell /root/osnap_chromium_1402768/chrome-headless-shell-linux64
 
 COPY _release /usr/local
 
