@@ -1,6 +1,12 @@
 FROM node:lts-bookworm
 
+RUN apt-get update && \
+	apt-get install -y libnss3
+
 COPY --from=chromedp/headless-shell:133.0.6943.142 /headless-shell /root/osnap_chromium_1402768/chrome-headless-shell-linux64
+RUN mv \
+	/root/osnap_chromium_1402768/chrome-headless-shell-linux64/headless-shell \
+	/root/osnap_chromium_1402768/chrome-headless-shell-linux64/chrome-headless-shell
 
 COPY _release /usr/local
 
