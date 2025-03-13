@@ -13,6 +13,10 @@ let collect_action
       ~text
       ~timeout
       ~px
+      ~active
+      ~focus
+      ~hover
+      ~visited
       action
   =
   match action with
@@ -49,6 +53,21 @@ let collect_action
        Result.error (`OSnap_Config_Invalid ("no text for type action provided", path))
      | Some selector, Some text ->
        [ OSnap_Config_Types.Type (selector, text, size_restriction) ] |> Result.ok)
+  | "forcePseudoState" ->
+    (match selector, active, focus, hover, visited with
+     | None, _, _, _, _ ->
+       Result.error (`OSnap_Config_Invalid ("no selector for type action provided", path))
+     | _, false, false, false, false ->
+       Result.error
+         (`OSnap_Config_Invalid
+             ("all pseudo states are false, which is the default.", path))
+     | Some selector, active, focus, hover, visited ->
+       [ OSnap_Config_Types.ForcePseudoState
+           ( selector
+           , OSnap_Config_Types.{ active; focus; hover; visited }
+           , size_restriction )
+       ]
+       |> Result.ok)
   | "wait" ->
     (match timeout with
      | None ->
@@ -77,6 +96,8 @@ let collect_action
               OSnap_Config_Types.Click (a, size_restriction)
             | OSnap_Config_Types.Type (a, b, _) ->
               OSnap_Config_Types.Type (a, b, size_restriction)
+            | OSnap_Config_Types.ForcePseudoState (a, b, _) ->
+              OSnap_Config_Types.ForcePseudoState (a, b, size_restriction)
             | OSnap_Config_Types.Wait (t, _) ->
               OSnap_Config_Types.Wait (t, size_restriction))
           |> Result.ok))
@@ -275,6 +296,10 @@ module YAML = struct
     let* name = a |> get_string_option ~path "name" in
     let* text = a |> get_string_option ~path "text" in
     let* timeout = a |> get_int_option ~path "timeout" in
+    let* active = a |> get_bool_option ~path "active" in
+    let* focus = a |> get_bool_option ~path "focus" in
+    let* hover = a |> get_bool_option ~path "hover" in
+    let* visited = a |> get_bool_option ~path "visited" in
     collect_action
       ~global_fns
       ~path
@@ -284,6 +309,10 @@ module YAML = struct
       ~name
       ~timeout
       ~px
+      ~active:(Option.value active ~default:false)
+      ~focus:(Option.value focus ~default:false)
+      ~hover:(Option.value hover ~default:false)
+      ~visited:(Option.value visited ~default:false)
       action
   ;;
 end

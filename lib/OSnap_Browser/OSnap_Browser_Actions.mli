@@ -69,6 +69,19 @@ val click
          ] )
        Result.t
 
+val force_pseudo_state
+  :  document:Cdp.Commands.DOM.GetDocument.Response.result
+  -> selector:string
+  -> hover:bool
+  -> active:bool
+  -> focus:bool
+  -> visited:bool
+  -> OSnap_Browser_Target.target
+  -> ( unit
+       , [> `OSnap_CDP_Protocol_Error of string | `OSnap_Selector_Not_Found of string ]
+       )
+       Result.t
+
 val scroll
   :  clock:[> float Eio.Time.clock_ty ] Eio.Resource.t
   -> document:Cdp.Commands.DOM.GetDocument.Response.result

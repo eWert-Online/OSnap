@@ -6,11 +6,19 @@ type size =
 
 type size_restriction = string list option
 
+type pseudo_states =
+  { active : bool
+  ; focus : bool
+  ; hover : bool
+  ; visited : bool
+  }
+
 type action =
   | Scroll of [ `Selector of string | `PxAmount of int ] * size_restriction
   | Click of string * size_restriction
   | Type of string * string * size_restriction
   | Wait of int * size_restriction
+  | ForcePseudoState of string * pseudo_states * size_restriction
 
 type ignoreType =
   | Coordinates of (int * int) * (int * int) * size_restriction

@@ -54,6 +54,29 @@ let execute_actions ~env ~document ~target ?size_name actions =
       if size |> List.mem size_name
       then target |> Browser.Actions.type_text ~clock ~document ~selector ~text
       else Result.ok ()
+    | ForcePseudoState (_, _, Some _), None -> Result.ok ()
+    | ForcePseudoState (selector, { active; hover; focus; visited }, None), _ ->
+      target
+      |> Browser.Actions.force_pseudo_state
+           ~document
+           ~selector
+           ~active
+           ~hover
+           ~focus
+           ~visited
+    | ( ForcePseudoState (selector, { active; hover; focus; visited }, Some size)
+      , Some size_name ) ->
+      if size |> List.mem size_name
+      then
+        target
+        |> Browser.Actions.force_pseudo_state
+             ~document
+             ~selector
+             ~active
+             ~hover
+             ~focus
+             ~visited
+      else Result.ok ()
     | Wait (_, Some _), None -> Result.ok ()
     | Wait (ms, Some size), Some size_name ->
       if size |> List.mem size_name

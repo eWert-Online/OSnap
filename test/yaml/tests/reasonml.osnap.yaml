@@ -33,6 +33,14 @@
   actions:
     - action: wait
       timeout: 200
+    - action: forcePseudoState
+      selector: .button
+      hover: true
+    - action: forcePseudoState
+      selector: .navItem
+      focus: true
+    - action: wait
+      timeout: 2000
 
 - name: reason-search-yaml
   url: https://reasonml.github.io/blog/2018/02/20/reason-discourse-now-open

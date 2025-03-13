@@ -325,6 +325,36 @@ let click ~clock ~document ~selector target =
     wait_for_network_idle target ~loaderId |> Result.ok
 ;;
 
+let force_pseudo_state ~document ~selector ~hover ~active ~focus ~visited target =
+  let ( let*? ) = Result.bind in
+  let open Commands.CSS in
+  let sessionId = target.sessionId in
+  let*? { nodeId } = select_element ~document ~selector ~sessionId in
+  let*? result =
+    let open ForcePseudoState in
+    let forcedPseudoClasses =
+      List.concat
+        [ (if hover then [ "hover" ] else [])
+        ; (if active then [ "active" ] else [])
+        ; (if focus then [ "focus" ] else [])
+        ; (if visited then [ "visited" ] else [])
+        ]
+    in
+    let params = Params.make ~nodeId ~forcedPseudoClasses () in
+    let response =
+      Request.make ~sessionId ~params |> OSnap_Websocket.send |> Response.parse
+    in
+    let error =
+      response.Response.error
+      |> Option.map (fun (error : Response.error) ->
+        `OSnap_CDP_Protocol_Error error.message)
+      |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+    in
+    Option.to_result response.Response.result ~none:error
+  in
+  result |> ignore |> Result.ok
+;;
+
 let scroll ~clock ~document ~selector ~px target =
   let ( let*? ) = Result.bind in
   let sessionId = target.sessionId in

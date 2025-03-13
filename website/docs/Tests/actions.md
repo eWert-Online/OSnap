@@ -14,7 +14,7 @@ As seen in the [configuration options](configuration) of a test file, you are ab
 This is useful to bring the page into a specific state, you want to capture. <br />
 **For example:** opening a dropdown, typing something in an input or waiting for an animation to be completed.
 
-The currently available actions are `wait`, `click`, `type`, `scroll` and `function`. They may be configured like this.
+The currently available actions are `wait`, `click`, `type`, `scroll`, `forcePseudoState` and `function`. They may be configured like this.
 
 :::info
 All actions may be configured with the optional `@` key.
@@ -110,6 +110,35 @@ If `@` is not present, the action runs on all sizes.
 - "@": ["l"]
   action: "scroll"
   selector: ".button"
+```
+
+</TabItem>
+</Tabs>
+
+### Force Pseudo State (Hover, Focus, ...)
+
+#### Options:
+
+- `selector`: A css selector of the element which should recieve the forced pseudo state. If the selector evaluates to multiple elements, only the first one will be used.
+- `active`: `true` if the active pseudo state should be forced
+- `hover`: `true` if the hover pseudo state should be forced
+- `focus`: `true` if the focus pseudo state should be forced
+- `visited`: `true` if the visited pseudo state should be forced
+
+#### Example:
+
+<Tabs>
+<TabItem value="yaml" label="YAML" default>
+
+```yaml
+- action: forcePseudoState
+  selector: .button
+  hover: true
+
+- action: forcePseudoState
+  selector: .button
+  focus: true
+  visited: true
 ```
 
 </TabItem>
