@@ -1,10 +1,13 @@
-.PHONY: all build install update fmt clean clear
-.SILENT: all build install update fmt clean clear
+.PHONY: all build test install update fmt clean clear
+.SILENT: all build test install update fmt clean clear
 
 all: build
 
 build:
 	opam exec -- dune build -p osnap --profile=release
+
+test:
+	opam exec -- dune exec -- osnap --config test/yaml/osnap.config.yaml
 
 install:
 	if ! [ -e _opam ]; then \

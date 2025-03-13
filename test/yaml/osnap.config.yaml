@@ -1,6 +1,5 @@
 baseUrl: ""
 fullScreen: true
-parallelism: 20
 
 testPattern: tests/*.osnap.yaml
 ignorePatterns:
