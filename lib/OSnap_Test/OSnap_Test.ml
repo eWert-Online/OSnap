@@ -171,6 +171,7 @@ let run ~env (global_config : Config.Types.global) target test =
     let base_snapshot = Eio.Path.(dirs.base / filename) in
     let updated_snapshot = Eio.Path.(dirs.updated / filename) in
     let diff_image = Eio.Path.(dirs.diff / diff_filename) in
+    let*? () = target |> Browser.Actions.set_headers ~headers:test.additional_headers in
     let*? () = target |> Browser.Actions.clear_cookies in
     let*? () =
       target

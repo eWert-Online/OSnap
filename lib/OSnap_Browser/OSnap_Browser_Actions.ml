@@ -498,3 +498,27 @@ let clear_cookies target =
   in
   Result.ok ()
 ;;
+
+let set_headers ~headers target =
+  match headers with
+  | None -> Result.ok ()
+  | Some headers ->
+    let ( let*? ) = Result.bind in
+    let open Commands.Network in
+    let sessionId = target.sessionId in
+    let*? _ =
+      let open SetExtraHTTPHeaders in
+      let response =
+        Request.make ~sessionId ~params:(Params.make ~headers ()) |> OSnap_Websocket.send
+      in
+      let response = response |> Response.parse in
+      let error =
+        response.Response.error
+        |> Option.map (fun (error : Response.error) ->
+          `OSnap_CDP_Protocol_Error error.message)
+        |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+      in
+      Option.to_result response.Response.result ~none:error
+    in
+    Result.ok ()
+;;

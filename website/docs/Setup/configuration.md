@@ -142,6 +142,17 @@ Only values between 0 and 255 are allowed. The default color is red.
 
 A record of which the key is used as the function name and the value is an array of actions to be executed, when that function is called.
 
+---
+
+### Additional HTTP Headers
+
+- **Key**: `additionalHttpHeaders`
+- **Required**: `false`
+- **Type**: `Record<string, string>`
+- **Default**: `{}`
+
+A record of additional headers to send with each request.
+
 ## Example
 
 **A full example of a global config file:**
@@ -161,6 +172,10 @@ ignorePatterns:
   - node_modules
   - vendor
   - dist
+
+additionalHttpHeaders:
+  X-OSNAP-TEST: "true"
+  Authorization: "Bearer mytoken123"
 
 diffPixelColor:
   r: 209

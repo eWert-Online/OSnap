@@ -265,6 +265,32 @@ module YAML = struct
     OSnap_Config_Types.{ name; width; height } |> Result.ok
   ;;
 
+  let parse_http_headers ~path key obj =
+    obj
+    |> Yaml.Util.find key
+    |> Result.map
+         (Option.map (fun headers ->
+            match headers with
+            | `Null -> Result.ok []
+            | headers ->
+              let keys = Yaml.Util.keys headers in
+              let values = Yaml.Util.values headers in
+              (match keys, values with
+               | _, Error _ | Error _, _ ->
+                 Result.error
+                   (`Msg
+                       "HTTP Headers are in an invalid format. Expected to see an object.")
+               | Ok keys, Ok values ->
+                 let* values =
+                   OSnap_Utils.List.map_until_exception Yaml.Util.to_string values
+                 in
+                 Result.ok (List.combine keys values))))
+    |> Result.map to_result_option
+    |> Result.join
+    |> Result.map_error (function `Msg message ->
+        `OSnap_Config_Parse_Error (message, path))
+  ;;
+
   let parse_size ~path ~default_sizes size =
     match size with
     | `String name ->

@@ -126,6 +126,9 @@ module YAML = struct
       |> Result.join
       |> Result.map (Option.value ~default:0xFF0000FFl)
     in
+    let* additional_headers =
+      yaml |> OSnap_Config_Utils.YAML.parse_http_headers ~path "additionalHttpHeaders"
+    in
     let duplicates =
       default_sizes
       |> List.filter (fun (s : OSnap_Config_Types.size) -> Option.is_some s.name)
@@ -150,6 +153,7 @@ module YAML = struct
         ; snapshot_directory
         ; diff_pixel_color
         ; parallelism
+        ; additional_headers
         }
   ;;
 end

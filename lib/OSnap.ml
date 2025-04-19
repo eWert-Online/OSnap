@@ -119,6 +119,7 @@ let run ~env t =
            ; name = test.OSnap_Config.Types.name
            ; actions = test.OSnap_Config.Types.actions
            ; ignore_regions = test.OSnap_Config.Types.ignore
+           ; additional_headers = test.OSnap_Config.Types.additional_headers
            ; threshold = test.OSnap_Config.Types.threshold
            ; retry = test.OSnap_Config.Types.retry
            ; warnings = []
