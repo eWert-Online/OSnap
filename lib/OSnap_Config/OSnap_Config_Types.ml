@@ -25,6 +25,8 @@ type ignoreType =
   | Selector of string * size_restriction
   | SelectorAll of string * size_restriction
 
+type additional_headers = (string * string) list option
+
 type test =
   { only : bool
   ; skip : bool
@@ -35,6 +37,7 @@ type test =
   ; sizes : size list
   ; actions : action list
   ; ignore : ignoreType list
+  ; additional_headers : additional_headers
   }
 
 type global =
@@ -50,4 +53,5 @@ type global =
   ; snapshot_directory : string
   ; diff_pixel_color : int32
   ; parallelism : int option
+  ; additional_headers : additional_headers
   }

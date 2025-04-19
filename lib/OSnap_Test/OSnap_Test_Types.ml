@@ -6,6 +6,7 @@ type t =
   ; height : int
   ; actions : OSnap_Config.Types.action list
   ; ignore_regions : OSnap_Config.Types.ignoreType list
+  ; additional_headers : OSnap_Config.Types.additional_headers
   ; threshold : int
   ; retry : int
   ; exists : bool

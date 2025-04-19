@@ -100,8 +100,24 @@ module YAML = struct
            ~parser:(parse_ignore ~path)
       |> Result.map (Option.value ~default:[])
     in
+    let* additional_headers =
+      test
+      |> OSnap_Config_Utils.YAML.parse_http_headers ~path "additionalHttpHeaders"
+      |> Result.map (Option.fold ~some:Option.some ~none:global_config.additional_headers)
+    in
     let* () = Common.collect_duplicates sizes in
-    Result.ok { only; skip; threshold; retry; name; url; sizes; actions; ignore }
+    Result.ok
+      { only
+      ; skip
+      ; threshold
+      ; retry
+      ; name
+      ; url
+      ; sizes
+      ; actions
+      ; ignore
+      ; additional_headers
+      }
   ;;
 
   let parse global_config path =

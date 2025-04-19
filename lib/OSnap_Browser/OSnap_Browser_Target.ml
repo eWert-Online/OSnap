@@ -46,6 +46,18 @@ let enable_events t =
     Option.to_result response.Response.result ~none:error
   in
   let*? _ =
+    let open Network.Enable in
+    let params = Params.make () in
+    let response = Request.make ~sessionId ~params |> Websocket.send |> Response.parse in
+    let error =
+      response.Response.error
+      |> Option.map (fun (error : Response.error) ->
+        `OSnap_CDP_Protocol_Error error.message)
+      |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+    in
+    Option.to_result response.Response.result ~none:error
+  in
+  let*? _ =
     let open Page.SetLifecycleEventsEnabled in
     let response =
       Request.make ~sessionId ~params:(Params.make ~enabled:true ())

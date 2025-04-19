@@ -109,3 +109,8 @@ val screenshot
 val clear_cookies
   :  OSnap_Browser_Target.target
   -> (unit, [> `OSnap_CDP_Protocol_Error of string ]) Result.t
+
+val set_headers
+  :  headers:(string * string) list option
+  -> OSnap_Browser_Target.target
+  -> (unit, [> `OSnap_CDP_Protocol_Error of string ]) Result.t

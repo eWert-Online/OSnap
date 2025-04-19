@@ -115,6 +115,19 @@ For possible options and more info refer to: **[ignore regions](ignore-regions)*
 An array of actions to run before the screenshot is taken. <br />
 For possible options and more info refer to: **[actions](actions)**.
 
+
+---
+
+### Additional HTTP Headers
+
+- **Key**: `additionalHttpHeaders`
+- **Required**: `false`
+- **Type**: `Record<string, string> | null`
+- **Default**: _Whatever is specified in the [global additionalHttpHeaders](../Setup/configuration#additionalHttpHeaders)_
+
+A record of additional headers to send with each request. <br />
+You may set the value to `null` to prevent sending the headers defined in the global configuration file.
+
 ## Example
 
 The smallest possible test file would look like this:
@@ -139,6 +152,9 @@ The smallest possible test file would look like this:
 - name: Home
   url: "/"
   threshold: 20
+
+  additionalHttpHeaders:
+    Authorization: "Basic Ym9zY236Ym9zY28="
 
   sizes:
     - xl
