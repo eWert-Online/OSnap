@@ -1,13 +1,24 @@
+module Logger = OSnap_Logger
 module Websocket = OSnap_Websocket
 open OSnap_Browser_Types
+
+let debug = Logger.info ~header:"BROWSER"
 
 let make ~sw ~env () =
   let ( let*? ) = Result.bind in
   let latest_chromium_revision = OSnap_Browser_Path.get_latest_revision () in
+  debug
+    (Printf.sprintf
+       "Found browser version %s to launch"
+       (OSnap_Browser_Path.revision_to_version latest_chromium_revision));
   let*? () =
     if not (OSnap_Browser_Download.is_revision_downloaded latest_chromium_revision)
-    then OSnap_Browser_Download.download ~env latest_chromium_revision
-    else Result.ok ()
+    then (
+      debug "Browser is not downloaded";
+      OSnap_Browser_Download.download ~env latest_chromium_revision)
+    else (
+      debug "Browser is already downloaded";
+      Result.ok ())
   in
   let base_path = OSnap_Browser_Path.get_chromium_path latest_chromium_revision in
   let executable =
@@ -24,6 +35,7 @@ let make ~sw ~env () =
   in
   let process_manager = Eio.Stdenv.process_mgr env in
   let read_stderr, write_stderr = Eio.Process.pipe process_manager ~sw in
+  debug (Printf.sprintf "Spawning browser process from %S" executable);
   let process =
     Eio.Process.spawn
       ~stderr:write_stderr
@@ -63,8 +75,10 @@ let make ~sw ~env () =
       ; "--use-mock-keychain"
       ]
   in
+  debug "Launching Browser was successful. Trying to establish a connection";
   let rec get_ws_url ~from proc =
     let line = from |> Eio.Buf_read.line in
+    debug (Printf.sprintf "CHROME: %S" line);
     match line with
     | line when line |> OSnap_Utils.contains_substring ~search:"Cannot start http server"
       ->
@@ -79,7 +93,9 @@ let make ~sw ~env () =
   in
   let stderr_buffer = Eio.Buf_read.of_flow read_stderr ~max_size:max_int in
   let*? url = get_ws_url ~from:stderr_buffer process in
+  debug (Printf.sprintf "Connecting to: %S" url);
   let*? () = Websocket.connect ~sw ~env url in
+  debug (Printf.sprintf "Connected!");
   let*? result =
     let open Cdp.Commands.Target.CreateBrowserContext in
     Request.make ?sessionId:None ~params:(Params.make ())

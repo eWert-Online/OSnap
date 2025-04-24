@@ -2,6 +2,11 @@ open Cmdliner;;
 
 Fmt.set_style_renderer Fmt.stdout `Ansi_tty
 
+let setup_log =
+  let open Term in
+  const OSnap.Logger.init $ Fmt_cli.style_renderer () $ Logs_cli.level ()
+;;
+
 let print_warning msg =
   let printer = Fmt.pr "%a @." (Fmt.styled `Yellow Fmt.string) in
   Printf.ksprintf printer msg
@@ -119,7 +124,7 @@ let default_cmd =
     let open Arg in
     value & opt (some int) None & info [ "p"; "parallelism" ] ~doc
   in
-  let exec noCreate noOnly noSkip parallelism config_path =
+  let exec noCreate noOnly noSkip parallelism config_path () =
     let ( let*? ) = Result.bind in
     let run ~sw ~env =
       let*? t = OSnap.setup ~sw ~env ~config_path ~noCreate ~noOnly ~noSkip in
@@ -153,7 +158,7 @@ let default_cmd =
     @@ fun _ -> Eio.Switch.run @@ fun sw -> run ~sw ~env
   in
   ( (let open Term in
-     const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config)
+     const exec $ noCreate $ noOnly $ noSkip $ parallelism $ config $ setup_log)
   , Cmd.info
       "osnap"
       ~man:
