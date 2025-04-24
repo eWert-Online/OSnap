@@ -31,6 +31,7 @@
   fileutils
   fmt
   libspng
+  logs
   odiff-core
   re
   uri

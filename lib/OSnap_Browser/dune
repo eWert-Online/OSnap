@@ -2,6 +2,7 @@
  (name OSnap_Browser)
  (libraries
   OSnap_Utils
+  OSnap_Logger
   OSnap_Websocket
   unix
   fmt

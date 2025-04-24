@@ -1,3 +1,4 @@
+module Logger = OSnap_Logger
 module Config = OSnap_Config
 module Browser = OSnap_Browser
 

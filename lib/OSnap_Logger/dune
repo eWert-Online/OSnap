@@ -1,0 +1,3 @@
+(library
+ (name OSnap_Logger)
+ (libraries fmt fmt.cli fmt.tty logs logs.cli logs.fmt))

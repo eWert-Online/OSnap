@@ -5,6 +5,7 @@
   OSnap_Test
   OSnap_Paths
   OSnap_Utils
+  OSnap_Logger
   OSnap_Config
   OSnap_Browser
   unix

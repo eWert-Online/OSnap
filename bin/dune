@@ -6,6 +6,7 @@
  (ocamlopt_flags -O3)
  (libraries
   OSnap
+  OSnap_Logger
   cmdliner
   mirage-crypto-rng
   mirage-crypto-rng.unix

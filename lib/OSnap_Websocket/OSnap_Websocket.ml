@@ -20,9 +20,15 @@ let call_event_handlers key message =
       Hashtbl.remove events key))
 ;;
 
+let debug_send = OSnap_Logger.debug ~header:"Websocket >>>"
+let debug_recieve = OSnap_Logger.debug ~header:"Websocket <<<"
+
 let websocket_handler recv send =
   let close () = Websocket.Frame.close 1002 |> send in
-  let send_payload payload = Websocket.Frame.create ~content:payload () |> send in
+  let send_payload payload =
+    debug_send payload;
+    Websocket.Frame.create ~content:payload () |> send
+  in
   let rec input_loop () =
     let* () = Lwt.pause () in
     if not (Queue.is_empty pending_requests)
@@ -40,6 +46,7 @@ let websocket_handler recv send =
     | Pong -> Lwt.return ()
     | Text | Binary ->
       let response = frame.Websocket.Frame.content in
+      debug_recieve (String.sub response 0 (min (String.length response) 800));
       let id =
         response
         |> Yojson.Safe.from_string
