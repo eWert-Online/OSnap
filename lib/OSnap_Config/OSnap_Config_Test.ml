@@ -105,6 +105,12 @@ module YAML = struct
       |> OSnap_Config_Utils.YAML.parse_http_headers ~path "additionalHttpHeaders"
       |> Result.map (Option.fold ~some:Option.some ~none:global_config.additional_headers)
     in
+    let* expected_response_code =
+      test
+      |> OSnap_Config_Utils.YAML.get_int_option ~path "expectedResponseCode"
+      |> Result.map
+           (Option.fold ~some:Option.some ~none:global_config.expected_response_code)
+    in
     let* () = Common.collect_duplicates sizes in
     Result.ok
       { only
@@ -117,6 +123,7 @@ module YAML = struct
       ; actions
       ; ignore
       ; additional_headers
+      ; expected_response_code
       }
   ;;
 

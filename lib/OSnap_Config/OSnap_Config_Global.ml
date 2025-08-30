@@ -129,6 +129,9 @@ module YAML = struct
     let* additional_headers =
       yaml |> OSnap_Config_Utils.YAML.parse_http_headers ~path "additionalHttpHeaders"
     in
+    let* expected_response_code =
+      yaml |> OSnap_Config_Utils.YAML.get_int_option ~path "expectedResponseCode"
+    in
     let duplicates =
       default_sizes
       |> List.filter (fun (s : OSnap_Config_Types.size) -> Option.is_some s.name)
@@ -154,6 +157,7 @@ module YAML = struct
         ; diff_pixel_color
         ; parallelism
         ; additional_headers
+        ; expected_response_code
         }
   ;;
 end

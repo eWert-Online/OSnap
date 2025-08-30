@@ -94,6 +94,23 @@ let wait_for_network_idle target ~loaderId =
   Eio.Promise.await p
 ;;
 
+let wait_for_response target ~loaderId =
+  let open Events.Network in
+  let sessionId = target.sessionId in
+  let p, resolver = Eio.Promise.create () in
+  OSnap_Websocket.listen
+    ~look_behind:true
+    ~event:ResponseReceived.name
+    ~sessionId
+    (fun response remove ->
+       let eventData = ResponseReceived.parse response in
+       if eventData.params.type_ = `Document && loaderId = eventData.params.loaderId
+       then (
+         remove ();
+         ignore @@ Eio.Promise.try_resolve resolver eventData.params.response));
+  Eio.Promise.await p
+;;
+
 let go_to ~url target =
   let ( let*? ) = Result.bind in
   let open Commands.Page in

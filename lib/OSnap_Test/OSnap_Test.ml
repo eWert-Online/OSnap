@@ -157,6 +157,89 @@ let get_filename ?(diff = false) name width height =
   else Printf.sprintf "%s_%ix%i.png" name width height
 ;;
 
+let compare_screenshots ~(config : OSnap_Config.Types.global) ~target ~document test =
+  let dirs = OSnap_Paths.get config in
+  let filename = get_filename test.name test.width test.height in
+  let diff_filename = get_filename ~diff:true test.name test.width test.height in
+  let base_snapshot = Eio.Path.(dirs.base / filename) in
+  let updated_snapshot = Eio.Path.(dirs.updated / filename) in
+  let diff_image = Eio.Path.(dirs.diff / diff_filename) in
+  let*? screenshot =
+    target
+    |> Browser.Actions.screenshot ~full_size:config.fullscreen
+    |> Result.map Base64.decode_exn
+  in
+  if not test.exists
+  then (
+    let*? () = save_screenshot ~path:base_snapshot screenshot in
+    Printer.created_message ~name:test.name ~width:test.width ~height:test.height;
+    Result.ok `Created)
+  else
+    let*? original_image_data = read_file_contents ~path:base_snapshot in
+    if original_image_data = screenshot
+    then (
+      Printer.success_message ~name:test.name ~width:test.width ~height:test.height;
+      Result.ok `Passed)
+    else (
+      let should_retry =
+        match test.result with
+        | None -> Some 1
+        | Some (`Retry i) when i < test.retry -> Some (succ i)
+        | _ -> None
+      in
+      let*? ignoreRegions =
+        test.ignore_regions |> get_ignore_regions ~document target test.size_name
+      in
+      let diff =
+        Diff.diff
+          ~threshold:test.threshold
+          ~diffPixel:config.diff_pixel_color
+          ~ignoreRegions
+          ~output:(Eio.Path.native_exn diff_image)
+          ~original_image_data
+          ~new_image_data:screenshot
+          ~generateDiffImage:(Option.is_none should_retry)
+      in
+      match diff () with
+      | Ok () ->
+        Printer.success_message ~name:test.name ~width:test.width ~height:test.height;
+        Result.ok `Passed
+      | Error Io ->
+        Printer.corrupted_message
+          ~print_head:true
+          ~name:test.name
+          ~width:test.width
+          ~height:test.height;
+        Result.ok (`Failed `Io)
+      | Error Layout ->
+        Printer.layout_message
+          ~print_head:true
+          ~name:test.name
+          ~width:test.width
+          ~height:test.height;
+        let*? () = save_screenshot screenshot ~path:updated_snapshot in
+        Result.ok (`Failed `Layout)
+      | Error (Pixel (diffCount, diffPercentage)) ->
+        (match should_retry with
+         | Some i ->
+           Printer.retry_message
+             ~count:i
+             ~name:test.name
+             ~width:test.width
+             ~height:test.height;
+           Result.ok (`Retry i)
+         | None ->
+           Printer.diff_message
+             ~print_head:true
+             ~name:test.name
+             ~width:test.width
+             ~height:test.height
+             ~diffCount
+             ~diffPercentage;
+           let*? () = save_screenshot screenshot ~path:updated_snapshot in
+           Result.ok (`Failed (`Pixel (diffCount, diffPercentage)))))
+;;
+
 let run ~env (global_config : Config.Types.global) target test =
   let ( let*? ) = Result.bind in
   if test.skip
@@ -164,13 +247,7 @@ let run ~env (global_config : Config.Types.global) target test =
     Printer.skipped_message ~name:test.name ~width:test.width ~height:test.height;
     Result.ok { test with result = Some `Skipped })
   else (
-    let dirs = OSnap_Paths.get global_config in
-    let filename = get_filename test.name test.width test.height in
-    let diff_filename = get_filename ~diff:true test.name test.width test.height in
     let url = global_config.base_url ^ test.url in
-    let base_snapshot = Eio.Path.(dirs.base / filename) in
-    let updated_snapshot = Eio.Path.(dirs.updated / filename) in
-    let diff_image = Eio.Path.(dirs.diff / diff_filename) in
     let*? () = target |> Browser.Actions.set_headers ~headers:test.additional_headers in
     let*? () = target |> Browser.Actions.clear_cookies in
     let*? () =
@@ -190,81 +267,30 @@ let run ~env (global_config : Config.Types.global) target test =
     let*? () =
       execute_actions ~env ~document ~target ?size_name:test.size_name test.actions
     in
-    let*? screenshot =
-      target
-      |> Browser.Actions.screenshot ~full_size:global_config.fullscreen
-      |> Result.map Base64.decode_exn
-    in
     let*? result =
-      if not test.exists
-      then (
-        let*? () = save_screenshot ~path:base_snapshot screenshot in
-        Printer.created_message ~name:test.name ~width:test.width ~height:test.height;
-        Result.ok `Created)
-      else
-        let*? original_image_data = read_file_contents ~path:base_snapshot in
-        if original_image_data = screenshot
-        then (
-          Printer.success_message ~name:test.name ~width:test.width ~height:test.height;
-          Result.ok `Passed)
-        else (
-          let should_retry =
-            match test.result with
-            | None -> Some 1
-            | Some (`Retry i) when i < test.retry -> Some (succ i)
-            | _ -> None
-          in
-          let*? ignoreRegions =
-            test.ignore_regions |> get_ignore_regions ~document target test.size_name
-          in
-          let diff =
-            Diff.diff
-              ~threshold:test.threshold
-              ~diffPixel:global_config.diff_pixel_color
-              ~ignoreRegions
-              ~output:(Eio.Path.native_exn diff_image)
-              ~original_image_data
-              ~new_image_data:screenshot
-              ~generateDiffImage:(Option.is_none should_retry)
-          in
-          match diff () with
-          | Ok () ->
-            Printer.success_message ~name:test.name ~width:test.width ~height:test.height;
-            Result.ok `Passed
-          | Error Io ->
-            Printer.corrupted_message
-              ~print_head:true
-              ~name:test.name
-              ~width:test.width
-              ~height:test.height;
-            Result.ok (`Failed `Io)
-          | Error Layout ->
-            Printer.layout_message
-              ~print_head:true
-              ~name:test.name
-              ~width:test.width
-              ~height:test.height;
-            let*? () = save_screenshot screenshot ~path:updated_snapshot in
-            Result.ok (`Failed `Layout)
-          | Error (Pixel (diffCount, diffPercentage)) ->
-            (match should_retry with
-             | Some i ->
-               Printer.retry_message
-                 ~count:i
-                 ~name:test.name
-                 ~width:test.width
-                 ~height:test.height;
-               Result.ok (`Retry i)
-             | None ->
-               Printer.diff_message
-                 ~print_head:true
-                 ~name:test.name
-                 ~width:test.width
-                 ~height:test.height
-                 ~diffCount
-                 ~diffPercentage;
-               let*? () = save_screenshot screenshot ~path:updated_snapshot in
-               Result.ok (`Failed (`Pixel (diffCount, diffPercentage)))))
+      let run_comparison () =
+        compare_screenshots ~config:global_config ~target ~document test
+      in
+      match test.expected_response_code with
+      | None -> run_comparison ()
+      | Some expected ->
+        let response = target |> Browser.Actions.wait_for_response ~loaderId in
+        (match response.status with
+         | `Float _ -> assert false
+         | `Int returned ->
+           if returned = expected
+           then run_comparison ()
+           else (
+             Printer.unexpected_response_code
+               ~print_head:true
+               ~name:test.name
+               ~width:test.width
+               ~height:test.height
+               ~expected
+               ~returned
+               ~url:response.url;
+             Result.ok
+               (`Expectation_Failed (`StatusCode (response.url, expected, returned)))))
     in
-    { test with result = Some result } |> Result.ok)
+    Result.ok { test with result = Some result })
 ;;

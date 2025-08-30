@@ -6,6 +6,11 @@ val get_document
 
 val wait_for_network_idle : OSnap_Browser_Target.target -> loaderId:string -> unit
 
+val wait_for_response
+  :  OSnap_Browser_Target.target
+  -> loaderId:string
+  -> Cdp.Types.Network.Response.t
+
 val go_to
   :  url:string
   -> OSnap_Browser_Target.target

@@ -115,7 +115,6 @@ For possible options and more info refer to: **[ignore regions](ignore-regions)*
 An array of actions to run before the screenshot is taken. <br />
 For possible options and more info refer to: **[actions](actions)**.
 
-
 ---
 
 ### Additional HTTP Headers
@@ -127,6 +126,17 @@ For possible options and more info refer to: **[actions](actions)**.
 
 A record of additional headers to send with each request. <br />
 You may set the value to `null` to prevent sending the headers defined in the global configuration file.
+
+---
+
+### Expected Response Code
+
+- **Key**: `expectedResponseCode`
+- **Required**: `false`
+- **Type**: `int`
+- **Default**: _Whatever is specified in the [global expectedResponseCode](../Setup/configuration#expectedResponseCode)_
+
+The expected status code of the response. The test will fail, when the expected code does not match the returned one.
 
 ## Example
 
@@ -155,6 +165,8 @@ The smallest possible test file would look like this:
 
   additionalHttpHeaders:
     Authorization: "Basic Ym9zY236Ym9zY28="
+
+  expectedResponseCode: 200
 
   sizes:
     - xl

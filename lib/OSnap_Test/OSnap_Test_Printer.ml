@@ -144,6 +144,27 @@ let corrupted_message ~print_head ~name ~width ~height =
        deleting the current base image!"
 ;;
 
+let unexpected_response_code ~print_head ~name ~width ~height ~url ~expected ~returned =
+  let message =
+    Printf.sprintf
+      "The url %S returned an unexpected response code. Expected %i, got %i"
+      url
+      expected
+      returned
+  in
+  if print_head
+  then
+    Fmt.pr
+      "%s %a  %s %a @."
+      (Progress.get_and_incr ())
+      (styled `Bold (styled `Red string))
+      "FAIL"
+      (test_name ~name ~width ~height)
+      (styled `Red string)
+      message
+  else Fmt.pr "%s %a @." (test_name ~name ~width ~height) (styled `Red string) message
+;;
+
 let get_time_from_seconds seconds =
   let ( % ) = mod_float in
   let hours =
@@ -201,9 +222,9 @@ let stats ~seconds results =
               created, test :: skipped, passed, failed
             | OSnap_Test_Types.{ result = Some `Passed; _ } ->
               created, skipped, test :: passed, failed
-            | OSnap_Test_Types.{ result = Some (`Failed _); _ } ->
+            | OSnap_Test_Types.{ result = Some (`Failed _ | `Expectation_Failed _); _ } ->
               created, skipped, passed, test :: failed
-            | _ -> acc)
+            | OSnap_Test_Types.{ result = None | Some (`Retry _); _ } -> acc)
          ([], [], [], [])
   in
   let create_count = List.length created in
@@ -261,7 +282,21 @@ let stats ~seconds results =
         ; _
         } ->
         diff_message ~print_head:false ~name ~width ~height ~diffCount ~diffPercentage
-      | _ -> ()));
+      | { name
+        ; width
+        ; height
+        ; result = Some (`Expectation_Failed (`StatusCode (url, expected, returned)))
+        ; _
+        } ->
+        unexpected_response_code
+          ~print_head:false
+          ~name
+          ~width
+          ~height
+          ~url
+          ~expected
+          ~returned
+      | { result = None | Some (`Skipped | `Retry _ | `Created | `Passed); _ } -> ()));
   match failed with
   | [] -> Result.ok ()
   | _ -> Result.error `OSnap_Test_Failure

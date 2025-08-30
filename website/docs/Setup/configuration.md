@@ -153,6 +153,16 @@ A record of which the key is used as the function name and the value is an array
 
 A record of additional headers to send with each request.
 
+---
+
+### Expected Response Code
+
+- **Key**: `expectedResponseCode`
+- **Required**: `false`
+- **Type**: `int`
+
+The expected status code of the response. The test will fail, when the expected code does not match the returned one.
+
 ## Example
 
 **A full example of a global config file:**
@@ -176,6 +186,8 @@ ignorePatterns:
 additionalHttpHeaders:
   X-OSNAP-TEST: "true"
   Authorization: "Bearer mytoken123"
+
+expectedResponseCode: 200
 
 diffPixelColor:
   r: 209

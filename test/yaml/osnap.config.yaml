@@ -1,4 +1,4 @@
-baseUrl: ""
+baseUrl: ''
 fullScreen: true
 
 testPattern: tests/*.osnap.yaml
@@ -28,10 +28,10 @@ functions:
     - action: wait
       timeout: 200
     - action: type
-      selector: "#search_input_react"
+      selector: '#search_input_react'
       text: Let
     - action: wait
       timeout: 1000
-    - "@": [xl, l, m, s]
+    - '@': [xl, l, m, s]
       action: click
-      selector: ".algolia-docsearch-suggestion--title"
+      selector: '.algolia-docsearch-suggestion--title'

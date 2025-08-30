@@ -38,6 +38,7 @@ type test =
   ; actions : action list
   ; ignore : ignoreType list
   ; additional_headers : additional_headers
+  ; expected_response_code : int option
   }
 
 type global =
@@ -54,4 +55,5 @@ type global =
   ; diff_pixel_color : int32
   ; parallelism : int option
   ; additional_headers : additional_headers
+  ; expected_response_code : int option
   }
