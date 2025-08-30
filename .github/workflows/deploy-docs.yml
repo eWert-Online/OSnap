@@ -93,5 +93,6 @@ jobs:
           port: 22
           script: |
             cd ${{ vars.DEPLOY_HOST_PATH }}
+            docker logout ghcr.io
             docker compose pull
             docker compose up -d
