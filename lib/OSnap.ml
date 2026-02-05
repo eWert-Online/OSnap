@@ -88,7 +88,7 @@ let run ~env t =
   let browser_pool =
     Eio.Pool.create
       parallelism
-      (fun () -> Browser.Target.make browser)
+      (fun () -> Browser.Target.make ~config browser)
       ~validate:(fun target -> Result.is_ok target)
   in
   debug "Assigning tests to runners...";

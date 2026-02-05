@@ -56,4 +56,5 @@ type global =
   ; parallelism : int option
   ; additional_headers : additional_headers
   ; expected_response_code : int option
+  ; ignore_certificate_errors : bool
   }

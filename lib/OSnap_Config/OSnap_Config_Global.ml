@@ -132,6 +132,11 @@ module YAML = struct
     let* expected_response_code =
       yaml |> OSnap_Config_Utils.YAML.get_int_option ~path "expectedResponseCode"
     in
+    let* ignore_certificate_errors =
+      yaml
+      |> OSnap_Config_Utils.YAML.get_bool_option ~path "ignoreCertificateErrors"
+      |> Result.map (Option.value ~default:false)
+    in
     let duplicates =
       default_sizes
       |> List.filter (fun (s : OSnap_Config_Types.size) -> Option.is_some s.name)
@@ -158,6 +163,7 @@ module YAML = struct
         ; parallelism
         ; additional_headers
         ; expected_response_code
+        ; ignore_certificate_errors
         }
   ;;
 end

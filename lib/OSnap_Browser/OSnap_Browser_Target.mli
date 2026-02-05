@@ -4,5 +4,6 @@ type target =
   }
 
 val make
-  :  OSnap_Browser_Types.t
+  :  config:OSnap_Config.Types.global
+  -> OSnap_Browser_Types.t
   -> (target, [> `OSnap_CDP_Protocol_Error of string ]) Result.t

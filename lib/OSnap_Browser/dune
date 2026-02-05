@@ -1,6 +1,7 @@
 (library
  (name OSnap_Browser)
  (libraries
+  OSnap_Config
   OSnap_Utils
   OSnap_Logger
   OSnap_Websocket

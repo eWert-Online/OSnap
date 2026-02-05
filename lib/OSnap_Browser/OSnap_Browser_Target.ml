@@ -6,7 +6,7 @@ type target =
   ; sessionId : Cdp.Types.Target.SessionID.t
   }
 
-let enable_events t =
+let enable_events ~(config : OSnap_Config.Types.global) t =
   let ( let*? ) = Result.bind in
   let open Cdp.Commands in
   let sessionId = t.sessionId in
@@ -72,10 +72,27 @@ let enable_events t =
     in
     Option.to_result response.Response.result ~none:error
   in
+  let*? _ =
+    let open Security.SetIgnoreCertificateErrors in
+    let response =
+      Request.make
+        ~sessionId
+        ~params:(Params.make ~ignore:config.ignore_certificate_errors ())
+      |> Websocket.send
+      |> Response.parse
+    in
+    let error =
+      response.Response.error
+      |> Option.map (fun (error : Response.error) ->
+        `OSnap_CDP_Protocol_Error error.message)
+      |> Option.value ~default:(`OSnap_CDP_Protocol_Error "")
+    in
+    Option.to_result response.Response.result ~none:error
+  in
   Result.ok ()
 ;;
 
-let make browser =
+let make ~config browser =
   let ( let*? ) = Result.bind in
   let*? { targetId } =
     let open Cdp.Commands.Target.CreateTarget in
@@ -115,6 +132,6 @@ let make browser =
     Option.to_result response.Response.result ~none:error
   in
   let t = { targetId; sessionId } in
-  let*? () = enable_events t in
+  let*? () = enable_events ~config t in
   Result.ok t
 ;;
