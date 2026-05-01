@@ -163,6 +163,16 @@ A record of additional headers to send with each request.
 
 The expected status code of the response. The test will fail, when the expected code does not match the returned one.
 
+---
+
+### Ignore Certificate Errors
+
+- **Key**: `ignoreCertificateErrors`
+- **Required**: `false`
+- **Type**: `bool`
+
+If true, the browser will not show the error page for invalid https certificates.
+
 ## Example
 
 **A full example of a global config file:**
@@ -188,6 +198,7 @@ additionalHttpHeaders:
   Authorization: "Bearer mytoken123"
 
 expectedResponseCode: 200
+ignoreCertificateErrors: true
 
 diffPixelColor:
   r: 209
