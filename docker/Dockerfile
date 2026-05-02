@@ -12,7 +12,7 @@ RUN ./configure --prefix=/usr --libdir=/lib --static && \
   make install pkgconfigdir="/usr/lib/pkgconfig"
 
 
-FROM ocaml/opam:alpine-ocaml-5.2-flambda
+FROM ocaml/opam:alpine-3.21-ocaml-5.2-flambda
 
 RUN sudo apk add --no-cache --update \
   bash make cmake curl perl-utils git patch gcc g++ \
@@ -28,7 +28,7 @@ WORKDIR /usr/app
 
 COPY ./osnap.opam .
 
-RUN opam install . --deps-only --working-dir --yes && eval $(opam env)
+RUN opam update && opam install . --deps-only --working-dir --yes && eval $(opam env)
 
 COPY . .
 
